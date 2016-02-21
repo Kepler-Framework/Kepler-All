@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+    http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<alias name="kepler.management.status.task" alias="kepler.management.task.status" />
+
+	<bean id="kepler.management.status.task" class="com.kepler.management.status.impl.StatusTask">
+		<constructor-arg ref="kepler.host.local" />
+		<constructor-arg ref="kepler.management.status.feeder" />
+		<constructor-arg ref="kepler.management.status.dynamic" />
+	</bean>
+
+	<bean id="kepler.management.status.feeder" class="com.kepler.service.imported.ImportedServiceFactory" parent="kepler.service.imported.abstract">
+		<constructor-arg index="0" value="com.kepler.management.status.Feeder" />
+	</bean>
+
+	<bean id="kepler.management.status.dynamic" class="com.kepler.management.status.impl.ChainedStatus">
+		<constructor-arg>
+			<util:list>
+				<ref bean="kepler.management.status.dynamic.gc" />
+				<ref bean="kepler.management.status.dynamic.memory" />
+				<ref bean="kepler.management.status.dynamic.running" />
+				<ref bean="kepler.management.status.dynamic.thread" />
+				<ref bean="kepler.management.status.dynamic.traffic" />
+			</util:list>
+		</constructor-arg>
+	</bean>
+
+	<bean id="kepler.management.status.static" class="com.kepler.management.status.impl.ChainedStatus">
+		<constructor-arg>
+			<util:list>
+				<ref bean="kepler.management.status.static.gc" />
+				<ref bean="kepler.management.status.static.system" />
+				<ref bean="kepler.management.status.static.runtime" />
+				<ref bean="kepler.management.status.static.framework" />
+			</util:list>
+		</constructor-arg>
+	</bean>
+
+	<bean id="kepler.management.status.dynamic.gc" class="com.kepler.management.status.impl.StatusGC4Data" init-method="init" />
+
+	<bean id="kepler.management.status.dynamic.running" class="com.kepler.management.status.impl.Status4Running" />
+
+	<bean id="kepler.management.status.dynamic.traffic" class="com.kepler.management.status.impl.Status4Traffic">
+		<constructor-arg ref="kepler.traffic" />
+	</bean>
+
+	<bean id="kepler.management.status.dynamic.memory" class="com.kepler.management.status.impl.Status4Memory" />
+
+	<bean id="kepler.management.status.dynamic.thread" class="com.kepler.management.status.impl.Status4Thread">
+		<constructor-arg ref="kepler.threads" />
+	</bean>
+
+	<bean id="kepler.management.status.static.framework" class="com.kepler.management.status.impl.Status4Kepler" init-method="init" />
+
+	<bean id="kepler.management.status.static.runtime" class="com.kepler.management.status.impl.Status4Runtime" init-method="init" />
+
+	<bean id="kepler.management.status.static.system" class="com.kepler.management.status.impl.Status4System" init-method="init" />
+
+	<bean id="kepler.management.status.static.gc" class="com.kepler.management.status.impl.StatusGC4Name" init-method="init" />
+
+</beans>

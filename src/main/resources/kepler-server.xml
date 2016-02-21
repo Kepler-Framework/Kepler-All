@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+    http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<import resource="kepler-core.xml" />
+
+	<bean class="com.kepler.connection.impl.DefaultServer" init-method="init" destroy-method="destroy">
+		<constructor-arg ref="kepler.trace" />
+		<constructor-arg ref="kepler.token" />
+		<constructor-arg ref="kepler.serials" />
+		<constructor-arg ref="kepler.threads" />
+		<constructor-arg ref="kepler.traffic" />
+		<constructor-arg ref="kepler.promotion" />
+		<constructor-arg ref="kepler.host.local" />
+		<constructor-arg ref="kepler.header.context" />
+		<constructor-arg ref="kepler.protocol.response" />
+		<constructor-arg ref="kepler.service.exported.context" />
+		<constructor-arg ref="kepler.protocol.validation4service" />
+	</bean>
+
+</beans>

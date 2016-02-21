@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+    http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<alias name="kepler.zookeeper.factory" alias="kepler.zookeeper" />
+
+	<alias name="kepler.zookeeper.context" alias="kepler.service.exported.zookeeper" />
+
+	<alias name="kepler.zookeeper.context" alias="kepler.service.imported.zookeeper" />
+
+	<alias name="kepler.zookeeper.context" alias="kepler.service.exportedServices" />
+
+	<bean id="kepler.zookeeper.factory" class="com.kepler.zookeeper.ZkFactory" init-method="init" />
+
+	<bean id="kepler.zookeeper.listener" class="com.kepler.service.imported.DefaultImportedListener">
+		<constructor-arg ref="kepler.host.context" />
+		<constructor-arg ref="kepler.connection.connect" />
+	</bean>
+
+	<bean id="kepler.zookeeper.context" class="com.kepler.zookeeper.ZkContext" destroy-method="destroy">
+		<constructor-arg ref="kepler.management.status.static" />
+		<constructor-arg ref="kepler.zookeeper.listener" />
+		<constructor-arg ref="kepler.zookeeper.factory" />
+		<constructor-arg ref="kepler.config.profile" />
+		<constructor-arg ref="kepler.host.local" />
+		<constructor-arg ref="kepler.serials" />
+		<constructor-arg ref="kepler.config" />
+	</bean>
+
+</beans>

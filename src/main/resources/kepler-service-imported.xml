@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+    http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<bean id="kepler.service.imported" class="com.kepler.service.imported.ChainedImported">
+		<constructor-arg>
+			<util:list>
+				<ref bean="kepler.service.imported.invoker.broadcast" />
+				<ref bean="kepler.service.imported.invoker.forkjoin" />
+				<ref bean="kepler.service.imported.invoker.compete" />
+				<ref bean="kepler.service.imported.invoker.async" />
+				<ref bean="kepler.service.imported.invoker.main" />
+				<ref bean="kepler.service.imported.collector" />
+				<ref bean="kepler.service.imported.quiet" />
+				<!-- ZK为最终发布, 需要放在末尾 -->
+				<ref bean="kepler.service.imported.zookeeper" />
+			</util:list>
+		</constructor-arg>
+	</bean>
+
+	<bean id="kepler.service.imported.abstract" abstract="true">
+		<constructor-arg ref="kepler.id" />
+		<constructor-arg ref="kepler.invoker" />
+		<constructor-arg ref="kepler.serials" />
+		<constructor-arg ref="kepler.header.context" />
+		<constructor-arg ref="kepler.config.profile" />
+		<constructor-arg ref="kepler.service.imported" />
+		<constructor-arg ref="kepler.protocol.request" />
+		<constructor-arg ref="kepler.header.processor" />
+		<constructor-arg ref="kepler.protocol.validation4client" />
+	</bean>
+
+</beans>

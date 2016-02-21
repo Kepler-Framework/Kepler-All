@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+    http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<import resource="kepler-invoker-async.xml" />
+	<import resource="kepler-invoker-forkjoin.xml" />
+
+	<alias name="kepler.invoker.main" alias="kepler.invoker" />
+	<alias name="kepler.invoker.main" alias="kepler.service.imported.invoker.main" />
+	<alias name="kepler.invoker.async" alias="kepler.service.imported.invoker.async" />
+	<alias name="kepler.invoker.compete" alias="kepler.service.imported.invoker.compete" />
+	<alias name="kepler.invoker.forkjoin" alias="kepler.service.imported.invoker.forkjoin" />
+	<alias name="kepler.invoker.broadcast" alias="kepler.service.imported.invoker.broadcast" />
+
+	<bean id="kepler.invoker.main" class="com.kepler.invoker.impl.MainInvoker">
+		<constructor-arg ref="kepler.config.profile" />
+		<constructor-arg>
+			<util:list>
+				<!-- 始终第一 -->
+				<ref bean="kepler.invoker.demote" />
+				<ref bean="kepler.invoker.broadcast" />
+				<ref bean="kepler.invoker.forkjoin" />
+				<ref bean="kepler.invoker.compete" />
+				<ref bean="kepler.invoker.async" />
+				<!-- 始终最后 -->
+				<ref bean="kepler.invoker.actual" />
+			</util:list>
+		</constructor-arg>
+	</bean>
+
+	<bean id="kepler.invoker.broadcast" class="com.kepler.invoker.impl.BroadcastInvoker">
+		<constructor-arg ref="kepler.id" />
+		<constructor-arg ref="kepler.router" />
+		<constructor-arg ref="kepler.config.profile" />
+		<constructor-arg ref="kepler.channel.context" />
+		<constructor-arg ref="kepler.protocol.request" />
+	</bean>
+
+	<bean id="kepler.invoker.compete" class="com.kepler.invoker.impl.CompeteInvoker">
+		<constructor-arg ref="kepler.id" />
+		<constructor-arg ref="kepler.router" />
+		<constructor-arg ref="kepler.threads" />
+		<constructor-arg ref="kepler.invoker.actual" />
+		<constructor-arg ref="kepler.config.profile" />
+		<constructor-arg ref="kepler.protocol.request" />
+	</bean>
+
+	<bean id="kepler.invoker.actual" class="com.kepler.invoker.impl.ActualInvoker">
+		<constructor-arg ref="kepler.router" />
+		<constructor-arg ref="kepler.mock.context" />
+		<constructor-arg ref="kepler.channel.context" />
+	</bean>
+
+	<bean id="kepler.invoker.demote" class="com.kepler.invoker.impl.DemoteInvoker">
+		<constructor-arg ref="kepler.mock.context" />
+		<constructor-arg ref="kepler.config.profile" />
+	</bean>
+
+</beans>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+    http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<import resource="kepler-serial-hessian.xml" />
+	<!-- 
+	<import resource="kepler-serial-jackson.xml" /> 
+	-->
+
+	<bean id="kepler.serials.inputs" class="com.kepler.serial.impl.DefaultSerialInputs">
+		<constructor-arg ref="kepler.serial.input.hessian" />
+	</bean>
+
+	<bean id="kepler.serials.outputs" class="com.kepler.serial.impl.DefaultSerialOutputs">
+		<constructor-arg ref="kepler.serial.output.hessian" />
+	</bean>
+
+	<bean id="kepler.serials " class="com.kepler.serial.impl.DefaultSerials">
+		<constructor-arg ref="kepler.serials.inputs" />
+		<constructor-arg ref="kepler.serials.outputs" />
+	</bean>
+</beans>

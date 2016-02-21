@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+    http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<import resource="kepler-config-parser.xml" />
+
+	<bean id="kepler.config" class="com.kepler.config.impl.DefaultConfig" init-method="init">
+		<constructor-arg ref="kepler.threads" />
+		<constructor-arg ref="kepler.config.aware" />
+		<constructor-arg ref="kepler.config.parsers" />
+	</bean>
+
+	<bean id="kepler.config.aware" class="com.kepler.config.impl.DefaultConfigAware" />
+
+</beans>

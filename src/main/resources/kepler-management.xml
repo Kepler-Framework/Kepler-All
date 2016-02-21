@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+    http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<import resource="kepler-management-status.xml" />
+	<import resource="kepler-management-transfer.xml" />
+	<import resource="kepler-management-collector.xml" />
+	<import resource="kepler-management-dependency.xml" />
+
+	<bean class="com.kepler.management.Period" init-method="init" destroy-method="destroy">
+		<constructor-arg ref="kepler.threads" />
+		<constructor-arg>
+			<util:list>
+				<ref bean="kepler.management.task.status" />
+				<ref bean="kepler.management.task.transfer" />
+				<ref bean="kepler.management.task.dependency" />
+			</util:list>
+		</constructor-arg>
+	</bean>
+
+</beans>

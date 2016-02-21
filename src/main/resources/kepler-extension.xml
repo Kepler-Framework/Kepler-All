@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+    http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<bean class="com.kepler.extension.impl.Extensions">
+		<constructor-arg>
+			<util:list>
+				<ref bean="kepler.mock.context" />
+				<ref bean="kepler.trace.traces" />
+				<ref bean="kepler.config.aware" />
+				<ref bean="kepler.invoker.forks" />
+				<ref bean="kepler.invoker.joins" />
+				<ref bean="kepler.config.parsers" />
+				<ref bean="kepler.router.filters" />
+				<ref bean="kepler.serials.inputs" />
+				<ref bean="kepler.serials.outputs" />
+				<ref bean="kepler.router.routings" />
+				<ref bean="kepler.header.processor" />
+				<ref bean="kepler.protocol.validation4client" />
+				<ref bean="kepler.protocol.validation4service" />
+			</util:list>
+		</constructor-arg>
+	</bean>
+
+</beans>

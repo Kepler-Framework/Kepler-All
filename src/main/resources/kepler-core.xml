@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+    http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<import resource="kepler-id.xml" />
+	<import resource="kepler-ack.xml" />
+	<import resource="kepler-mock.xml" />
+	<import resource="kepler-host.xml" />
+	<import resource="kepler-main.xml" />
+	<import resource="kepler-token.xml" />
+	<import resource="kepler-trace.xml" />
+	<import resource="kepler-config.xml" />
+	<import resource="kepler-header.xml" />
+	<import resource="kepler-thread.xml" />
+	<import resource="kepler-serial.xml" />
+	<import resource="kepler-traffic.xml" />
+	<import resource="kepler-profile.xml" />
+	<import resource="kepler-invoker.xml" />
+	<import resource="kepler-channel.xml" />
+	<import resource="kepler-promotion.xml" />
+	<import resource="kepler-extension.xml" />
+	<import resource="kepler-zookeeper.xml" />
+	<import resource="kepler-connection.xml" />
+	<import resource="kepler-management.xml" />
+	<import resource="kepler-router.xml" />
+	<import resource="kepler-filter.xml" />
+	<import resource="kepler-protocol.xml" />
+	<import resource="kepler-service-quiet.xml" />
+	<import resource="kepler-service-imported.xml" />
+	<import resource="kepler-service-exported.xml" />
+
+</beans>

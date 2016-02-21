@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+    http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<bean id="kepler.connection.connects" class="com.kepler.connection.impl.DefaultConnects" />
+
+	<bean id="kepler.connection.connect" class="com.kepler.connection.impl.DefaultConnect" init-method="init" destroy-method="destroy">
+		<constructor-arg ref="kepler.token" />
+		<constructor-arg ref="kepler.serials" />
+		<constructor-arg ref="kepler.threads" />
+		<constructor-arg ref="kepler.traffic" />
+		<constructor-arg ref="kepler.host.local" />
+		<constructor-arg ref="kepler.ack.timeout" />
+		<constructor-arg ref="kepler.host.context" />
+		<constructor-arg ref="kepler.config.profile" />
+		<constructor-arg ref="kepler.channel.context" />
+		<constructor-arg ref="kepler.connection.connects" />
+		<constructor-arg ref="kepler.service.imported.quiet" />
+		<constructor-arg ref="kepler.management.transfer.collector" />
+	</bean>
+
+</beans>
