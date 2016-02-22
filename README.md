@@ -24,7 +24,7 @@
 	* Monitor: 数据收集服务, 收集Service/Client运行时状态
 	* Admin: 服务管理中心, 提供服务治理统一入口(API) 
 <br></br>
-* @See[<a href="quick_start.html">快速尝试</a>]
-* @See[<a href="https://github.com/KimShen/Kepler/wiki/%E4%BD%BF%E7%94%A8%E8%80%85%E6%89%8B%E5%86%8C(@%E6%B2%88%E4%BD%B3%E4%BC%9F)">使用者手册(@沈佳伟)</a>]
-* @See[<a href="https://github.com/KimShen/Kepler/wiki/%E5%BC%80%E5%8F%91%E8%80%85%E6%89%8B%E5%86%8C(@%E5%BC%A0%E7%9A%86%E6%B5%A9)">开发者手册(@张皆浩)</a>]
-* @See[<a href="">管理员手册(@龙耀昆)</a>]
+* @See[<a href="https://github.com/Kepler-Framework/Kepler-All/wiki/%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B">快速尝试</a>]
+* @See[<a href="">使用者手册</a>]
+* @See[<a href="">开发者手册</a>]
+* @See[<a href="">管理员手册</a>]
