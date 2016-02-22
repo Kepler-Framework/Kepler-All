@@ -1,6 +1,11 @@
 package com.kepler.invoker.forkjoin.impl;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -11,6 +16,7 @@ import org.springframework.util.Assert;
 import com.kepler.KeplerRoutingException;
 import com.kepler.KeplerValidateException;
 import com.kepler.annotation.ForkJoin;
+import com.kepler.annotation.QuietMethod;
 import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.header.Headers;
@@ -87,7 +93,8 @@ public class ForkJoinInvoker implements Imported, Invoker {
 			ForkJoin forkjoin = method.getAnnotation(ForkJoin.class);
 			if (forkjoin != null) {
 				Assert.state(!method.getReturnType().equals(void.class), "Method must not return void ... ");
-				this.forkers.put(service, method.getName(), forkjoin);
+				// 构建ForkJoinInstance
+				this.forkers.put(service, method.getName(), new ForkJoinInstance(forkjoin, method.getAnnotation(QuietMethod.class)));
 			}
 		}
 	}
@@ -148,8 +155,8 @@ public class ForkJoinInvoker implements Imported, Invoker {
 	 */
 	private Object fork(Request request) throws Throwable {
 		try {
-			ForkJoin forkjoin = ForkJoin.class.cast(this.forkers.get(request.service(), request.method()));
-			return new ForkJoinProcessor(this.join(forkjoin.join(), request)).fork(request, this.fork(forkjoin.fork(), request), this.tag(request)).value();
+			ForkJoinInstance instance = ForkJoinInstance.class.cast(this.forkers.get(request.service(), request.method()));
+			return new ForkJoinProcessor(this.join(instance.forkjoin().join(), request), instance).fork(request, this.fork(instance.forkjoin().fork(), request), this.tag(request)).value();
 		} catch (KeplerRoutingException exception) {
 			return this.mock(request, exception);
 		}
@@ -171,7 +178,24 @@ public class ForkJoinInvoker implements Imported, Invoker {
 		}
 	}
 
+	/**
+	 * 异常静默策略
+	 * 
+	 * @author kim
+	 *
+	 * 2016年2月22日
+	 */
+	private interface Quiet {
+
+		public boolean quiet(Throwable throwable);
+	}
+
 	private class ForkJoinProcessor {
+
+		/**
+		 * Fork任务列表(用于资源释放)
+		 */
+		private final List<ForkerRunnable> runnables = new ArrayList<ForkerRunnable>();
 
 		/**
 		 * 计数器
@@ -181,48 +205,102 @@ public class ForkJoinInvoker implements Imported, Invoker {
 		private final Joiner joiner;
 
 		/**
+		 * 静默异常
+		 */
+		private final Quiet quiets;
+
+		/**
+		 * 异常
+		 */
+		volatile private Throwable throwable;
+
+		/**
 		 * 最终结果
 		 */
-		private Object value;
+		volatile private Object value;
 
-		private ForkJoinProcessor(Joiner joiner) {
+		/**
+		 * @param joiner
+		 * @param quiets 静默异常
+		 */
+		private ForkJoinProcessor(Joiner joiner, Quiet quiets) {
 			super();
 			this.joiner = joiner;
+			this.quiets = quiets;
+		}
+
+		/**
+		 * 释放资源
+		 */
+		private void release() {
+			for (ForkerRunnable runnable : this.runnables) {
+				runnable.release();
+			}
+		}
+
+		/**
+		 * 加入任务列表并返回
+		 * 
+		 * @param actual
+		 * @return
+		 */
+		private ForkJoinProcessor runnable(ForkerRunnable runnable) {
+			this.runnables.add(runnable);
+			return this;
+		}
+
+		/**
+		 * 是否存在异常
+		 * 
+		 * @return
+		 * @throws Throwable
+		 */
+		private ForkJoinProcessor valid() throws Throwable {
+			if (this.throwable != null) {
+				throw throwable;
+			}
+			return this;
 		}
 
 		public ForkJoinProcessor fork(Request request, Forker forker, String[] tags) {
 			for (String tag : tags) {
-				try {
-					// Fork Request Args
-					Request actual = ForkJoinInvoker.this.request.request(request, ForkJoinInvoker.this.generator.generate(request.service(), request.method()), forker.fork(request.args(), tag, this.monitor.get()));
-					// 指定Header
-					actual.put(Host.TAG_KEY, tag);
-					ForkJoinInvoker.this.threads.execute(new ForkerRunnable(this, this.monitor, actual));
-				} catch (Throwable e) {
-					// 失败仅记录Log
-					ForkJoinInvoker.LOGGER.error(e.getMessage(), e);
-				}
+				// Fork Request Args
+				Request actual = ForkJoinInvoker.this.request.request(request, ForkJoinInvoker.this.generator.generate(request.service(), request.method()), forker.fork(request.args(), tag, this.monitor.get()));
+				// 指定Header
+				actual.put(Host.TAG_KEY, tag);
+				ForkJoinInvoker.this.threads.execute(new ForkerRunnable(this, this.monitor, actual));
 			}
 			return this;
 		}
 
 		// 值回调
-		public void join(Object value) {
+		public void value(Object value) {
 			// This同步
 			synchronized (this) {
 				this.value = this.joiner.join(this.value, value);
 			}
 		}
 
+		// 异常回调
+		public void throwable(Throwable throwable) {
+			// 如果已赋值则不做修改, 如果未赋值则仅非静默异常会被赋值
+			this.throwable = (this.throwable == null ? (this.quiets.quiet(throwable) ? null : throwable) : this.throwable);
+		}
+
 		public Object value() throws Throwable {
-			// 监视器同步
-			synchronized (this.monitor) {
-				// 等待监听器,直到计数为0或中断
-				while (this.monitor.get() > 0) {
-					this.monitor.wait();
+			try {
+				// 监听器同步
+				synchronized (this.monitor) {
+					// 等待监听器,直到计数为0或出现异常或中断
+					while (this.monitor.get() > 0 && this.throwable == null) {
+						this.monitor.wait();
+					}
 				}
+				return this.valid().value;
+			} finally {
+				// 释放资源
+				this.release();
 			}
-			return this.value;
 		}
 	}
 
@@ -233,6 +311,8 @@ public class ForkJoinInvoker implements Imported, Invoker {
 		private final AtomicInteger monitor;
 
 		private final Request request;
+
+		volatile private Thread thread;
 
 		/**
 		 * @param forker
@@ -247,14 +327,37 @@ public class ForkJoinInvoker implements Imported, Invoker {
 			this.forker = forker;
 		}
 
+		/**
+		 * 初始化
+		 */
+		private ForkerRunnable prepare() {
+			// 绑定线程
+			this.thread = Thread.currentThread();
+			// 如果任务已开始则回调注册
+			this.forker.runnable(this);
+			return this;
+		}
+
+		public ForkerRunnable release() {
+			if (this.thread != null) {
+				// 尝试中断底层未完成AckFuture
+				this.thread.interrupt();
+			}
+			return this;
+		}
+
 		@Override
 		public void run() {
 			try {
 				// 归并结果
-				this.forker.join(ForkJoinInvoker.this.delegate.invoke(this.request));
+				this.prepare().forker.value(ForkJoinInvoker.this.delegate.invoke(this.request));
 			} catch (Throwable e) {
-				// 失败仅记录Log
-				ForkJoinInvoker.LOGGER.error(e.getMessage(), e);
+				// 回调异常
+				synchronized (this.monitor) {
+					// 通知ForkJoin主线程出现异常并唤醒
+					this.forker.throwable(e);
+					this.monitor.notifyAll();
+				}
 			} finally {
 				// 递减监视器,如果为0则唤醒线程
 				synchronized (this.monitor) {
@@ -263,6 +366,28 @@ public class ForkJoinInvoker implements Imported, Invoker {
 					}
 				}
 			}
+		}
+	}
+
+	private class ForkJoinInstance implements Quiet {
+
+		private final Collection<Class<? extends Throwable>> quiets;
+
+		private final ForkJoin forkjoin;
+
+		private ForkJoinInstance(ForkJoin forkjoin, QuietMethod quiet) {
+			super();
+			this.forkjoin = forkjoin;
+			// 提取静默异常
+			this.quiets = quiet != null ? Arrays.asList(quiet.quiet()) : new HashSet<Class<? extends Throwable>>();
+		}
+
+		public ForkJoin forkjoin() {
+			return this.forkjoin;
+		}
+
+		public boolean quiet(Throwable throwable) {
+			return this.quiets.contains(throwable.getClass());
 		}
 	}
 }
