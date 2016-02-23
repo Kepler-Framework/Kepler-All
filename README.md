@@ -1,7 +1,7 @@
 ##Kepler Distributed Service Framework
 * 不仅是RPC  
 `您的服务健壮吗？`  
-<img src="https://raw.githubusercontent.com/Kepler-Framework/Kepler-Images/master/target.png" width="100%"/>
+<img src="https://raw.githubusercontent.com/Kepler-Framework/Kepler-Images/master/target.png" width="80%"/>  
 <br></br>
 * 为什么造轮子  
 `先有Dubbo修补天，ZeroC ICE还在前。巨人的肩膀上才能看的更远。`
