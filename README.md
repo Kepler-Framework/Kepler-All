@@ -1,6 +1,5 @@
 ##Kepler Distributed Service Framework
-* 不仅是RPC    
-`请关注服务的健康`
+* 不仅是RPC，还请`关注服务健康`
 <img src="https://raw.githubusercontent.com/Kepler-Framework/Kepler-Images/master/target.png" width="100%"/>
 <br></br>
 * 为什么造轮子  
