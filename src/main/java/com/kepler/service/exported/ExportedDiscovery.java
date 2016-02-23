@@ -42,19 +42,22 @@ public class ExportedDiscovery implements BeanPostProcessor {
 		Autowired autowired = AnnotationUtils.findAnnotation(Advised.class.isAssignableFrom(bean.getClass()) ? Advised.class.cast(bean).getTargetClass() : bean.getClass(), Autowired.class);
 		// 标记@Autowired表示自动发布
 		if (autowired != null) {
-			this.exported(bean, autowired.profile(), autowired.version());
+			this.exported(bean, autowired.catalog(), autowired.profile(), autowired.version());
 		}
 		return bean;
 	}
 
 	// 如果@Autowire定义了Version则覆盖@Service
-	private void exported(Object bean, String profile, String version[]) {
+	private void exported(Object bean, String catalog, String profile, String version[]) {
 		// 迭代所有定义@Service的接口
 		for (Class<?> each : this.services(new ArrayList<Class<?>>(), bean.getClass())) {
 			try {
 				Service exported = AnnotationUtils.findAnnotation(each, Service.class);
+				// Autowired.Catalog覆盖Service.Catalog
+				String catalog4exported = StringUtils.isEmpty(catalog) ? exported.catalog() : catalog;
 				// Version.length=1并且Version[0]为空则表示使用没有指定Autowired.Version
-				this.exported(each, bean, profile, AnnotationUtils.findAnnotation(each, Service.class).catalog(), (version.length == 1 && StringUtils.isEmpty(version[0])) ? new String[] { exported.version() } : version);
+				String[] version4exported = (version.length == 1 && StringUtils.isEmpty(version[0])) ? new String[] { exported.version() } : version;
+				this.exported(each, bean, profile, catalog4exported, version4exported);
 			} catch (Exception e) {
 				throw new KeplerLocalException(e);
 			}

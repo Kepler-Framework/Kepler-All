@@ -25,6 +25,8 @@ public @interface Autowired {
 	 */
 	String[] version() default "";
 
+	String catalog() default "";
+
 	/**
 	 * Profile逻辑名
 	 * 
