@@ -33,7 +33,7 @@ public class ThreadFactory implements FactoryBean<ThreadPoolExecutor> {
 	/**
 	 * 扫描线程池是否完毕间隔
 	 */
-	private final static int SHUTDOWN_INTERVAL = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".shutdown_interval", 500);
+	private final static int SHUTDOWN_INTERVAL = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".shutdown_interval", 1000);
 
 	private ThreadPoolExecutor threads;
 
@@ -86,7 +86,7 @@ public class ThreadFactory implements FactoryBean<ThreadPoolExecutor> {
 
 	private void waitingRunnable(long timestamp) throws InterruptedException {
 		while (!this.threads.awaitTermination(ThreadFactory.SHUTDOWN_INTERVAL, TimeUnit.MILLISECONDS)) {
-			ThreadFactory.LOGGER.info("Shutdown threads using " + (TimeUnit.MILLISECONDS.convert(System.currentTimeMillis() - timestamp, TimeUnit.SECONDS)) + "s ...");
+			ThreadFactory.LOGGER.info("Shutdown threads using " + (TimeUnit.SECONDS.convert(System.currentTimeMillis() - timestamp, TimeUnit.MILLISECONDS)) + "s ...");
 		}
 	}
 }
