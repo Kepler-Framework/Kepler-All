@@ -18,14 +18,14 @@
 <br></br>
 * Kepler的角色分工  
 <img src="https://raw.githubusercontent.com/Kepler-Framework/Kepler-Images/master/workflow.png" width="100%"/>  
-	* Service/Client:
-	服务提供者/服务调用者
-	* Registry: 
-	注册中心
-	* Monitor: 
-	数据收集服务, 收集服务运行时状态
-	* Admin: 
-	服务管理中心, 提供服务治理统一入口(API) 
+	* Service/Client:  
+	`服务提供者/服务调用者`
+	* Registry:   
+	`注册中心`
+	* Monitor:   
+	`数据收集服务, 收集服务运行时状态`
+	* Admin:   
+	`服务管理中心, 提供服务治理统一入口(API)` 
 <br></br>
 <br></br>
 * @See[<a href="https://github.com/Kepler-Framework/Kepler-All/wiki/%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B">快速开始</a>]
