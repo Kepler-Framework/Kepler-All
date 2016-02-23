@@ -1,6 +1,6 @@
 ##Kepler Distributed Service Framework
 * 不仅是RPC  
-`您的服务健康吗？请核对以下体检菜单`  
+`您的服务健康吗？请关注以下体检菜单`  
 <img src="https://raw.githubusercontent.com/Kepler-Framework/Kepler-Images/master/target.png" width="80%"/>  
 <br></br>
 * 人人都在说，为什么要造轮子  
