@@ -7,7 +7,7 @@
 `Dubbo科普先，ZeroC ICE还在前。巨人的肩膀上才能看的更远。`
 <br></br>
 * Kepler Style  
-`透明代理，无缝集成。我中有你，你中无我。`
+`尽可能隔离框架的侵入性。透明代理，我中有你，你中无我。`
 <img src="https://raw.githubusercontent.com/Kepler-Framework/Kepler-Images/master/split.png" width="100%"/>
 `天下代码，合合分分，分分合合。随时切换才能保持正确的姿势。`
 <br></br>
