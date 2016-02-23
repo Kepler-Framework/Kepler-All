@@ -14,13 +14,13 @@
 `天下代码，合合分分，分分合合。随时切换才能保持正确的姿势。`
 <br></br>
 <br></br>
-* 上帝视角  
+* 上帝视角中的Kepler  
 <img src="https://raw.githubusercontent.com/Kepler-Framework/Kepler-Images/master/overview.png" width="100%"/>
 	* <a href="http://zookeeper.apache.org">`关于ZooKeeper`</a>
 	* <a href="https://www.mongodb.org/">`关于MongoDB(可选)`</a>
 <br></br>
 <br></br>
-* 角色分工  
+* Kepler中的角色与分工  
 <img src="https://raw.githubusercontent.com/Kepler-Framework/Kepler-Images/master/workflow.png" width="100%"/>  
 	* Service:服务提供者
 	* Client: 服务调用者		
