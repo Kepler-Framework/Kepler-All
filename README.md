@@ -1,10 +1,10 @@
 ##Kepler Distributed Service Framework
-* 不仅是RPC  
+* 不仅是RPC！
 `您的服务健康吗？请核对以下体检菜单`  
 <img src="https://raw.githubusercontent.com/Kepler-Framework/Kepler-Images/master/target.png" width="80%"/>  
 <br></br>
-* 为什么造轮子  
-`先有Dubbo修补天，ZeroC ICE还在前。巨人的肩膀上才能看的更远。`
+* 人人都在说，为什么要造轮子？
+`Dubbo科普先，ZeroC ICE还在前。巨人的肩膀上才能看的更远。`
 <br></br>
 * Kepler Style  
 `透明代理，无缝集成。我中有你，你中无我。`
