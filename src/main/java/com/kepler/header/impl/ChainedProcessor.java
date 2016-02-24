@@ -25,8 +25,7 @@ public class ChainedProcessor implements HeadersProcessor, Extension {
 	@Override
 	// 将本次迭代返回Headers作为下次迭代参数Headers
 	public Headers process(Service service, Headers headers) {
-		// 不存在则初始化
-		Headers each = (headers != null ? headers : new LazyHeaders());
+		Headers each = headers;
 		for (HeadersProcessor processor : this.processors) {
 			each = processor.process(service, each);
 		}

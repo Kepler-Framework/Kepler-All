@@ -10,7 +10,12 @@ import com.kepler.header.HeadersContext;
  */
 public class ThreadHeaders implements HeadersContext {
 
-	private final static ThreadLocal<Headers> HEADERS = new ThreadLocal<Headers>();
+	private final static ThreadLocal<Headers> HEADERS = new ThreadLocal<Headers>() {
+		protected Headers initialValue() {
+			// Create on get() or release()
+			return new LazyHeaders();
+		}
+	};
 
 	@Override
 	public Headers get() {
@@ -24,6 +29,7 @@ public class ThreadHeaders implements HeadersContext {
 	}
 
 	public Headers release() {
+		// 仅Headers.enabled=true时触发Realease, 此时必须存在Headers
 		Headers headers = ThreadHeaders.HEADERS.get();
 		ThreadHeaders.HEADERS.set(null);
 		ThreadHeaders.HEADERS.remove();

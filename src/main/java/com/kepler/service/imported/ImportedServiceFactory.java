@@ -56,10 +56,14 @@ public class ImportedServiceFactory<T> implements FactoryBean<T> {
 	private final Invoker invoker;
 
 	private ImportedServiceFactory(Class<T> clazz, com.kepler.annotation.Service service, String profile, Invoker invoker, RequestValidation validation, RequestFactory factory, HeadersContext header, HeadersProcessor processor, IDGenerator generator, Profile profiles, Serials serials, Imported imported) {
-		this(clazz, profile, service.version(), null, invoker, validation, factory, header, processor, generator, profiles, serials, imported);
+		this(clazz, profile, service.version(), service.catalog(), invoker, validation, factory, header, processor, generator, profiles, serials, imported);
 	}
 
-	// 使用@Service获取信息, 并使用Profile=null
+	private ImportedServiceFactory(Class<T> clazz, com.kepler.annotation.Service service, String profile, String catalog, Invoker invoker, RequestValidation validation, RequestFactory factory, HeadersContext header, HeadersProcessor processor, IDGenerator generator, Profile profiles, Serials serials, Imported imported) {
+		this(clazz, profile, service.version(), catalog, invoker, validation, factory, header, processor, generator, profiles, serials, imported);
+	}
+
+	// 使用@Service获取信息, 并使用默认Profile
 	public ImportedServiceFactory(Class<T> clazz, Invoker invoker, RequestValidation validation, RequestFactory factory, HeadersContext header, HeadersProcessor processor, IDGenerator generator, Profile profiles, Serials serials, Imported imported) {
 		this(clazz, AnnotationUtils.findAnnotation(clazz, com.kepler.annotation.Service.class), null, invoker, validation, factory, header, processor, generator, profiles, serials, imported);
 	}
@@ -67,6 +71,11 @@ public class ImportedServiceFactory<T> implements FactoryBean<T> {
 	// 使用@Service获取信息, 并指定Profile
 	public ImportedServiceFactory(Class<T> clazz, String profile, Invoker invoker, RequestValidation validation, RequestFactory factory, HeadersContext header, HeadersProcessor processor, IDGenerator generator, Profile profiles, Serials serials, Imported imported) {
 		this(clazz, AnnotationUtils.findAnnotation(clazz, com.kepler.annotation.Service.class), profile, invoker, validation, factory, header, processor, generator, profiles, serials, imported);
+	}
+
+	// 使用@Service获取信息, 并指定Profile和Catalog
+	public ImportedServiceFactory(Class<T> clazz, String profile, String catalog, Invoker invoker, RequestValidation validation, RequestFactory factory, HeadersContext header, HeadersProcessor processor, IDGenerator generator, Profile profiles, Serials serials, Imported imported) {
+		this(clazz, AnnotationUtils.findAnnotation(clazz, com.kepler.annotation.Service.class), profile, catalog, invoker, validation, factory, header, processor, generator, profiles, serials, imported);
 	}
 
 	// 不使用@Service
