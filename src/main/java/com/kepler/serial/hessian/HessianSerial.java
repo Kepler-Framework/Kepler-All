@@ -457,8 +457,10 @@ public class HessianSerial implements SerialOutput, SerialInput {
 		}
 
 		private HessianOutput write4type(HessianOutput output, Request request, Class<?> clazz, Object arg) throws Exception {
-			// 如果是原生类型或传递参数与声明类型完全一致则仅标记而不写入实际类型
-			if (!this.force(clazz) && (clazz.isPrimitive() || arg.getClass().equals(clazz))) {
+			// this.force(clazz) 强制需要写入Type的类型
+			// clazz.isPrimitive() 原生类型
+			// arg !=null && arg.getClass().equals(clazz), 传递参数与声明类型完全一致
+			if (!this.force(clazz) && (clazz.isPrimitive() || (arg != null && arg.getClass().equals(clazz)))) {
 				output.writeBoolean(true);
 			} else {
 				output.writeBoolean(false);
