@@ -18,13 +18,13 @@
 		<constructor-arg ref="kepler.config.profile" />
 		<constructor-arg>
 			<util:list>
-				<!-- 始终第一 -->
+				<!-- aways first -->
 				<ref bean="kepler.invoker.demote" />
 				<ref bean="kepler.invoker.broadcast" />
 				<ref bean="kepler.invoker.forkjoin" />
 				<ref bean="kepler.invoker.compete" />
 				<ref bean="kepler.invoker.async" />
-				<!-- 始终最后 -->
+				<!-- aways last -->
 				<ref bean="kepler.invoker.actual" />
 			</util:list>
 		</constructor-arg>

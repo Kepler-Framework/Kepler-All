@@ -14,7 +14,7 @@
 				<ref bean="kepler.service.imported.invoker.main" />
 				<ref bean="kepler.service.imported.collector" />
 				<ref bean="kepler.service.imported.quiet" />
-				<!-- ZK为最终发布, 需要放在末尾 -->
+				<!-- ZK as a final publish, need last -->
 				<ref bean="kepler.service.imported.zookeeper" />
 			</util:list>
 		</constructor-arg>
