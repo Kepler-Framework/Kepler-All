@@ -27,6 +27,6 @@
 	* @See[<a href="https://github.com/Kepler-Framework/Kepler-Admin">Admin</a>]:   
 	`服务管理中心, 提供服务治理统一入口(API)` 
 <br></br>
-* @See[<a href="https://github.com/Kepler-Framework/Kepler-All/wiki/%E5%85%A5%E9%97%A8-%E5%BF%AB%E9%80%9F%E5%AE%89%E8%A3%85">快速开始</a>]
+* @See[<a href="https://github.com/Kepler-Framework/Kepler-All/wiki/%E5%85%A5%E9%97%A8-%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B">快速开始</a>]
 * @See[<a href="https://github.com/Kepler-Framework/Kepler-All/wiki/Home-%E5%BC%80%E5%8F%91%E8%80%85%E6%89%8B%E5%86%8C">开发者手册</a>]
 * @See[<a href="">管理员手册</a>]
