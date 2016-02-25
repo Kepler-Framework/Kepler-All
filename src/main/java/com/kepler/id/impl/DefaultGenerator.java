@@ -17,7 +17,7 @@ import com.kepler.service.Service;
  */
 public class DefaultGenerator implements IDGenerator {
 
-	private final static String NAME = "DEFAULT";
+	private final static String NAME = "default";
 
 	private final static String GENERATOR_KEY = DefaultGenerator.class.getName().toLowerCase() + ".generator";
 

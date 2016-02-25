@@ -48,8 +48,8 @@ import com.kepler.traffic.Traffic;
  * @author kim 2015年7月8日
  */
 public class DefaultServer {
-
-	private final static int EVENTLOOP_PARENT = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".eventloop_parent", Runtime.getRuntime().availableProcessors() + 1);
+	
+	private final static int EVENTLOOP_PARENT = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".eventloop_parent", 1);
 
 	private final static int EVENTLOOP_CHILD = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".eventloop_child", Runtime.getRuntime().availableProcessors() * 2);
 
