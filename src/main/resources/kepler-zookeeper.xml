@@ -11,8 +11,6 @@
 
 	<alias name="kepler.zookeeper.context" alias="kepler.service.imported.zookeeper" />
 
-	<alias name="kepler.zookeeper.context" alias="kepler.service.exportedServices" />
-
 	<bean id="kepler.zookeeper.factory" class="com.kepler.zookeeper.ZkFactory" init-method="init" />
 
 	<bean id="kepler.zookeeper.listener" class="com.kepler.service.imported.DefaultImportedListener">
