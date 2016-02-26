@@ -2,7 +2,8 @@ package com.kepler.service.imported;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Future;
 
 import net.sf.cglib.proxy.Enhancer;
@@ -43,7 +44,7 @@ public class ImportedServiceFactory<T> implements FactoryBean<T> {
 
 	private final IDGenerator generator;
 
-	private final List<Method> methods;
+	private final Set<Method> methods;
 
 	private final Imported imported;
 
@@ -89,7 +90,7 @@ public class ImportedServiceFactory<T> implements FactoryBean<T> {
 		this.generator = generator;
 		this.processor = processor;
 		this.validation = validation;
-		this.methods = Arrays.asList(clazz.getMethods());
+		this.methods = new HashSet<>(Arrays.asList(clazz.getMethods()));
 		this.service = new Service(clazz, version, catalog);
 		this.profile = profiles.add(this.service, profile);
 	}
