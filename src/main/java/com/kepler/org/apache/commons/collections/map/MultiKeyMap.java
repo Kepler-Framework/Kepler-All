@@ -197,7 +197,7 @@ public class MultiKeyMap
      * @param key2  the second key
      * @return the value mapped to the removed key, null if key not in map
      */
-    public Object remove(Object key1, Object key2) {
+    public Object removeMultiKey(Object key1, Object key2) {
         int hashCode = hash(key1, key2);
         int index = map.hashIndex(hashCode, map.data.length);
         AbstractHashedMap.HashEntry entry = map.data[index];
@@ -327,7 +327,7 @@ public class MultiKeyMap
      * @param key3  the third key
      * @return the value mapped to the removed key, null if key not in map
      */
-    public Object remove(Object key1, Object key2, Object key3) {
+    public Object removeMultiKey(Object key1, Object key2, Object key3) {
         int hashCode = hash(key1, key2, key3);
         int index = map.hashIndex(hashCode, map.data.length);
         AbstractHashedMap.HashEntry entry = map.data[index];
@@ -467,7 +467,7 @@ public class MultiKeyMap
      * @param key4  the fourth key
      * @return the value mapped to the removed key, null if key not in map
      */
-    public Object remove(Object key1, Object key2, Object key3, Object key4) {
+    public Object removeMultiKey(Object key1, Object key2, Object key3, Object key4) {
         int hashCode = hash(key1, key2, key3, key4);
         int index = map.hashIndex(hashCode, map.data.length);
         AbstractHashedMap.HashEntry entry = map.data[index];
@@ -617,7 +617,7 @@ public class MultiKeyMap
      * @param key5  the fifth key
      * @return the value mapped to the removed key, null if key not in map
      */
-    public Object remove(Object key1, Object key2, Object key3, Object key4, Object key5) {
+    public Object removeMultiKey(Object key1, Object key2, Object key3, Object key4, Object key5) {
         int hashCode = hash(key1, key2, key3, key4, key5);
         int index = map.hashIndex(hashCode, map.data.length);
         AbstractHashedMap.HashEntry entry = map.data[index];
