@@ -59,7 +59,7 @@ public class DecoderHandler extends ChannelInboundHandlerAdapter {
 			// buffer.readableBytes() * DecoderHandler.ADJUST确定Buffer大小
 			ctx.fireChannelRead(this.serials.input(buffer.readByte()).input(DecoderHandler.INPUT.get().reset(buffer), (int) (buffer.readableBytes() * DecoderHandler.ADJUST), this.clazz));
 		} catch (Throwable throwable) {
-			DecoderHandler.LOGGER.error(throwable.getMessage(), throwable);
+			DecoderHandler.LOGGER.error("From:(" + ctx.channel().remoteAddress() + ") " + throwable.getMessage(), throwable);
 		} finally {
 			if (buffer.refCnt() > 0) {
 				ReferenceCountUtil.release(buffer);

@@ -76,7 +76,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 			if (buffer.refCnt() > 0) {
 				ReferenceCountUtil.release(buffer);
 			}
-			EncoderHandler.LOGGER.error(throwable.getMessage(), throwable);
+			EncoderHandler.LOGGER.error("To:(" + ctx.channel().remoteAddress() + ") " + throwable.getMessage(), throwable);
 		}
 	}
 
