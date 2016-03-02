@@ -30,12 +30,10 @@ public class ZkFactory implements FactoryBean<ZkClient> {
 
 	private final static String AUTH = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".auth", "");
 
-	public final static String HOST_KEY = ZkFactory.class.getName().toLowerCase() + ".host";
-
 	/**
 	 * Using for kepler admin
 	 */
-	public final static String HOST_VAL = PropertiesUtils.get(ZkFactory.HOST_KEY, "");
+	public final static String HOST = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".host", "");
 
 	private final static Log LOGGER = LogFactory.getLog(ZkFactory.class);
 
@@ -64,7 +62,7 @@ public class ZkFactory implements FactoryBean<ZkClient> {
 	}
 
 	public ZkFactory() {
-		this(ZkFactory.HOST_VAL, ZkFactory.SCHEME, ZkFactory.AUTH);
+		this(ZkFactory.HOST, ZkFactory.SCHEME, ZkFactory.AUTH);
 	}
 
 	/**

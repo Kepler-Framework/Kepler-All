@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -250,9 +251,9 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	private class Exports {
 
 		/**
-		 * 已发布服务(Path -> Instance)
+		 * 已发布服务(Path -> Instance)，使用ConcurrentHashMap防止反初始化时有主机同时注册导致注销失败
 		 */
-		private final Map<String, ServiceInstance> exported = new HashMap<String, ServiceInstance>();
+		private final Map<String, ServiceInstance> exported = new ConcurrentHashMap<String, ServiceInstance>();
 
 		/**
 		 * 已发布Config路径
