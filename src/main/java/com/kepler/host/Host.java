@@ -36,9 +36,14 @@ public interface Host extends Serializable {
 	public final static String TOKEN_VAL = PropertiesUtils.get(Host.TOKEN_KEY, UUID.randomUUID().toString());
 
 	/**
-	 * 主机分组, 默认使用环境变量USER
+	 * 主机名称, 默认使用unknow(用于Admin)
 	 */
-	public final static String GROUP = PropertiesUtils.get(Host.class.getName().toLowerCase() + ".group", System.getenv("USER") != null ? System.getenv("USER") : "unkonw");
+	public final static String NAME = PropertiesUtils.get(Host.class.getName().toLowerCase() + ".name", "unknow");
+
+	/**
+	 * 主机分组, 默认使用环境变量USER(用于Admin)
+	 */
+	public final static String GROUP = PropertiesUtils.get(Host.class.getName().toLowerCase() + ".group", System.getenv("USER"));
 
 	public int port();
 
@@ -61,6 +66,8 @@ public interface Host extends Serializable {
 	public String tag();
 
 	public String host();
+
+	public String name();
 
 	public String token();
 

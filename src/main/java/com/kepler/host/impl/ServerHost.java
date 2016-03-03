@@ -64,7 +64,7 @@ public class ServerHost implements Serializable, Host {
 	}
 
 	public ServerHost(Pid pid) throws Exception {
-		this.local = new DefaultHost(Host.GROUP, Host.TOKEN_VAL, Host.TAG_VAL, pid.pid(), this.ip(), ServerHost.STABLE ? ServerHost.PORT : this.available(), Host.PRIORITY_DEF);
+		this.local = new DefaultHost(Host.GROUP, Host.TOKEN_VAL, Host.NAME, Host.TAG_VAL, pid.pid(), this.ip(), ServerHost.STABLE ? ServerHost.PORT : this.available(), Host.PRIORITY_DEF);
 		this.sid = ServerHost.SID;
 	}
 
@@ -127,6 +127,11 @@ public class ServerHost implements Serializable, Host {
 	}
 
 	@Override
+	public String name() {
+		return this.local.name();
+	}
+
+	@Override
 	public String host() {
 		return this.local.host();
 	}
@@ -183,6 +188,8 @@ public class ServerHost implements Serializable, Host {
 
 		private String host;
 
+		private String name;
+
 		private String token;
 
 		private String group;
@@ -192,7 +199,7 @@ public class ServerHost implements Serializable, Host {
 		private int priority;
 
 		public Builder(ServerHost that) {
-			this.setGroup(that.group()).setToken(that.token()).setHost(that.host()).setPid(that.pid()).setPort(that.port()).setPriority(that.priority()).setSid(that.sid()).setTag(that.tag());
+			this.setGroup(that.group()).setToken(that.token()).setName(that.name()).setHost(that.host()).setPid(that.pid()).setPort(that.port()).setPriority(that.priority()).setSid(that.sid()).setTag(that.tag());
 		}
 
 		public Builder setPriority(int priority) {
@@ -212,6 +219,11 @@ public class ServerHost implements Serializable, Host {
 
 		public Builder setHost(String host) {
 			this.host = host;
+			return this;
+		}
+
+		public Builder setName(String name) {
+			this.name = name;
 			return this;
 		}
 
@@ -236,7 +248,7 @@ public class ServerHost implements Serializable, Host {
 		}
 
 		public ServerHost toServerHost() {
-			return new ServerHost(new DefaultHost(this.group, this.token, this.tag, this.pid, this.host, this.port, this.priority), this.sid);
+			return new ServerHost(new DefaultHost(this.group, this.token, this.name, this.tag, this.pid, this.host, this.port, this.priority), this.sid);
 		}
 	}
 }

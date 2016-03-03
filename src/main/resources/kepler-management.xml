@@ -7,7 +7,6 @@
 	<import resource="kepler-management-status.xml" />
 	<import resource="kepler-management-transfer.xml" />
 	<import resource="kepler-management-collector.xml" />
-	<import resource="kepler-management-dependency.xml" />
 
 	<bean class="com.kepler.management.Period" init-method="init" destroy-method="destroy">
 		<constructor-arg ref="kepler.threads" />
@@ -15,7 +14,6 @@
 			<util:list>
 				<ref bean="kepler.management.task.status" />
 				<ref bean="kepler.management.task.transfer" />
-				<ref bean="kepler.management.task.dependency" />
 			</util:list>
 		</constructor-arg>
 	</bean>
