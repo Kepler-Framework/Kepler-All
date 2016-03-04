@@ -33,8 +33,10 @@ import com.kepler.serial.Serials;
 import com.kepler.service.Exported;
 import com.kepler.service.Imported;
 import com.kepler.service.ImportedListener;
+import com.kepler.service.ImportedService;
 import com.kepler.service.Service;
 import com.kepler.service.ServiceInstance;
+import com.kepler.service.imported.ImportedServiceImpl;
 
 /**
  * @author zhangjiehao 2015年7月9日
@@ -157,7 +159,7 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	 */
 	private void dependency(Service service) throws Exception {
 		if (PropertiesUtils.profile(this.profile.profile(service), ZkContext.DEPENDENCY_KEY, ZkContext.DEPENDENCY_VAL)) {
-			this.zoo.create(this.road.mkdir(new StringBuffer(ZkContext.ROOT).append(ZkContext.DEPENDENCY).append("/").append(this.road.road(service.service(), service.versionAndCatalog())).toString()) + "/" + this.local.sid(), this.serials.def4output().output(this.local.sid(), String.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+			this.zoo.create(this.road.mkdir(new StringBuffer(ZkContext.ROOT).append(ZkContext.DEPENDENCY).append("/").append(this.road.road(service.service(), service.versionAndCatalog())).toString()) + "/", this.serials.def4output().output(new ImportedServiceImpl(this.local, service), ImportedService.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
 		}
 	}
 
@@ -255,7 +257,7 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		 * @return
 		 */
 		public String road(Class<?> service, String... road) {
-			StringBuffer buffer = new StringBuffer().append(service.getName().replaceAll("\\.", "/")).append("/");
+			StringBuffer buffer = new StringBuffer().append(service.getName()).append("/");
 			return this.road(buffer, road);
 		}
 
@@ -267,7 +269,7 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		 * @return
 		 */
 		public String road(String prefix, Class<?> service, String... road) {
-			StringBuffer buffer = new StringBuffer(prefix).append("/").append(service.getName().replaceAll("\\.", "/")).append("/");
+			StringBuffer buffer = new StringBuffer(prefix).append("/").append(service.getName()).append("/");
 			return this.road(buffer, road);
 		}
 
