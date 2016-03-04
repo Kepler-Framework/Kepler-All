@@ -14,7 +14,7 @@ import com.kepler.protocol.RequestValidation;
  */
 public class Jsr303Validation implements RequestValidation {
 
-	private final static Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
+	private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
 
 	private final Scope support;
 

@@ -13,9 +13,9 @@ import com.kepler.main.Prepare;
  */
 public class Start {
 
-	private final static int DEMOTE_WAITING = PropertiesUtils.get(Start.class.getName().toLowerCase() + ".demote_waiting", 500);
+	private static final int DEMOTE_WAITING = PropertiesUtils.get(Start.class.getName().toLowerCase() + ".demote_waiting", 500);
 
-	private final static Log LOGGER = LogFactory.getLog(Start.class);
+	private static final Log LOGGER = LogFactory.getLog(Start.class);
 
 	public static void main(String[] args) throws Exception {
 		try {

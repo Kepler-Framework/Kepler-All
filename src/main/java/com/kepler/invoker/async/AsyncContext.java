@@ -12,7 +12,7 @@ import com.kepler.thread.FutureDelegate;
  */
 public class AsyncContext {
 
-	private final static ThreadLocal<AsyncDelegate> DELEGATE = new ThreadLocal<AsyncDelegate>();
+	private static final ThreadLocal<AsyncDelegate> DELEGATE = new ThreadLocal<AsyncDelegate>();
 
 	/**
 	 * 级联激活

@@ -32,9 +32,9 @@ public class DefaultConfig implements Config, BeanPostProcessor {
 	/**
 	 * 是否所有Spring托管Bean均允许回调
 	 */
-	private final static boolean ALL = PropertiesUtils.get(DefaultConfig.class.getName().toLowerCase() + ".all", true);
+	private static final boolean ALL = PropertiesUtils.get(DefaultConfig.class.getName().toLowerCase() + ".all", true);
 
-	private final static Log LOGGER = LogFactory.getLog(DefaultConfig.class);
+	private static final Log LOGGER = LogFactory.getLog(DefaultConfig.class);
 
 	/**
 	 * 基础/包装类映射(byte -> Byte)
@@ -186,7 +186,7 @@ public class DefaultConfig implements Config, BeanPostProcessor {
 
 	private class Invokers extends HashMap<String, List<Invoker>> {
 
-		private final static long serialVersionUID = 1L;
+		private static final long serialVersionUID = 1L;
 
 		private List<Invoker> get(String key) {
 			List<Invoker> invokers = super.get(key);

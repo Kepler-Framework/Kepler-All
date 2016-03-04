@@ -38,7 +38,7 @@ public class NestableRuntimeException extends RuntimeException implements Nestab
      * 
      * @see java.io.Serializable
      */
-    private final static long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     /**
      * The helper instance which contains much of the code which we

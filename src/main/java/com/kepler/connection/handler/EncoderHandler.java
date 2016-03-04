@@ -30,14 +30,14 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 	/**
 	 * 调整因子
 	 */
-	private final static double ADJUST = PropertiesUtils.get(EncoderHandler.class.getName().toLowerCase() + ".adjust", 0.75);
+	private static final double ADJUST = PropertiesUtils.get(EncoderHandler.class.getName().toLowerCase() + ".adjust", 0.75);
 
-	private final static Log LOGGER = LogFactory.getLog(EncoderHandler.class);
+	private static final Log LOGGER = LogFactory.getLog(EncoderHandler.class);
 
 	/**
 	 * 可重用OUTPUT
 	 */
-	private final static ThreadLocal<BufferOutputStream> OUTPUT = new ThreadLocal<BufferOutputStream>() {
+	private static final ThreadLocal<BufferOutputStream> OUTPUT = new ThreadLocal<BufferOutputStream>() {
 		protected BufferOutputStream initialValue() {
 			return new BufferOutputStream();
 		}

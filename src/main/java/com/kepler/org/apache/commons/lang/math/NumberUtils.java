@@ -38,41 +38,41 @@ import com.kepler.org.apache.commons.lang.StringUtils;
 public class NumberUtils {
     
     /** Reusable Long constant for zero. */
-    public final static Long LONG_ZERO = new Long(0L);
+    public static final Long LONG_ZERO = new Long(0L);
     /** Reusable Long constant for one. */
-    public final static Long LONG_ONE = new Long(1L);
+    public static final Long LONG_ONE = new Long(1L);
     /** Reusable Long constant for minus one. */
-    public final static Long LONG_MINUS_ONE = new Long(-1L);
+    public static final Long LONG_MINUS_ONE = new Long(-1L);
     /** Reusable Integer constant for zero. */
-    public final static Integer INTEGER_ZERO = new Integer(0);
+    public static final Integer INTEGER_ZERO = new Integer(0);
     /** Reusable Integer constant for one. */
-    public final static Integer INTEGER_ONE = new Integer(1);
+    public static final Integer INTEGER_ONE = new Integer(1);
     /** Reusable Integer constant for minus one. */
-    public final static Integer INTEGER_MINUS_ONE = new Integer(-1);
+    public static final Integer INTEGER_MINUS_ONE = new Integer(-1);
     /** Reusable Short constant for zero. */
-    public final static Short SHORT_ZERO = new Short((short) 0);
+    public static final Short SHORT_ZERO = new Short((short) 0);
     /** Reusable Short constant for one. */
-    public final static Short SHORT_ONE = new Short((short) 1);
+    public static final Short SHORT_ONE = new Short((short) 1);
     /** Reusable Short constant for minus one. */
-    public final static Short SHORT_MINUS_ONE = new Short((short) -1);
+    public static final Short SHORT_MINUS_ONE = new Short((short) -1);
     /** Reusable Byte constant for zero. */
-    public final static Byte BYTE_ZERO = new Byte((byte) 0);
+    public static final Byte BYTE_ZERO = new Byte((byte) 0);
     /** Reusable Byte constant for one. */
-    public final static Byte BYTE_ONE = new Byte((byte) 1);
+    public static final Byte BYTE_ONE = new Byte((byte) 1);
     /** Reusable Byte constant for minus one. */
-    public final static Byte BYTE_MINUS_ONE = new Byte((byte) -1);
+    public static final Byte BYTE_MINUS_ONE = new Byte((byte) -1);
     /** Reusable Double constant for zero. */
-    public final static Double DOUBLE_ZERO = new Double(0.0d);
+    public static final Double DOUBLE_ZERO = new Double(0.0d);
     /** Reusable Double constant for one. */
-    public final static Double DOUBLE_ONE = new Double(1.0d);
+    public static final Double DOUBLE_ONE = new Double(1.0d);
     /** Reusable Double constant for minus one. */
-    public final static Double DOUBLE_MINUS_ONE = new Double(-1.0d);
+    public static final Double DOUBLE_MINUS_ONE = new Double(-1.0d);
     /** Reusable Float constant for zero. */
-    public final static Float FLOAT_ZERO = new Float(0.0f);
+    public static final Float FLOAT_ZERO = new Float(0.0f);
     /** Reusable Float constant for one. */
-    public final static Float FLOAT_ONE = new Float(1.0f);
+    public static final Float FLOAT_ONE = new Float(1.0f);
     /** Reusable Float constant for minus one. */
-    public final static Float FLOAT_MINUS_ONE = new Float(-1.0f);
+    public static final Float FLOAT_MINUS_ONE = new Float(-1.0f);
 
     /**
      * <p><code>NumberUtils</code> instances should NOT be constructed in standard programming.

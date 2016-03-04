@@ -82,53 +82,53 @@ import java.util.TimeZone;
 public class BurlapInput extends AbstractBurlapInput {
   private static int []base64Decode;
   
-  public final static int TAG_EOF = -1;
+  public static final int TAG_EOF = -1;
   
-  public final static int TAG_NULL = 0;
-  public final static int TAG_BOOLEAN = 1;
-  public final static int TAG_INT = 2;
-  public final static int TAG_LONG = 3;
-  public final static int TAG_DOUBLE = 4;
-  public final static int TAG_DATE = 5;
-  public final static int TAG_STRING = 6;
-  public final static int TAG_XML = 7;
-  public final static int TAG_BASE64 = 8;
-  public final static int TAG_MAP = 9;
-  public final static int TAG_LIST = 10;
-  public final static int TAG_TYPE = 11;
-  public final static int TAG_LENGTH = 12;
+  public static final int TAG_NULL = 0;
+  public static final int TAG_BOOLEAN = 1;
+  public static final int TAG_INT = 2;
+  public static final int TAG_LONG = 3;
+  public static final int TAG_DOUBLE = 4;
+  public static final int TAG_DATE = 5;
+  public static final int TAG_STRING = 6;
+  public static final int TAG_XML = 7;
+  public static final int TAG_BASE64 = 8;
+  public static final int TAG_MAP = 9;
+  public static final int TAG_LIST = 10;
+  public static final int TAG_TYPE = 11;
+  public static final int TAG_LENGTH = 12;
   
-  public final static int TAG_REF = 13;
-  public final static int TAG_REMOTE = 14;
+  public static final int TAG_REF = 13;
+  public static final int TAG_REMOTE = 14;
   
-  public final static int TAG_CALL = 15;
-  public final static int TAG_REPLY = 16;
-  public final static int TAG_FAULT = 17;
-  public final static int TAG_METHOD = 18;
-  public final static int TAG_HEADER = 19;
+  public static final int TAG_CALL = 15;
+  public static final int TAG_REPLY = 16;
+  public static final int TAG_FAULT = 17;
+  public static final int TAG_METHOD = 18;
+  public static final int TAG_HEADER = 19;
   
-  public final static int TAG_NULL_END = TAG_NULL + 100;
-  public final static int TAG_BOOLEAN_END = TAG_BOOLEAN + 100;
-  public final static int TAG_INT_END = TAG_INT + 100;
-  public final static int TAG_LONG_END = TAG_LONG + 100;
-  public final static int TAG_DOUBLE_END = TAG_DOUBLE + 100;
-  public final static int TAG_DATE_END = TAG_DATE + 100;
-  public final static int TAG_STRING_END = TAG_STRING + 100;
-  public final static int TAG_XML_END = TAG_XML + 100;
-  public final static int TAG_BASE64_END = TAG_BASE64 + 100;
-  public final static int TAG_MAP_END = TAG_MAP + 100;
-  public final static int TAG_LIST_END = TAG_LIST + 100;
-  public final static int TAG_TYPE_END = TAG_TYPE + 100;
-  public final static int TAG_LENGTH_END = TAG_LENGTH + 100;
+  public static final int TAG_NULL_END = TAG_NULL + 100;
+  public static final int TAG_BOOLEAN_END = TAG_BOOLEAN + 100;
+  public static final int TAG_INT_END = TAG_INT + 100;
+  public static final int TAG_LONG_END = TAG_LONG + 100;
+  public static final int TAG_DOUBLE_END = TAG_DOUBLE + 100;
+  public static final int TAG_DATE_END = TAG_DATE + 100;
+  public static final int TAG_STRING_END = TAG_STRING + 100;
+  public static final int TAG_XML_END = TAG_XML + 100;
+  public static final int TAG_BASE64_END = TAG_BASE64 + 100;
+  public static final int TAG_MAP_END = TAG_MAP + 100;
+  public static final int TAG_LIST_END = TAG_LIST + 100;
+  public static final int TAG_TYPE_END = TAG_TYPE + 100;
+  public static final int TAG_LENGTH_END = TAG_LENGTH + 100;
   
-  public final static int TAG_REF_END = TAG_REF + 100;
-  public final static int TAG_REMOTE_END = TAG_REMOTE + 100;
+  public static final int TAG_REF_END = TAG_REF + 100;
+  public static final int TAG_REMOTE_END = TAG_REMOTE + 100;
   
-  public final static int TAG_CALL_END = TAG_CALL + 100;
-  public final static int TAG_REPLY_END = TAG_REPLY + 100;
-  public final static int TAG_FAULT_END = TAG_FAULT + 100;
-  public final static int TAG_METHOD_END = TAG_METHOD + 100;
-  public final static int TAG_HEADER_END = TAG_HEADER + 100;
+  public static final int TAG_CALL_END = TAG_CALL + 100;
+  public static final int TAG_REPLY_END = TAG_REPLY + 100;
+  public static final int TAG_FAULT_END = TAG_FAULT + 100;
+  public static final int TAG_METHOD_END = TAG_METHOD + 100;
+  public static final int TAG_HEADER_END = TAG_HEADER + 100;
 
   private static HashMap _tagMap;
 

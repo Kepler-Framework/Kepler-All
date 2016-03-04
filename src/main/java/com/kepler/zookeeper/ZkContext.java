@@ -43,36 +43,36 @@ import com.kepler.service.imported.ImportedServiceImpl;
  */
 public class ZkContext implements Demotion, Imported, Exported, ApplicationListener<ContextRefreshedEvent> {
 
-	public final static String DEPENDENCY = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".dependency", "_dependency");
+	public static final String DEPENDENCY = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".dependency", "_dependency");
 
-	public final static String CONFIG = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".config", "_configs");
+	public static final String CONFIG = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".config", "_configs");
 
-	public final static String STATUS = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".status", "_status");
+	public static final String STATUS = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".status", "_status");
 
-	public final static String ROOT = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".root", "/kepler");
+	public static final String ROOT = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".root", "/kepler");
 
 	/**
 	 * 是否发布依赖
 	 */
-	public final static String DEPENDENCY_KEY = ZkContext.class.getName().toLowerCase() + ".dependency";
+	public static final String DEPENDENCY_KEY = ZkContext.class.getName().toLowerCase() + ".dependency";
 
-	public final static boolean DEPENDENCY_VAL = PropertiesUtils.get(ZkContext.DEPENDENCY_KEY, true);
+	public static final boolean DEPENDENCY_VAL = PropertiesUtils.get(ZkContext.DEPENDENCY_KEY, true);
 
 	/**
 	 * 是否发布
 	 */
-	public final static String EXPORT_KEY = ZkContext.class.getName().toLowerCase() + ".export";
+	public static final String EXPORT_KEY = ZkContext.class.getName().toLowerCase() + ".export";
 
-	public final static boolean EXPORT_VAL = PropertiesUtils.get(ZkContext.EXPORT_KEY, true);
+	public static final boolean EXPORT_VAL = PropertiesUtils.get(ZkContext.EXPORT_KEY, true);
 
 	/**
 	 * 是否导入
 	 */
-	public final static String IMPORT_KEY = ZkContext.class.getName().toLowerCase() + ".import";
+	public static final String IMPORT_KEY = ZkContext.class.getName().toLowerCase() + ".import";
 
-	public final static boolean IMPORT_VAL = PropertiesUtils.get(ZkContext.IMPORT_KEY, true);
+	public static final boolean IMPORT_VAL = PropertiesUtils.get(ZkContext.IMPORT_KEY, true);
 
-	private final static Log LOGGER = LogFactory.getLog(ZkContext.class);
+	private static final Log LOGGER = LogFactory.getLog(ZkContext.class);
 
 	private final ZkWatcher watcher = new ZkWatcher();
 

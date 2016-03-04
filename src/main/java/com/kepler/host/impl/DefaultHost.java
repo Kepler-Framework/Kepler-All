@@ -8,7 +8,7 @@ import com.kepler.org.apache.commons.lang.builder.ToStringBuilder;
  */
 public class DefaultHost implements Host {
 
-	private final static long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
 	private final int port;
 

@@ -146,18 +146,18 @@ public class StringUtils {
      * The empty String <code>""</code>.
      * @since 2.0
      */
-    public final static String EMPTY = "";
+    public static final String EMPTY = "";
 
     /**
      * Represents a failed index search.
      * @since 2.1
      */
-    public final static int INDEX_NOT_FOUND = -1;
+    public static final int INDEX_NOT_FOUND = -1;
 
     /**
      * <p>The maximum size to which the padding constant(s) can expand.</p>
      */
-    private final static int PAD_LIMIT = 8192;
+    private static final int PAD_LIMIT = 8192;
 
     /**
      * <p><code>StringUtils</code> instances should NOT be constructed in

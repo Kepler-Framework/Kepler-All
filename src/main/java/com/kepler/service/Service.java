@@ -17,9 +17,9 @@ import com.kepler.org.apache.commons.lang.builder.ToStringBuilder;
  */
 public final class Service implements Serializable {
 
-	private final static long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-	private final static String DEF_CATALOG = "";
+	private static final String DEF_CATALOG = "";
 
 	private final Class<?> service;
 

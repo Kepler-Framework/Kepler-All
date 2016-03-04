@@ -15,7 +15,7 @@ import com.kepler.protocol.Response;
  */
 public class Traces implements Trace, Extension {
 
-	private final static Log LOGGER = LogFactory.getLog(Traces.class);
+	private static final Log LOGGER = LogFactory.getLog(Traces.class);
 
 	private final List<Trace> traces = new ArrayList<Trace>();
 

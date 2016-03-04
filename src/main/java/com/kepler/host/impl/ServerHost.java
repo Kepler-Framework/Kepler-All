@@ -23,36 +23,36 @@ import com.kepler.main.Pid;
  */
 public class ServerHost implements Serializable, Host {
 
-	private final static long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-	private final static Log LOGGER = LogFactory.getLog(ServerHost.class);
+	private static final Log LOGGER = LogFactory.getLog(ServerHost.class);
 
-	private final static int PORT = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".port", 9876);
+	private static final int PORT = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".port", 9876);
 
 	/**
 	 * 本地端口嗅探范围
 	 */
-	private final static int RANGE = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".range", 1000);
+	private static final int RANGE = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".range", 1000);
 
 	/**
 	 * 本地端口嗅探间隔
 	 */
-	private final static int INTERVAL = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".interval", 500);
+	private static final int INTERVAL = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".interval", 500);
 
 	/**
 	 * 是否使用固定端口
 	 */
-	private final static boolean STABLE = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".stable", false);
+	private static final boolean STABLE = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".stable", false);
 
 	/**
 	 * 网卡名称模式
 	 */
-	private final static String PATTERN = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".pattern", ".*");
+	private static final String PATTERN = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".pattern", ".*");
 
 	/**
 	 * 服务唯一ID
 	 */
-	private final static String SID = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".sid", UUID.randomUUID().toString());
+	private static final String SID = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".sid", UUID.randomUUID().toString());
 
 	private final String sid;
 

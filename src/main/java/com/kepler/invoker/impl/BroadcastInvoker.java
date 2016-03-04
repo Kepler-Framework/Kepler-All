@@ -28,11 +28,11 @@ import com.kepler.service.Service;
  */
 public class BroadcastInvoker implements Imported, Invoker {
 
-	private final static boolean ACTIVED = PropertiesUtils.get(BroadcastInvoker.class.getName().toLowerCase() + ".actived", false);
+	private static final boolean ACTIVED = PropertiesUtils.get(BroadcastInvoker.class.getName().toLowerCase() + ".actived", false);
 
-	private final static String CANCEL_KEY = BroadcastInvoker.class.getName().toLowerCase() + ".cancel";
+	private static final String CANCEL_KEY = BroadcastInvoker.class.getName().toLowerCase() + ".cancel";
 
-	private final static boolean CANCEL_DEF = PropertiesUtils.get(BroadcastInvoker.CANCEL_KEY, true);
+	private static final boolean CANCEL_DEF = PropertiesUtils.get(BroadcastInvoker.CANCEL_KEY, true);
 
 	private final MultiKeyMap broadcast = new MultiKeyMap();
 

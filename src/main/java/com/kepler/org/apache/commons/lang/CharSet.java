@@ -42,44 +42,44 @@ public class CharSet implements Serializable {
      * 
      * @see java.io.Serializable
      */
-    private final static long serialVersionUID = 5947847346149275958L;
+    private static final long serialVersionUID = 5947847346149275958L;
 
     /** 
      * A CharSet defining no characters. 
      * @since 2.0
      */
-    public final static CharSet EMPTY = new CharSet((String) null);
+    public static final CharSet EMPTY = new CharSet((String) null);
 
     /** 
      * A CharSet defining ASCII alphabetic characters "a-zA-Z".
      * @since 2.0
      */
-    public final static CharSet ASCII_ALPHA = new CharSet("a-zA-Z");
+    public static final CharSet ASCII_ALPHA = new CharSet("a-zA-Z");
 
     /** 
      * A CharSet defining ASCII alphabetic characters "a-z".
      * @since 2.0
      */
-    public final static CharSet ASCII_ALPHA_LOWER = new CharSet("a-z");
+    public static final CharSet ASCII_ALPHA_LOWER = new CharSet("a-z");
 
     /** 
      * A CharSet defining ASCII alphabetic characters "A-Z".
      * @since 2.0
      */
-    public final static CharSet ASCII_ALPHA_UPPER = new CharSet("A-Z");
+    public static final CharSet ASCII_ALPHA_UPPER = new CharSet("A-Z");
 
     /** 
      * A CharSet defining ASCII alphabetic characters "0-9".
      * @since 2.0
      */
-    public final static CharSet ASCII_NUMERIC = new CharSet("0-9");
+    public static final CharSet ASCII_NUMERIC = new CharSet("0-9");
 
     /**
      * A Map of the common cases used in the factory.
      * Subclasses can add more common patterns if desired.
      * @since 2.0
      */
-    protected final static Map COMMON = new HashMap();
+    protected static final Map COMMON = new HashMap();
     
     static {
         COMMON.put(null, EMPTY);

@@ -17,7 +17,7 @@ import com.kepler.serial.SerialInput;
  */
 public class DefaultSerialInputs implements Extension {
 
-	private final static Log LOGGER = LogFactory.getLog(DefaultSerialInputs.class);
+	private static final Log LOGGER = LogFactory.getLog(DefaultSerialInputs.class);
 
 	// Pakcage访问策略
 	final Map<String, SerialInput> inputs4name = new HashMap<String, SerialInput>();

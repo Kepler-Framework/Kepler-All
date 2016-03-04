@@ -17,9 +17,9 @@ import com.kepler.host.Host;
  */
 public class DefaultConnects implements Connects {
 
-	private final static int INTERVAL = PropertiesUtils.get(DefaultConnects.class.getName().toLowerCase() + ".interval", 60000);
+	private static final int INTERVAL = PropertiesUtils.get(DefaultConnects.class.getName().toLowerCase() + ".interval", 60000);
 
-	private final static int DELAY = PropertiesUtils.get(DefaultConnects.class.getName().toLowerCase() + ".delay", 5000);
+	private static final int DELAY = PropertiesUtils.get(DefaultConnects.class.getName().toLowerCase() + ".delay", 5000);
 
 	private final BlockingQueue<ConnectHost> queue = new DelayQueue<ConnectHost>();
 

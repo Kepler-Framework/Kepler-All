@@ -10,7 +10,7 @@ import com.kepler.service.ServiceInstance;
  */
 public class ZkSerial implements ServiceInstance {
 
-	private final static long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
 	private final ServerHost host;
 

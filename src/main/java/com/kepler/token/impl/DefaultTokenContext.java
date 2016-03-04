@@ -14,7 +14,7 @@ import com.kepler.token.TokenContext;
  */
 public class DefaultTokenContext implements TokenContext {
 
-	private final static boolean ENABLED = PropertiesUtils.get(DefaultTokenContext.class.getName().toLowerCase() + ".enabled", false);
+	private static final boolean ENABLED = PropertiesUtils.get(DefaultTokenContext.class.getName().toLowerCase() + ".enabled", false);
 
 	/*
 	 * Headers.ENABLED强依赖

@@ -16,7 +16,7 @@ import com.kepler.service.Service;
  */
 public class DefaultRequest implements Request {
 
-	private final static long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
 	private final Class<?>[] types;
 

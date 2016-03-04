@@ -10,7 +10,7 @@ import com.kepler.protocol.Request;
  */
 public interface Routing {
 
-	public final static String NAME = "default";
+	public static final String NAME = "default";
 	
 	public Host route(Request request, List<Host> hosts);
 

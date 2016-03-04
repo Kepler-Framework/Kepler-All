@@ -30,7 +30,7 @@ package com.kepler.org.apache.commons.lang;
  */
 public class CharUtils {
     
-    private final static String CHAR_STRING = 
+    private static final String CHAR_STRING = 
         "\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007" +
         "\b\t\n\u000b\f\r\u000e\u000f" +
         "\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017" +
@@ -48,8 +48,8 @@ public class CharUtils {
         "\u0070\u0071\u0072\u0073\u0074\u0075\u0076\u0077" +
         "\u0078\u0079\u007a\u007b\u007c\u007d\u007e\u007f";
     
-    private final static String[] CHAR_STRING_ARRAY = new String[128];
-    private final static Character[] CHAR_ARRAY = new Character[128];
+    private static final String[] CHAR_STRING_ARRAY = new String[128];
+    private static final Character[] CHAR_ARRAY = new Character[128];
     
     /**
      * <code>\u000a</code> linefeed LF ('\n').
@@ -58,7 +58,7 @@ public class CharUtils {
      *      for Character and String Literals</a>
      * @since 2.2
      */
-    public final static char LF = '\n';
+    public static final char LF = '\n';
 
     /**
      * <code>\u000d</code> carriage return CR ('\r').
@@ -67,7 +67,7 @@ public class CharUtils {
      *      for Character and String Literals</a>
      * @since 2.2
      */
-    public final static char CR = '\r';
+    public static final char CR = '\r';
     
 
     static {

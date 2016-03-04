@@ -47,12 +47,12 @@ import java.io.File;
  */
 public class SystemUtils {
 
-    private final static int JAVA_VERSION_TRIM_SIZE = 3;
+    private static final int JAVA_VERSION_TRIM_SIZE = 3;
 
     /**
      * The prefix String for all Windows OS.
      */
-    private final static String OS_NAME_WINDOWS_PREFIX = "Windows";
+    private static final String OS_NAME_WINDOWS_PREFIX = "Windows";
 
     // Status4Jmx property constants
     // -----------------------------------------------------------------------
@@ -61,22 +61,22 @@ public class SystemUtils {
     /**
      * The Status4Jmx property key for the user home directory.
      */
-    private final static String USER_HOME_KEY = "user.home";
+    private static final String USER_HOME_KEY = "user.home";
 
     /**
      * The Status4Jmx property key for the user directory.
      */
-    private final static String USER_DIR_KEY = "user.dir";
+    private static final String USER_DIR_KEY = "user.dir";
 
     /**
      * The Status4Jmx property key for the Java IO temporary directory.
      */
-    private final static String JAVA_IO_TMPDIR_KEY = "java.io.tmpdir";
+    private static final String JAVA_IO_TMPDIR_KEY = "java.io.tmpdir";
 
     /**
      * The Status4Jmx property key for the Java home directory.
      */
-    private final static String JAVA_HOME_KEY = "java.home";
+    private static final String JAVA_HOME_KEY = "java.home";
 
     /**
      * <p>
@@ -102,7 +102,7 @@ public class SystemUtils {
      * 
      * @since 2.1
      */
-    public final static String AWT_TOOLKIT = getSystemProperty("awt.toolkit");
+    public static final String AWT_TOOLKIT = getSystemProperty("awt.toolkit");
 
     /**
      * <p>
@@ -126,7 +126,7 @@ public class SystemUtils {
      * @since 2.0
      * @since Java 1.2
      */
-    public final static String FILE_ENCODING = getSystemProperty("file.encoding");
+    public static final String FILE_ENCODING = getSystemProperty("file.encoding");
 
     /**
      * <p>
@@ -146,7 +146,7 @@ public class SystemUtils {
      * 
      * @since Java 1.1
      */
-    public final static String FILE_SEPARATOR = getSystemProperty("file.separator");
+    public static final String FILE_SEPARATOR = getSystemProperty("file.separator");
 
     /**
      * <p>
@@ -166,7 +166,7 @@ public class SystemUtils {
      * 
      * @since 2.1
      */
-    public final static String JAVA_AWT_FONTS = getSystemProperty("java.awt.fonts");
+    public static final String JAVA_AWT_FONTS = getSystemProperty("java.awt.fonts");
 
     /**
      * <p>
@@ -186,7 +186,7 @@ public class SystemUtils {
      * 
      * @since 2.1
      */
-    public final static String JAVA_AWT_GRAPHICSENV = getSystemProperty("java.awt.graphicsenv");
+    public static final String JAVA_AWT_GRAPHICSENV = getSystemProperty("java.awt.graphicsenv");
 
     /**
      * <p>
@@ -209,7 +209,7 @@ public class SystemUtils {
      * @since 2.1
      * @since Java 1.4
      */
-    public final static String JAVA_AWT_HEADLESS = getSystemProperty("java.awt.headless");
+    public static final String JAVA_AWT_HEADLESS = getSystemProperty("java.awt.headless");
 
     /**
      * <p>
@@ -229,7 +229,7 @@ public class SystemUtils {
      * 
      * @since 2.1
      */
-    public final static String JAVA_AWT_PRINTERJOB = getSystemProperty("java.awt.printerjob");
+    public static final String JAVA_AWT_PRINTERJOB = getSystemProperty("java.awt.printerjob");
 
     /**
      * <p>
@@ -249,7 +249,7 @@ public class SystemUtils {
      * 
      * @since Java 1.1
      */
-    public final static String JAVA_CLASS_PATH = getSystemProperty("java.class.path");
+    public static final String JAVA_CLASS_PATH = getSystemProperty("java.class.path");
 
     /**
      * <p>
@@ -269,7 +269,7 @@ public class SystemUtils {
      * 
      * @since Java 1.1
      */
-    public final static String JAVA_CLASS_VERSION = getSystemProperty("java.class.version");
+    public static final String JAVA_CLASS_VERSION = getSystemProperty("java.class.version");
 
     /**
      * <p>
@@ -290,7 +290,7 @@ public class SystemUtils {
      * 
      * @since Java 1.2. Not used in Sun versions after 1.2.
      */
-    public final static String JAVA_COMPILER = getSystemProperty("java.compiler");
+    public static final String JAVA_COMPILER = getSystemProperty("java.compiler");
 
     /**
      * <p>
@@ -310,7 +310,7 @@ public class SystemUtils {
      * 
      * @since Java 1.4
      */
-    public final static String JAVA_ENDORSED_DIRS = getSystemProperty("java.endorsed.dirs");
+    public static final String JAVA_ENDORSED_DIRS = getSystemProperty("java.endorsed.dirs");
 
     /**
      * <p>
@@ -330,7 +330,7 @@ public class SystemUtils {
      * 
      * @since Java 1.3
      */
-    public final static String JAVA_EXT_DIRS = getSystemProperty("java.ext.dirs");
+    public static final String JAVA_EXT_DIRS = getSystemProperty("java.ext.dirs");
 
     /**
      * <p>
@@ -350,7 +350,7 @@ public class SystemUtils {
      * 
      * @since Java 1.1
      */
-    public final static String JAVA_HOME = getSystemProperty(JAVA_HOME_KEY);
+    public static final String JAVA_HOME = getSystemProperty(JAVA_HOME_KEY);
 
     /**
      * <p>
@@ -370,7 +370,7 @@ public class SystemUtils {
      * 
      * @since Java 1.2
      */
-    public final static String JAVA_IO_TMPDIR = getSystemProperty(JAVA_IO_TMPDIR_KEY);
+    public static final String JAVA_IO_TMPDIR = getSystemProperty(JAVA_IO_TMPDIR_KEY);
 
     /**
      * <p>
@@ -390,7 +390,7 @@ public class SystemUtils {
      * 
      * @since Java 1.2
      */
-    public final static String JAVA_LIBRARY_PATH = getSystemProperty("java.library.path");
+    public static final String JAVA_LIBRARY_PATH = getSystemProperty("java.library.path");
 
     /**
      * <p>
@@ -411,7 +411,7 @@ public class SystemUtils {
      * @since 2.0
      * @since Java 1.3
      */
-    public final static String JAVA_RUNTIME_NAME = getSystemProperty("java.runtime.name");
+    public static final String JAVA_RUNTIME_NAME = getSystemProperty("java.runtime.name");
 
     /**
      * <p>
@@ -432,7 +432,7 @@ public class SystemUtils {
      * @since 2.0
      * @since Java 1.3
      */
-    public final static String JAVA_RUNTIME_VERSION = getSystemProperty("java.runtime.version");
+    public static final String JAVA_RUNTIME_VERSION = getSystemProperty("java.runtime.version");
 
     /**
      * <p>
@@ -452,7 +452,7 @@ public class SystemUtils {
      * 
      * @since Java 1.2
      */
-    public final static String JAVA_SPECIFICATION_NAME = getSystemProperty("java.specification.name");
+    public static final String JAVA_SPECIFICATION_NAME = getSystemProperty("java.specification.name");
 
     /**
      * <p>
@@ -472,7 +472,7 @@ public class SystemUtils {
      * 
      * @since Java 1.2
      */
-    public final static String JAVA_SPECIFICATION_VENDOR = getSystemProperty("java.specification.vendor");
+    public static final String JAVA_SPECIFICATION_VENDOR = getSystemProperty("java.specification.vendor");
 
     /**
      * <p>
@@ -492,7 +492,7 @@ public class SystemUtils {
      * 
      * @since Java 1.3
      */
-    public final static String JAVA_SPECIFICATION_VERSION = getSystemProperty("java.specification.version");
+    public static final String JAVA_SPECIFICATION_VERSION = getSystemProperty("java.specification.version");
 
     /**
      * <p>
@@ -513,7 +513,7 @@ public class SystemUtils {
      * @since 2.1
      * @since Java 1.4
      */
-    public final static String JAVA_UTIL_PREFS_PREFERENCES_FACTORY = 
+    public static final String JAVA_UTIL_PREFS_PREFERENCES_FACTORY = 
         getSystemProperty("java.util.prefs.PreferencesFactory");
 
     /**
@@ -534,7 +534,7 @@ public class SystemUtils {
      * 
      * @since Java 1.1
      */
-    public final static String JAVA_VENDOR = getSystemProperty("java.vendor");
+    public static final String JAVA_VENDOR = getSystemProperty("java.vendor");
 
     /**
      * <p>
@@ -554,7 +554,7 @@ public class SystemUtils {
      * 
      * @since Java 1.1
      */
-    public final static String JAVA_VENDOR_URL = getSystemProperty("java.vendor.url");
+    public static final String JAVA_VENDOR_URL = getSystemProperty("java.vendor.url");
 
     /**
      * <p>
@@ -574,7 +574,7 @@ public class SystemUtils {
      * 
      * @since Java 1.1
      */
-    public final static String JAVA_VERSION = getSystemProperty("java.version");
+    public static final String JAVA_VERSION = getSystemProperty("java.version");
 
     /**
      * <p>
@@ -595,7 +595,7 @@ public class SystemUtils {
      * @since 2.0
      * @since Java 1.2
      */
-    public final static String JAVA_VM_INFO = getSystemProperty("java.vm.info");
+    public static final String JAVA_VM_INFO = getSystemProperty("java.vm.info");
 
     /**
      * <p>
@@ -615,7 +615,7 @@ public class SystemUtils {
      * 
      * @since Java 1.2
      */
-    public final static String JAVA_VM_NAME = getSystemProperty("java.vm.name");
+    public static final String JAVA_VM_NAME = getSystemProperty("java.vm.name");
 
     /**
      * <p>
@@ -635,7 +635,7 @@ public class SystemUtils {
      * 
      * @since Java 1.2
      */
-    public final static String JAVA_VM_SPECIFICATION_NAME = getSystemProperty("java.vm.specification.name");
+    public static final String JAVA_VM_SPECIFICATION_NAME = getSystemProperty("java.vm.specification.name");
 
     /**
      * <p>
@@ -655,7 +655,7 @@ public class SystemUtils {
      * 
      * @since Java 1.2
      */
-    public final static String JAVA_VM_SPECIFICATION_VENDOR = getSystemProperty("java.vm.specification.vendor");
+    public static final String JAVA_VM_SPECIFICATION_VENDOR = getSystemProperty("java.vm.specification.vendor");
 
     /**
      * <p>
@@ -675,7 +675,7 @@ public class SystemUtils {
      * 
      * @since Java 1.2
      */
-    public final static String JAVA_VM_SPECIFICATION_VERSION = getSystemProperty("java.vm.specification.version");
+    public static final String JAVA_VM_SPECIFICATION_VERSION = getSystemProperty("java.vm.specification.version");
 
     /**
      * <p>
@@ -695,7 +695,7 @@ public class SystemUtils {
      * 
      * @since Java 1.2
      */
-    public final static String JAVA_VM_VENDOR = getSystemProperty("java.vm.vendor");
+    public static final String JAVA_VM_VENDOR = getSystemProperty("java.vm.vendor");
 
     /**
      * <p>
@@ -715,7 +715,7 @@ public class SystemUtils {
      * 
      * @since Java 1.2
      */
-    public final static String JAVA_VM_VERSION = getSystemProperty("java.vm.version");
+    public static final String JAVA_VM_VERSION = getSystemProperty("java.vm.version");
 
     /**
      * <p>
@@ -735,7 +735,7 @@ public class SystemUtils {
      * 
      * @since Java 1.1
      */
-    public final static String LINE_SEPARATOR = getSystemProperty("line.separator");
+    public static final String LINE_SEPARATOR = getSystemProperty("line.separator");
 
     /**
      * <p>
@@ -755,7 +755,7 @@ public class SystemUtils {
      * 
      * @since Java 1.1
      */
-    public final static String OS_ARCH = getSystemProperty("os.arch");
+    public static final String OS_ARCH = getSystemProperty("os.arch");
 
     /**
      * <p>
@@ -775,7 +775,7 @@ public class SystemUtils {
      * 
      * @since Java 1.1
      */
-    public final static String OS_NAME = getSystemProperty("os.name");
+    public static final String OS_NAME = getSystemProperty("os.name");
 
     /**
      * <p>
@@ -795,7 +795,7 @@ public class SystemUtils {
      * 
      * @since Java 1.1
      */
-    public final static String OS_VERSION = getSystemProperty("os.version");
+    public static final String OS_VERSION = getSystemProperty("os.version");
 
     /**
      * <p>
@@ -815,7 +815,7 @@ public class SystemUtils {
      * 
      * @since Java 1.1
      */
-    public final static String PATH_SEPARATOR = getSystemProperty("path.separator");
+    public static final String PATH_SEPARATOR = getSystemProperty("path.separator");
 
     /**
      * <p>
@@ -838,7 +838,7 @@ public class SystemUtils {
      * @since 2.0
      * @since Java 1.2
      */
-    public final static String USER_COUNTRY = 
+    public static final String USER_COUNTRY = 
         getSystemProperty("user.country") == null ?
             getSystemProperty("user.region") : getSystemProperty("user.country");
 
@@ -860,7 +860,7 @@ public class SystemUtils {
      * 
      * @since Java 1.1
      */
-    public final static String USER_DIR = getSystemProperty(USER_DIR_KEY);
+    public static final String USER_DIR = getSystemProperty(USER_DIR_KEY);
 
     /**
      * <p>
@@ -880,7 +880,7 @@ public class SystemUtils {
      * 
      * @since Java 1.1
      */
-    public final static String USER_HOME = getSystemProperty(USER_HOME_KEY);
+    public static final String USER_HOME = getSystemProperty(USER_HOME_KEY);
 
     /**
      * <p>
@@ -901,7 +901,7 @@ public class SystemUtils {
      * @since 2.0
      * @since Java 1.2
      */
-    public final static String USER_LANGUAGE = getSystemProperty("user.language");
+    public static final String USER_LANGUAGE = getSystemProperty("user.language");
 
     /**
      * <p>
@@ -921,7 +921,7 @@ public class SystemUtils {
      * 
      * @since Java 1.1
      */
-    public final static String USER_NAME = getSystemProperty("user.name");
+    public static final String USER_NAME = getSystemProperty("user.name");
 
     /**
      * <p>
@@ -941,7 +941,7 @@ public class SystemUtils {
      * 
      * @since 2.1
      */
-    public final static String USER_TIMEZONE = getSystemProperty("user.timezone");
+    public static final String USER_TIMEZONE = getSystemProperty("user.timezone");
 
     // Java version
     // -----------------------------------------------------------------------
@@ -959,7 +959,7 @@ public class SystemUtils {
      * 
      * @since 2.1
      */
-    public final static String JAVA_VERSION_TRIMMED = getJavaVersionTrimmed();
+    public static final String JAVA_VERSION_TRIMMED = getJavaVersionTrimmed();
 
     // Java version values
     // -----------------------------------------------------------------------
@@ -985,7 +985,7 @@ public class SystemUtils {
      * 
      * @since 2.0
      */
-    public final static float JAVA_VERSION_FLOAT = getJavaVersionAsFloat();
+    public static final float JAVA_VERSION_FLOAT = getJavaVersionAsFloat();
 
     /**
      * <p>
@@ -1006,7 +1006,7 @@ public class SystemUtils {
      * 
      * @since 2.0
      */
-    public final static int JAVA_VERSION_INT = getJavaVersionAsInt();
+    public static final int JAVA_VERSION_INT = getJavaVersionAsInt();
 
     // Java version checks
     // -----------------------------------------------------------------------
@@ -1022,7 +1022,7 @@ public class SystemUtils {
      * The field will return <code>false</code> if {@link #JAVA_VERSION} is <code>null</code>.
      * </p>
      */
-    public final static boolean IS_JAVA_1_1 = getJavaVersionMatches("1.1");
+    public static final boolean IS_JAVA_1_1 = getJavaVersionMatches("1.1");
 
     /**
      * <p>
@@ -1033,7 +1033,7 @@ public class SystemUtils {
      * The field will return <code>false</code> if {@link #JAVA_VERSION} is <code>null</code>.
      * </p>
      */
-    public final static boolean IS_JAVA_1_2 = getJavaVersionMatches("1.2");
+    public static final boolean IS_JAVA_1_2 = getJavaVersionMatches("1.2");
 
     /**
      * <p>
@@ -1044,7 +1044,7 @@ public class SystemUtils {
      * The field will return <code>false</code> if {@link #JAVA_VERSION} is <code>null</code>.
      * </p>
      */
-    public final static boolean IS_JAVA_1_3 = getJavaVersionMatches("1.3");
+    public static final boolean IS_JAVA_1_3 = getJavaVersionMatches("1.3");
 
     /**
      * <p>
@@ -1055,7 +1055,7 @@ public class SystemUtils {
      * The field will return <code>false</code> if {@link #JAVA_VERSION} is <code>null</code>.
      * </p>
      */
-    public final static boolean IS_JAVA_1_4 = getJavaVersionMatches("1.4");
+    public static final boolean IS_JAVA_1_4 = getJavaVersionMatches("1.4");
 
     /**
      * <p>
@@ -1066,7 +1066,7 @@ public class SystemUtils {
      * The field will return <code>false</code> if {@link #JAVA_VERSION} is <code>null</code>.
      * </p>
      */
-    public final static boolean IS_JAVA_1_5 = getJavaVersionMatches("1.5");
+    public static final boolean IS_JAVA_1_5 = getJavaVersionMatches("1.5");
 
     /**
      * <p>
@@ -1077,7 +1077,7 @@ public class SystemUtils {
      * The field will return <code>false</code> if {@link #JAVA_VERSION} is <code>null</code>.
      * </p>
      */
-    public final static boolean IS_JAVA_1_6 = getJavaVersionMatches("1.6");
+    public static final boolean IS_JAVA_1_6 = getJavaVersionMatches("1.6");
 
     /**
      * <p>
@@ -1090,7 +1090,7 @@ public class SystemUtils {
      * 
      * @since 2.5
      */
-    public final static boolean IS_JAVA_1_7 = getJavaVersionMatches("1.7");
+    public static final boolean IS_JAVA_1_7 = getJavaVersionMatches("1.7");
 
     // Operating system checks
     // -----------------------------------------------------------------------
@@ -1111,7 +1111,7 @@ public class SystemUtils {
      * 
      * @since 2.0
      */
-    public final static boolean IS_OS_AIX = getOSMatchesName("AIX");
+    public static final boolean IS_OS_AIX = getOSMatchesName("AIX");
 
     /**
      * <p>
@@ -1124,7 +1124,7 @@ public class SystemUtils {
      * 
      * @since 2.0
      */
-    public final static boolean IS_OS_HP_UX = getOSMatchesName("HP-UX");
+    public static final boolean IS_OS_HP_UX = getOSMatchesName("HP-UX");
 
     /**
      * <p>
@@ -1137,7 +1137,7 @@ public class SystemUtils {
      * 
      * @since 2.0
      */
-    public final static boolean IS_OS_IRIX = getOSMatchesName("Irix");
+    public static final boolean IS_OS_IRIX = getOSMatchesName("Irix");
 
     /**
      * <p>
@@ -1150,7 +1150,7 @@ public class SystemUtils {
      * 
      * @since 2.0
      */
-    public final static boolean IS_OS_LINUX = getOSMatchesName("Linux") || getOSMatchesName("LINUX");
+    public static final boolean IS_OS_LINUX = getOSMatchesName("Linux") || getOSMatchesName("LINUX");
 
     /**
      * <p>
@@ -1163,7 +1163,7 @@ public class SystemUtils {
      * 
      * @since 2.0
      */
-    public final static boolean IS_OS_MAC = getOSMatchesName("Mac");
+    public static final boolean IS_OS_MAC = getOSMatchesName("Mac");
 
     /**
      * <p>
@@ -1176,7 +1176,7 @@ public class SystemUtils {
      * 
      * @since 2.0
      */
-    public final static boolean IS_OS_MAC_OSX = getOSMatchesName("Mac OS X");
+    public static final boolean IS_OS_MAC_OSX = getOSMatchesName("Mac OS X");
 
     /**
      * <p>
@@ -1189,7 +1189,7 @@ public class SystemUtils {
      * 
      * @since 2.0
      */
-    public final static boolean IS_OS_OS2 = getOSMatchesName("OS/2");
+    public static final boolean IS_OS_OS2 = getOSMatchesName("OS/2");
 
     /**
      * <p>
@@ -1202,7 +1202,7 @@ public class SystemUtils {
      * 
      * @since 2.0
      */
-    public final static boolean IS_OS_SOLARIS = getOSMatchesName("Solaris");
+    public static final boolean IS_OS_SOLARIS = getOSMatchesName("Solaris");
 
     /**
      * <p>
@@ -1215,7 +1215,7 @@ public class SystemUtils {
      * 
      * @since 2.0
      */
-    public final static boolean IS_OS_SUN_OS = getOSMatchesName("SunOS");
+    public static final boolean IS_OS_SUN_OS = getOSMatchesName("SunOS");
 
     /**
      * <p>
@@ -1229,7 +1229,7 @@ public class SystemUtils {
      * 
      * @since 2.1
      */
-    public final static boolean IS_OS_UNIX =
+    public static final boolean IS_OS_UNIX =
         IS_OS_AIX || IS_OS_HP_UX || IS_OS_IRIX || IS_OS_LINUX ||
         IS_OS_MAC_OSX || IS_OS_SOLARIS || IS_OS_SUN_OS;
 
@@ -1244,7 +1244,7 @@ public class SystemUtils {
      * 
      * @since 2.0
      */
-    public final static boolean IS_OS_WINDOWS = getOSMatchesName(OS_NAME_WINDOWS_PREFIX);
+    public static final boolean IS_OS_WINDOWS = getOSMatchesName(OS_NAME_WINDOWS_PREFIX);
 
     /**
      * <p>
@@ -1257,7 +1257,7 @@ public class SystemUtils {
      * 
      * @since 2.0
      */
-    public final static boolean IS_OS_WINDOWS_2000 = getOSMatches(OS_NAME_WINDOWS_PREFIX, "5.0");
+    public static final boolean IS_OS_WINDOWS_2000 = getOSMatches(OS_NAME_WINDOWS_PREFIX, "5.0");
 
     /**
      * <p>
@@ -1270,7 +1270,7 @@ public class SystemUtils {
      * 
      * @since 2.0
      */
-    public final static boolean IS_OS_WINDOWS_95 = getOSMatches(OS_NAME_WINDOWS_PREFIX + " 9", "4.0");
+    public static final boolean IS_OS_WINDOWS_95 = getOSMatches(OS_NAME_WINDOWS_PREFIX + " 9", "4.0");
     // Java 1.2 running on Windows98 returns 'Windows 95', hence the above
 
     /**
@@ -1284,7 +1284,7 @@ public class SystemUtils {
      * 
      * @since 2.0
      */
-    public final static boolean IS_OS_WINDOWS_98 = getOSMatches(OS_NAME_WINDOWS_PREFIX + " 9", "4.1");
+    public static final boolean IS_OS_WINDOWS_98 = getOSMatches(OS_NAME_WINDOWS_PREFIX + " 9", "4.1");
     // Java 1.2 running on Windows98 returns 'Windows 95', hence the above
 
     /**
@@ -1298,7 +1298,7 @@ public class SystemUtils {
      * 
      * @since 2.0
      */
-    public final static boolean IS_OS_WINDOWS_ME = getOSMatches(OS_NAME_WINDOWS_PREFIX, "4.9");
+    public static final boolean IS_OS_WINDOWS_ME = getOSMatches(OS_NAME_WINDOWS_PREFIX, "4.9");
     // Java 1.2 running on WindowsME may return 'Windows 95', hence the above
 
     /**
@@ -1312,7 +1312,7 @@ public class SystemUtils {
      * 
      * @since 2.0
      */
-    public final static boolean IS_OS_WINDOWS_NT = getOSMatchesName(OS_NAME_WINDOWS_PREFIX + " NT");
+    public static final boolean IS_OS_WINDOWS_NT = getOSMatchesName(OS_NAME_WINDOWS_PREFIX + " NT");
     // Windows 2000 returns 'Windows 2000' but may suffer from same Java1.2 problem
 
     /**
@@ -1326,7 +1326,7 @@ public class SystemUtils {
      * 
      * @since 2.0
      */
-    public final static boolean IS_OS_WINDOWS_XP = getOSMatches(OS_NAME_WINDOWS_PREFIX, "5.1");
+    public static final boolean IS_OS_WINDOWS_XP = getOSMatches(OS_NAME_WINDOWS_PREFIX, "5.1");
 
     // -----------------------------------------------------------------------
     /**
@@ -1340,7 +1340,7 @@ public class SystemUtils {
      * 
      * @since 2.4
      */
-    public final static boolean IS_OS_WINDOWS_VISTA = getOSMatches(OS_NAME_WINDOWS_PREFIX, "6.0");
+    public static final boolean IS_OS_WINDOWS_VISTA = getOSMatches(OS_NAME_WINDOWS_PREFIX, "6.0");
 
     /**
      * <p>
@@ -1353,7 +1353,7 @@ public class SystemUtils {
      * 
      * @since 2.5
      */
-    public final static boolean IS_OS_WINDOWS_7 = getOSMatches(OS_NAME_WINDOWS_PREFIX, "6.1");
+    public static final boolean IS_OS_WINDOWS_7 = getOSMatches(OS_NAME_WINDOWS_PREFIX, "6.1");
 
     /**
      * <p>

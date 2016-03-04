@@ -18,9 +18,9 @@ public class TransferTask extends PeriodTask {
 	/**
 	 * 默认30秒, 最短15秒, 最长45秒
 	 */
-	private final static int PERIOD = Math.min(Math.max(15000, PropertiesUtils.get(TransferTask.class.getName().toLowerCase() + ".period", 30000)), 45000);
+	private static final int PERIOD = Math.min(Math.max(15000, PropertiesUtils.get(TransferTask.class.getName().toLowerCase() + ".period", 30000)), 45000);
 
-	private final static boolean ENABLED = PropertiesUtils.get(TransferTask.class.getName().toLowerCase() + ".enabled", false);
+	private static final boolean ENABLED = PropertiesUtils.get(TransferTask.class.getName().toLowerCase() + ".enabled", false);
 
 	private final Collector collector;
 

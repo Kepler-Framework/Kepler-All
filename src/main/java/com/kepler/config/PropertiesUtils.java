@@ -42,29 +42,29 @@ public class PropertiesUtils {
 	/**
 	 * 动态配置文件物理路径(优先级2)
 	 */
-	public final static String FILE_DYNAMIC = System.getProperty("dynamic", "classpath:kepler.dynamic");
+	public static final String FILE_DYNAMIC = System.getProperty("dynamic", "classpath:kepler.dynamic");
 
 	/**
 	 * Version文件物理路径(优先级1)
 	 */
-	public final static String FILE_VERSION = System.getProperty("version", "classpath:kepler.version");
+	public static final String FILE_VERSION = System.getProperty("version", "classpath:kepler.version");
 
 	/**
 	 * 框架配置文件物理路径(优先级0)
 	 */
-	public final static String FILE_CONFIG = System.getProperty("conf", "classpath:kepler.conf");
+	public static final String FILE_CONFIG = System.getProperty("conf", "classpath:kepler.conf");
 
 	/**
 	 * 是否在新配置生效前对当前配置备份
 	 */
-	private final static boolean BACKUP = Boolean.valueOf(System.getProperty("backup", "true"));
+	private static final boolean BACKUP = Boolean.valueOf(System.getProperty("backup", "true"));
 
 	/**
 	 * 当前配置数据(内存快照)
 	 */
-	private final static Map<String, String> PROPERTIES = new HashMap<String, String>();
+	private static final Map<String, String> PROPERTIES = new HashMap<String, String>();
 
-	private final static Log LOGGER = LogFactory.getLog(PropertiesUtils.class);
+	private static final Log LOGGER = LogFactory.getLog(PropertiesUtils.class);
 
 	static {
 		PropertiesUtils.init(PropertiesUtils.PROPERTIES);
@@ -321,7 +321,7 @@ public class PropertiesUtils {
 	 */
 	private static class OrderedProperties extends Properties {
 
-		private final static long serialVersionUID = -1;
+		private static final long serialVersionUID = -1;
 
 		private final Set<String> delegate = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
 

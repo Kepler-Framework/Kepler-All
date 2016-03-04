@@ -9,7 +9,7 @@ import com.kepler.config.PropertiesUtils;
  */
 public interface Prepare {
 
-	public final static String CLASS = PropertiesUtils.get(Prepare.class.getName().toLowerCase() + ".class");
+	public static final String CLASS = PropertiesUtils.get(Prepare.class.getName().toLowerCase() + ".class");
 
 	public void prepare() throws Exception;
 }

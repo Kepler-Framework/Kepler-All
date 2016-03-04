@@ -15,7 +15,7 @@ import org.apache.zookeeper.data.Stat;
  */
 public class ZkClient {
 
-	private final static Log LOGGER = LogFactory.getLog(ZkClient.class);
+	private static final Log LOGGER = LogFactory.getLog(ZkClient.class);
 	
 	private ZkContext context;
 

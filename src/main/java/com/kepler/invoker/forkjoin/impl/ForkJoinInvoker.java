@@ -40,16 +40,16 @@ import com.kepler.service.Service;
  */
 public class ForkJoinInvoker implements Imported, Invoker {
 
-	private final static boolean ACTIVED = PropertiesUtils.get(ForkJoinInvoker.class.getName().toLowerCase() + ".actived", false);
+	private static final boolean ACTIVED = PropertiesUtils.get(ForkJoinInvoker.class.getName().toLowerCase() + ".actived", false);
 
 	/**
 	 * 需要Fork Request的Tag集合
 	 */
-	private final static String TAGS_KEY = ForkJoinInvoker.class.getName().toLowerCase() + ".tags";
+	private static final String TAGS_KEY = ForkJoinInvoker.class.getName().toLowerCase() + ".tags";
 
-	private final static String TAGS_DEF = PropertiesUtils.get(ForkJoinInvoker.TAGS_KEY, Host.TAG_VAL);
+	private static final String TAGS_DEF = PropertiesUtils.get(ForkJoinInvoker.TAGS_KEY, Host.TAG_VAL);
 
-	private final static Log LOGGER = LogFactory.getLog(ForkJoinInvoker.class);
+	private static final Log LOGGER = LogFactory.getLog(ForkJoinInvoker.class);
 
 	private final MultiKeyMap forkers = new MultiKeyMap();
 

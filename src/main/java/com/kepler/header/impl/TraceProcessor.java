@@ -16,7 +16,7 @@ import com.kepler.trace.Trace;
  */
 public class TraceProcessor implements HeadersProcessor {
 
-	private final static int SORT = PropertiesUtils.get(TraceProcessor.class.getName().toLowerCase() + ".sort", Integer.MAX_VALUE);
+	private static final int SORT = PropertiesUtils.get(TraceProcessor.class.getName().toLowerCase() + ".sort", Integer.MAX_VALUE);
 
 	private final Profile profile;
 

@@ -9,7 +9,7 @@ import com.kepler.host.HostLocks;
  */
 public class SegmentLocks implements HostLocks {
 
-	private final static int LOCKS = PropertiesUtils.get(SegmentLocks.class.getName().toLowerCase() + ".locks", 10);
+	private static final int LOCKS = PropertiesUtils.get(SegmentLocks.class.getName().toLowerCase() + ".locks", 10);
 
 	private final Object[] locks = new Object[SegmentLocks.LOCKS];
 

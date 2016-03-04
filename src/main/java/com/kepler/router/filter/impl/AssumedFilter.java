@@ -15,7 +15,7 @@ import com.kepler.router.filter.HostFilter;
  */
 public class AssumedFilter implements HostFilter {
 
-	private final static boolean ENABLED = PropertiesUtils.get(AssumedFilter.class.getName().toLowerCase() + ".enabled", false);
+	private static final boolean ENABLED = PropertiesUtils.get(AssumedFilter.class.getName().toLowerCase() + ".enabled", false);
 
 	private final AssumedSelector selector;
 

@@ -9,7 +9,7 @@ import com.kepler.invoker.forkjoin.Forker;
  */
 public class Forker4Equals implements Forker {
 
-	public final static String NAME = "equals";
+	public static final String NAME = "equals";
 
 	@Override
 	public Object[] fork(Object[] args, String tag, int index) {

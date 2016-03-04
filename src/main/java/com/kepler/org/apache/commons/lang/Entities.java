@@ -42,17 +42,17 @@ import java.util.TreeMap;
  */
 class Entities {
 
-    private final static String[][] BASIC_ARRAY = {{"quot", "34"}, // " - double-quote
+    private static final String[][] BASIC_ARRAY = {{"quot", "34"}, // " - double-quote
         {"amp", "38"}, // & - ampersand
         {"lt", "60"}, // < - less-than
         {"gt", "62"}, // > - greater-than
     };
 
-    private final static String[][] APOS_ARRAY = {{"apos", "39"}, // XML apostrophe
+    private static final String[][] APOS_ARRAY = {{"apos", "39"}, // XML apostrophe
     };
 
     // package scoped for testing
-    final static String[][] ISO8859_1_ARRAY = {{"nbsp", "160"}, // non-breaking space
+    static final String[][] ISO8859_1_ARRAY = {{"nbsp", "160"}, // non-breaking space
         {"iexcl", "161"}, // inverted exclamation mark
         {"cent", "162"}, // cent sign
         {"pound", "163"}, // pound sign
@@ -152,7 +152,7 @@ class Entities {
 
     // http://www.w3.org/TR/REC-html40/sgml/entities.html
     // package scoped for testing
-    final static String[][] HTML40_ARRAY = {
+    static final String[][] HTML40_ARRAY = {
     // <!-- Latin Extended-B -->
         {"fnof", "402"}, // latin small f with hook = function= florin, U+0192 ISOtech -->
         // <!-- Greek -->
@@ -354,21 +354,21 @@ class Entities {
      * The set of entities supported by standard XML.
      * </p>
      */
-    public final static Entities XML;
+    public static final Entities XML;
 
     /**
      * <p>
      * The set of entities supported by HTML 3.2.
      * </p>
      */
-    public final static Entities HTML32;
+    public static final Entities HTML32;
 
     /**
      * <p>
      * The set of entities supported by HTML 4.0.
      * </p>
      */
-    public final static Entities HTML40;
+    public static final Entities HTML40;
 
     static {
         XML = new Entities();

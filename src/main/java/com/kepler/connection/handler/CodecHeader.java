@@ -17,9 +17,9 @@ public enum CodecHeader {
 	/**
 	 * 黏包字节自身长度
 	 */
-	private final static CodecHeader CODEC = CodecHeader.valueOf(PropertiesUtils.get(CodecHeader.class.getName().toLowerCase() + ".codec", CodecHeader.FOUR.toString()));
+	private static final CodecHeader CODEC = CodecHeader.valueOf(PropertiesUtils.get(CodecHeader.class.getName().toLowerCase() + ".codec", CodecHeader.FOUR.toString()));
 
-	private final static Map<CodecHeader, Integer> MAPPING = new HashMap<CodecHeader, Integer>();
+	private static final Map<CodecHeader, Integer> MAPPING = new HashMap<CodecHeader, Integer>();
 
 	static {
 		MAPPING.put(ONE, 1);
@@ -28,7 +28,7 @@ public enum CodecHeader {
 		MAPPING.put(EIGHT, 8);
 	}
 
-	public final static int DEFAULT = CodecHeader.CODEC.code();
+	public static final int DEFAULT = CodecHeader.CODEC.code();
 
 	public int code() {
 		return MAPPING.get(this).intValue();

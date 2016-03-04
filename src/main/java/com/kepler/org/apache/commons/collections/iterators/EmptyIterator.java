@@ -38,12 +38,12 @@ public class EmptyIterator extends AbstractEmptyIterator implements ResettableIt
      * Singleton instance of the iterator.
      * @since Commons Collections 3.1
      */
-    public final static ResettableIterator RESETTABLE_INSTANCE = new EmptyIterator();
+    public static final ResettableIterator RESETTABLE_INSTANCE = new EmptyIterator();
     /**
      * Singleton instance of the iterator.
      * @since Commons Collections 2.1.1 and 3.1
      */
-    public final static Iterator INSTANCE = RESETTABLE_INSTANCE;
+    public static final Iterator INSTANCE = RESETTABLE_INSTANCE;
 
     /**
      * Constructor.

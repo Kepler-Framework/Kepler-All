@@ -19,9 +19,9 @@ import com.kepler.KeplerLocalException;
  */
 public class FutureDelegate implements Serializable, Future<Object> {
 
-	private final static Log LOGGER = LogFactory.getLog(FutureDelegate.class);
+	private static final Log LOGGER = LogFactory.getLog(FutureDelegate.class);
 
-	private final static long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
 	volatile private Future<Object> actual;
 

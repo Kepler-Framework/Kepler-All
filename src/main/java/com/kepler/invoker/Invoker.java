@@ -7,7 +7,7 @@ import com.kepler.protocol.Request;
  */
 public interface Invoker {
 
-	public final static Object EMPTY = new Object();
+	public static final Object EMPTY = new Object();
 
 	public Object invoke(Request request) throws Throwable;
 

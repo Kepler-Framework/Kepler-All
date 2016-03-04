@@ -17,11 +17,11 @@ import com.kepler.service.Service;
  */
 public class DefaultGenerator implements IDGenerator {
 
-	private final static String NAME = "default";
+	private static final String NAME = "default";
 
-	private final static String GENERATOR_KEY = DefaultGenerator.class.getName().toLowerCase() + ".generator";
+	private static final String GENERATOR_KEY = DefaultGenerator.class.getName().toLowerCase() + ".generator";
 
-	private final static String GENERATOR_DEF = PropertiesUtils.get(DefaultGenerator.GENERATOR_KEY, IncrGenerator.NAME);
+	private static final String GENERATOR_DEF = PropertiesUtils.get(DefaultGenerator.GENERATOR_KEY, IncrGenerator.NAME);
 
 	private final Map<String, IDGenerator> ids = new HashMap<String, IDGenerator>();
 

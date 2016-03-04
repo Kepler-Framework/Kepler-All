@@ -79,7 +79,7 @@ public class Hessian2Output
   implements Hessian2Constants
 {
   // should match Resin buffer size for perf
-  public final static int SIZE = 8 * 1024;
+  public static final int SIZE = 8 * 1024;
 
   // the output stream/
   protected OutputStream _os;

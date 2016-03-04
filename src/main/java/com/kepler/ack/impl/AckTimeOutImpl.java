@@ -19,11 +19,11 @@ public class AckTimeOutImpl implements AckTimeOut {
 	/**
 	 * Timeout N次后降级
 	 */
-	private final static String DEMOTION_KEY = AckTimeOutImpl.class.getName().toLowerCase() + ".demotion";
+	private static final String DEMOTION_KEY = AckTimeOutImpl.class.getName().toLowerCase() + ".demotion";
 
-	private final static int DEMOTION_DEF = PropertiesUtils.get(AckTimeOutImpl.DEMOTION_KEY, Integer.MAX_VALUE);
+	private static final int DEMOTION_DEF = PropertiesUtils.get(AckTimeOutImpl.DEMOTION_KEY, Integer.MAX_VALUE);
 
-	private final static Log LOGGER = LogFactory.getLog(AckTimeOutImpl.class);
+	private static final Log LOGGER = LogFactory.getLog(AckTimeOutImpl.class);
 
 	private final Profile profile;
 

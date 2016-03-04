@@ -49,7 +49,7 @@ public class MultiKey implements Serializable {
     // This class could implement List, but that would confuse it's purpose
 
     /** Serialisation version */
-    private final static long serialVersionUID = 4465448607415788805L;
+    private static final long serialVersionUID = 4465448607415788805L;
 
     /** The individual keys */
     private final Object[] keys;

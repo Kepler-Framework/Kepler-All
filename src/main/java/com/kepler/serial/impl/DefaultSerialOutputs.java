@@ -17,7 +17,7 @@ import com.kepler.serial.SerialOutput;
  */
 public class DefaultSerialOutputs implements Extension {
 
-	private final static Log LOGGER = LogFactory.getLog(DefaultSerialOutputs.class);
+	private static final Log LOGGER = LogFactory.getLog(DefaultSerialOutputs.class);
 
 	// Pakcage访问策略
 	final Map<String, SerialOutput> outputs4name = new HashMap<String, SerialOutput>();

@@ -50,7 +50,7 @@ public class NullArgumentException extends IllegalArgumentException {
      * 
      * @see java.io.Serializable
      */
-    private final static long serialVersionUID = 1174360235354917591L;
+    private static final long serialVersionUID = 1174360235354917591L;
 
     /**
      * <p>Instantiates with the given argument name.</p>

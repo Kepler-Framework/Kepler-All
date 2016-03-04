@@ -10,7 +10,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class ThreadExceptionHandler implements UncaughtExceptionHandler {
 
-	private final static Log LOGGER = LogFactory.getLog(ThreadExceptionHandler.class);
+	private static final Log LOGGER = LogFactory.getLog(ThreadExceptionHandler.class);
 
 	@Override
 	public void uncaughtException(Thread t, Throwable e) {

@@ -17,14 +17,14 @@ import com.kepler.config.PropertiesUtils;
  */
 public class Period implements Runnable {
 
-	private final static int INTERVAL = PropertiesUtils.get(Period.class.getName().toLowerCase() + ".interval", 60000);
+	private static final int INTERVAL = PropertiesUtils.get(Period.class.getName().toLowerCase() + ".interval", 60000);
 
 	/**
 	 * Period线程数量
 	 */
-	private final static int THREAD = PropertiesUtils.get(Period.class.getName().toLowerCase() + ".thread", 1);
+	private static final int THREAD = PropertiesUtils.get(Period.class.getName().toLowerCase() + ".thread", 1);
 
-	private final static Log LOGGER = LogFactory.getLog(Period.class);
+	private static final Log LOGGER = LogFactory.getLog(Period.class);
 
 	private final BlockingQueue<PeriodTask> tasks = new DelayQueue<PeriodTask>();
 

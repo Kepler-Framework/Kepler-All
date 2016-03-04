@@ -13,7 +13,7 @@ import com.kepler.router.Routing;
  */
 abstract class LoadBalance implements Routing {
 
-	private final static ThreadLocal<Slots> SLOTS = new ThreadLocal<Slots>() {
+	private static final ThreadLocal<Slots> SLOTS = new ThreadLocal<Slots>() {
 		protected Slots initialValue() {
 			return new Slots();
 		}

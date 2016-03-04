@@ -51,12 +51,12 @@ public class NestableDelegate implements Serializable {
      * 
      * @see java.io.Serializable
      */
-    private final static long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     /**
      * Constructor error message.
      */
-    private transient final static String MUST_BE_THROWABLE =
+    private transient static final String MUST_BE_THROWABLE =
         "The Nestable implementation passed to the NestableDelegate(Nestable) "
             + "constructor must extend java.lang.Throwable";
 

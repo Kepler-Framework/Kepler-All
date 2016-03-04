@@ -36,7 +36,7 @@ public final class CharRange implements Serializable {
      * 
      * @see java.io.Serializable
      */
-    private final static long serialVersionUID = 8270183163158333422L;
+    private static final long serialVersionUID = 8270183163158333422L;
     
     /** The first character, inclusive, in the range. */
     private final char start;

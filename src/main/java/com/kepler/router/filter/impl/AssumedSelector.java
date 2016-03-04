@@ -11,7 +11,7 @@ import com.kepler.service.Service;
  */
 public class AssumedSelector {
 
-	private final static ThreadLocal<Assumed> ASSUMED = new ThreadLocal<Assumed>() {
+	private static final ThreadLocal<Assumed> ASSUMED = new ThreadLocal<Assumed>() {
 		protected Assumed initialValue() {
 			return new Assumed();
 		}

@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class RoundRobinLoadBalance extends LoadBalance {
 
-	public final static String NAME = "roundrobin";
+	public static final String NAME = "roundrobin";
 
 	private final AtomicInteger indexes = new AtomicInteger(-1);
 

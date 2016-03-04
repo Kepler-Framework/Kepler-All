@@ -24,7 +24,7 @@ import com.kepler.service.Service;
  */
 public class AsyncInvoker implements Imported, Invoker {
 
-	final static boolean ACTIVED = PropertiesUtils.get(AsyncInvoker.class.getName().toLowerCase() + ".actived", false);
+	static final boolean ACTIVED = PropertiesUtils.get(AsyncInvoker.class.getName().toLowerCase() + ".actived", false);
 
 	/**
 	 * 已注册Service, Method
