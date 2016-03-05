@@ -17,6 +17,8 @@ public class ImportedServiceImpl implements ImportedService, Serializable {
 
 	private static final long serialVersionUID = 1L;
 
+	private final String sid;
+
 	private final String name;
 
 	private final String group;
@@ -26,10 +28,15 @@ public class ImportedServiceImpl implements ImportedService, Serializable {
 	private final String versionAndCatalog;
 
 	public ImportedServiceImpl(Host host, Service service) {
+		this.sid = host.sid();
 		this.name = host.name();
 		this.group = host.group();
 		this.service = service.service().getName();
 		this.versionAndCatalog = service.versionAndCatalog();
+	}
+
+	public String sid() {
+		return this.sid;
 	}
 
 	@Override

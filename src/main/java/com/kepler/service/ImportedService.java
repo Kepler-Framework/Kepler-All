@@ -8,7 +8,9 @@ package com.kepler.service;
  * 2016年3月4日
  */
 public interface ImportedService {
-
+	
+	public String sid();
+	
 	public String name();
 
 	public String group();
