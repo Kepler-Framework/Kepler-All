@@ -18,7 +18,7 @@
 		<constructor-arg ref="kepler.channel.context" />
 		<constructor-arg ref="kepler.connection.connects" />
 		<constructor-arg ref="kepler.service.imported.quiet" />
-		<constructor-arg ref="kepler.management.transfer.collector" />
+		<constructor-arg ref="kepler.admin.transfer.collector" />
 	</bean>
 
 </beans>

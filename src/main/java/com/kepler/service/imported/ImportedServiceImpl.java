@@ -1,7 +1,5 @@
 package com.kepler.service.imported;
 
-import java.io.Serializable;
-
 import com.kepler.host.Host;
 import com.kepler.service.ImportedService;
 import com.kepler.service.Service;
@@ -13,7 +11,7 @@ import com.kepler.service.Service;
  *
  * 2016年3月4日
  */
-public class ImportedServiceImpl implements ImportedService, Serializable {
+public class ImportedServiceImpl implements ImportedService {
 
 	private static final long serialVersionUID = 1L;
 

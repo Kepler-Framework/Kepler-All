@@ -21,15 +21,17 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.StringUtils;
 
 import com.kepler.KeplerLocalException;
+import com.kepler.admin.status.Status;
 import com.kepler.config.Config;
 import com.kepler.config.ConfigSync;
 import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.host.Host;
+import com.kepler.host.HostStatus;
+import com.kepler.host.impl.DefaultHostStatus;
 import com.kepler.host.impl.ServerHost;
 import com.kepler.host.impl.ServerHost.Builder;
 import com.kepler.main.Demotion;
-import com.kepler.management.status.Status;
 import com.kepler.serial.Serials;
 import com.kepler.service.Exported;
 import com.kepler.service.Imported;
@@ -137,7 +139,7 @@ public class ZkContext implements Demotion, Imported, Exported, ConfigSync, Appl
 	 */
 	private void status() throws Exception {
 		if (this.exports.status()) {
-			this.exports.status(this.zoo.create(this.road.mkdir(new StringBuffer(ZkContext.ROOT).append(ZkContext.STATUS).toString()) + "/" + this.local.sid(), this.serials.def4output().output(this.status.get(), Map.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL));
+			this.exports.status(this.zoo.create(this.road.mkdir(new StringBuffer(ZkContext.ROOT).append(ZkContext.STATUS).toString()) + "/" + this.local.sid(), this.serials.def4output().output(new DefaultHostStatus(this.local, this.status.get()), HostStatus.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL));
 		}
 	}
 

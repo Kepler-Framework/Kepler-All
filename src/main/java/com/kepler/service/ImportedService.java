@@ -1,5 +1,7 @@
 package com.kepler.service;
 
+import java.io.Serializable;
+
 /**
  * 服务依赖
  *
@@ -7,10 +9,10 @@ package com.kepler.service;
  *
  * 2016年3月4日
  */
-public interface ImportedService {
-	
+public interface ImportedService extends Serializable {
+
 	public String sid();
-	
+
 	public String name();
 
 	public String group();

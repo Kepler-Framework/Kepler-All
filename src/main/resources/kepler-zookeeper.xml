@@ -19,7 +19,7 @@
 	</bean>
 
 	<bean id="kepler.zookeeper.context" class="com.kepler.zookeeper.ZkContext" destroy-method="destroy">
-		<constructor-arg ref="kepler.management.status.static" />
+		<constructor-arg ref="kepler.admin.status.static" />
 		<constructor-arg ref="kepler.zookeeper.listener" />
 		<constructor-arg ref="kepler.zookeeper.factory" />
 		<constructor-arg ref="kepler.config.profile" />
