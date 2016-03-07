@@ -155,6 +155,16 @@ public class ZkContext implements Demotion, Imported, Exported, ConfigSync, Appl
 	}
 
 	/**
+	 * 将本地的Config同步到ZooKeeper
+	 */
+	@Override
+	public void sync() throws Exception {
+		// 注销后重新发布
+		this.exports.destroy4config();
+		this.config();
+	}
+
+	/**
 	 * 发布线服务依赖
 	 * 
 	 * @param service
@@ -180,18 +190,6 @@ public class ZkContext implements Demotion, Imported, Exported, ConfigSync, Appl
 		this.zoo.close();
 	}
 
-	/**
-	 * 将本地的config同步到zookeeper
-	 */
-	@Override
-	public void sync() {
-		try {
-			this.exports.destroy4config();
-			this.config();
-		} catch (Throwable throwable) {
-			ZkContext.LOGGER.error(throwable.getMessage(), throwable);
-		}
-	}
 	/**
 	 * 重置/重连
 	 * 
@@ -598,7 +596,7 @@ public class ZkContext implements Demotion, Imported, Exported, ConfigSync, Appl
 			return this;
 		}
 
-		private ConfigWatcher set() {
+		private ConfigWatcher set() throws Exception {
 			// 再次同步当前主机Config,保证ZK上节点数据为最新
 			ZkContext.this.sync();
 			return this;
