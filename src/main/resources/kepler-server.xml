@@ -5,6 +5,7 @@
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
 	<import resource="kepler-core.xml" />
+	<import resource="kepler-terminal.xml" />
 
 	<bean class="com.kepler.connection.impl.DefaultServer" init-method="init" destroy-method="destroy">
 		<constructor-arg ref="kepler.trace" />
@@ -19,5 +20,4 @@
 		<constructor-arg ref="kepler.service.exported.context" />
 		<constructor-arg ref="kepler.protocol.validation4service" />
 	</bean>
-
 </beans>
