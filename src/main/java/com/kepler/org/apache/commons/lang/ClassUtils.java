@@ -50,27 +50,27 @@ public class ClassUtils {
     /**
      * <p>The package separator character: <code>'&#x2e;' == {@value}</code>.</p>
      */
-    public final static char PACKAGE_SEPARATOR_CHAR = '.';
+    public static final char PACKAGE_SEPARATOR_CHAR = '.';
 
     /**
      * <p>The package separator String: <code>"&#x2e;"</code>.</p>
      */
-    public final static String PACKAGE_SEPARATOR = String.valueOf(PACKAGE_SEPARATOR_CHAR);
+    public static final String PACKAGE_SEPARATOR = String.valueOf(PACKAGE_SEPARATOR_CHAR);
 
     /**
      * <p>The inner class separator character: <code>'$' == {@value}</code>.</p>
      */
-    public final static char INNER_CLASS_SEPARATOR_CHAR = '$';
+    public static final char INNER_CLASS_SEPARATOR_CHAR = '$';
 
     /**
      * <p>The inner class separator String: <code>"$"</code>.</p>
      */
-    public final static String INNER_CLASS_SEPARATOR = String.valueOf(INNER_CLASS_SEPARATOR_CHAR);
+    public static final String INNER_CLASS_SEPARATOR = String.valueOf(INNER_CLASS_SEPARATOR_CHAR);
 
     /**
      * Maps primitive <code>Class</code>es to their corresponding wrapper <code>Class</code>.
      */
-    private final static Map primitiveWrapperMap = new HashMap();
+    private static final Map primitiveWrapperMap = new HashMap();
     static {
          primitiveWrapperMap.put(Boolean.TYPE, Boolean.class);
          primitiveWrapperMap.put(Byte.TYPE, Byte.class);
@@ -86,7 +86,7 @@ public class ClassUtils {
     /**
      * Maps wrapper <code>Class</code>es to their corresponding primitive types.
      */
-    private final static Map wrapperPrimitiveMap = new HashMap();
+    private static final Map wrapperPrimitiveMap = new HashMap();
     static {
         for (Iterator it = primitiveWrapperMap.keySet().iterator(); it.hasNext();) {
             Class primitiveClass = (Class) it.next();
@@ -100,12 +100,12 @@ public class ClassUtils {
     /**
      * Maps a primitive class name to its corresponding abbreviation used in array class names.
      */
-    private final static Map abbreviationMap = new HashMap();
+    private static final Map abbreviationMap = new HashMap();
 
     /**
      * Maps an abbreviation used in array class names to corresponding primitive class name.
      */
-    private final static Map reverseAbbreviationMap = new HashMap();
+    private static final Map reverseAbbreviationMap = new HashMap();
 
     /**
      * Add primitive type abbreviation to maps of abbreviations.

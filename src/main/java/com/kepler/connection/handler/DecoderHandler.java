@@ -24,14 +24,14 @@ public class DecoderHandler extends ChannelInboundHandlerAdapter {
 	/**
 	 * 调整因子
 	 */
-	private final static double ADJUST = PropertiesUtils.get(DecoderHandler.class.getName().toLowerCase() + ".adjust", 0.75);
+	private static final double ADJUST = PropertiesUtils.get(DecoderHandler.class.getName().toLowerCase() + ".adjust", 0.75);
 
-	private final static Log LOGGER = LogFactory.getLog(DecoderHandler.class);
+	private static final Log LOGGER = LogFactory.getLog(DecoderHandler.class);
 
 	/**
 	 * 可复用Input
 	 */
-	private final static ThreadLocal<BufferInputStream> INPUT = new ThreadLocal<BufferInputStream>() {
+	private static final ThreadLocal<BufferInputStream> INPUT = new ThreadLocal<BufferInputStream>() {
 		protected BufferInputStream initialValue() {
 			return new BufferInputStream();
 		}

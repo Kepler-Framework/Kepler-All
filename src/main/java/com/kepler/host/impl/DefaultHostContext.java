@@ -24,12 +24,12 @@ import com.kepler.service.Service;
  */
 public class DefaultHostContext implements HostsContext, Router {
 
-	private final static String ROUTING_KEY = DefaultHostContext.class.getName().toLowerCase() + ".routing";
+	private static final String ROUTING_KEY = DefaultHostContext.class.getName().toLowerCase() + ".routing";
 
 	/**
 	 * 默认路由策略
 	 */
-	private final static String ROUTING_DEF = PropertiesUtils.get(DefaultHostContext.ROUTING_KEY, Routing.NAME);
+	private static final String ROUTING_DEF = PropertiesUtils.get(DefaultHostContext.ROUTING_KEY, Routing.NAME);
 
 	/**
 	 * 服务 - 主机映射

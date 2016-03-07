@@ -21,7 +21,7 @@ import com.kepler.service.Service;
  */
 public class QuietExceptions implements Quiet, Imported {
 
-	private final static List<Class<? extends Throwable>> EMPTY = Collections.unmodifiableList(new ArrayList<Class<? extends Throwable>>());
+	private static final List<Class<? extends Throwable>> EMPTY = Collections.unmodifiableList(new ArrayList<Class<? extends Throwable>>());
 
 	private final Map<Service, QuietMethods> methods = new HashMap<Service, QuietMethods>();
 

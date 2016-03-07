@@ -19,14 +19,14 @@ import com.kepler.service.Service;
  */
 public class DefaultMockerContext implements Extension, MockerContext {
 
-	private final static String MOCK_KEY = DefaultMockerContext.class.getName().toLowerCase() + ".mock";
+	private static final String MOCK_KEY = DefaultMockerContext.class.getName().toLowerCase() + ".mock";
 
 	/**
 	 * 是否开启Mock
 	 */
-	private final static boolean MOCK_DEF = PropertiesUtils.get(DefaultMockerContext.MOCK_KEY, false);
+	private static final boolean MOCK_DEF = PropertiesUtils.get(DefaultMockerContext.MOCK_KEY, false);
 
-	private final static Log LOGGER = LogFactory.getLog(DefaultMockerContext.class);
+	private static final Log LOGGER = LogFactory.getLog(DefaultMockerContext.class);
 
 	private final Map<Class<?>, Mocker> mockers = new HashMap<Class<?>, Mocker>();
 

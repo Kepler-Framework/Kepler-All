@@ -15,14 +15,14 @@ import com.kepler.protocol.Request;
  */
 public class DemoteInvoker implements Invoker {
 
-	private final static boolean ACTIVED = PropertiesUtils.get(DemoteInvoker.class.getName().toLowerCase() + ".actived", false);
+	private static final boolean ACTIVED = PropertiesUtils.get(DemoteInvoker.class.getName().toLowerCase() + ".actived", false);
 
 	/**
 	 * 是否需要降级
 	 */
-	private final static String DEMOTE_KEY = DemoteInvoker.class.getName().toLowerCase() + ".demote";
+	private static final String DEMOTE_KEY = DemoteInvoker.class.getName().toLowerCase() + ".demote";
 
-	private final static boolean DEMOTE_DEF = PropertiesUtils.get(DemoteInvoker.DEMOTE_KEY, false);
+	private static final boolean DEMOTE_DEF = PropertiesUtils.get(DemoteInvoker.DEMOTE_KEY, false);
 
 	private final MockerContext mocker;
 

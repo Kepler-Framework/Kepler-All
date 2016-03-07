@@ -27,19 +27,19 @@ public class StartPID implements Pid, BeanPostProcessor, ApplicationListener<Con
 	/**
 	 * PID文件前缀
 	 */
-	private final static String PREFIX = PropertiesUtils.get(StartPID.class.getName().toLowerCase() + ".file", "kepler") + "_";
+	private static final String PREFIX = PropertiesUtils.get(StartPID.class.getName().toLowerCase() + ".file", "kepler") + "_";
 
 	/**
 	 * 是否禁止相同目录多次启动
 	 */
-	private final static boolean CONFLICT = PropertiesUtils.get(StartPID.class.getName().toLowerCase() + ".conflict", false);
+	private static final boolean CONFLICT = PropertiesUtils.get(StartPID.class.getName().toLowerCase() + ".conflict", false);
 
 	/**
 	 * 是否强制生成PID文件(如Client)
 	 */
-	private final static boolean FORCE = PropertiesUtils.get(StartPID.class.getName().toLowerCase() + ".force", false);
+	private static final boolean FORCE = PropertiesUtils.get(StartPID.class.getName().toLowerCase() + ".force", false);
 
-	private final static Log LOGGER = LogFactory.getLog(StartPID.class);
+	private static final Log LOGGER = LogFactory.getLog(StartPID.class);
 
 	private final String pid;
 

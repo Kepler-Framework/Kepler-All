@@ -20,11 +20,11 @@ import com.kepler.connection.impl.ExceptionListener;
 @Sharable
 public class ResourceHandler extends ChannelInboundHandlerAdapter {
 
-	private final static String RESOURCE_KEY = ResourceHandler.class.getName().toLowerCase() + ".resources";
+	private static final String RESOURCE_KEY = ResourceHandler.class.getName().toLowerCase() + ".resources";
 
-	private final static int RESOURCE_DEF = PropertiesUtils.get(ResourceHandler.RESOURCE_KEY, Integer.MAX_VALUE);
+	private static final int RESOURCE_DEF = PropertiesUtils.get(ResourceHandler.RESOURCE_KEY, Integer.MAX_VALUE);
 
-	private final static Log LOGGER = LogFactory.getLog(ResourceHandler.class);
+	private static final Log LOGGER = LogFactory.getLog(ResourceHandler.class);
 
 	private final AtomicInteger resources = new AtomicInteger();
 

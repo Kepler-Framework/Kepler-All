@@ -81,7 +81,7 @@ public class MultiKeyMap
         implements IterableMap, Serializable {
 
     /** Serialisation version */
-    private final static long serialVersionUID = -1788199231038721040L;
+    private static final long serialVersionUID = -1788199231038721040L;
 
     /** The decorated map */
     protected final AbstractHashedMap map;

@@ -13,7 +13,7 @@ import com.kepler.service.Service;
  */
 public class IncrGenerator implements IDGenerator {
 
-	public final static String NAME = "incr";
+	public static final String NAME = "incr";
 
 	private final AtomicLong next = new AtomicLong();
 

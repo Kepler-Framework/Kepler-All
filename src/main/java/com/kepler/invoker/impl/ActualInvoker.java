@@ -24,14 +24,14 @@ public class ActualInvoker implements Invoker {
 	/**
 	 * None Service重试间隔
 	 */
-	private final static int INTERVAL = PropertiesUtils.get(ActualInvoker.class.getName().toLowerCase() + ".interval", 500);
+	private static final int INTERVAL = PropertiesUtils.get(ActualInvoker.class.getName().toLowerCase() + ".interval", 500);
 
 	/**
 	 * None Service重试阀值
 	 */
-	private final static int TIMEOUT = PropertiesUtils.get(ActualInvoker.class.getName().toLowerCase() + ".timeout", 3000);
+	private static final int TIMEOUT = PropertiesUtils.get(ActualInvoker.class.getName().toLowerCase() + ".timeout", 3000);
 
-	private final static Log LOGGER = LogFactory.getLog(ActualInvoker.class);
+	private static final Log LOGGER = LogFactory.getLog(ActualInvoker.class);
 
 	private final ChannelContext channels;
 

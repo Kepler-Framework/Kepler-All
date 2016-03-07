@@ -45,25 +45,25 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 	/**
 	 * 缓冲大小
 	 */
-	private final static int BUFFER = PropertiesUtils.get(JacksonSerial.class.getName().toLowerCase() + ".buffer", 0x4 << 6);
+	private static final int BUFFER = PropertiesUtils.get(JacksonSerial.class.getName().toLowerCase() + ".buffer", 0x4 << 6);
 
-	private final static ObjectMapper MAPPER = new ObjectMapper();
+	private static final ObjectMapper MAPPER = new ObjectMapper();
 
-	private final static ObjectReader READER_REQUEST = JacksonSerial.MAPPER.reader(Request.class);
+	private static final ObjectReader READER_REQUEST = JacksonSerial.MAPPER.reader(Request.class);
 
-	private final static ObjectReader READER_RESPONSE = JacksonSerial.MAPPER.reader(Response.class);
+	private static final ObjectReader READER_RESPONSE = JacksonSerial.MAPPER.reader(Response.class);
 
-	private final static ObjectWriter WRITER_REQUEST = JacksonSerial.MAPPER.writerWithType(Request.class);
+	private static final ObjectWriter WRITER_REQUEST = JacksonSerial.MAPPER.writerWithType(Request.class);
 
-	private final static ObjectWriter WRITER_RESPONSE = JacksonSerial.MAPPER.writerWithType(Response.class);
+	private static final ObjectWriter WRITER_RESPONSE = JacksonSerial.MAPPER.writerWithType(Response.class);
 
 	private final Serializers serializers = new Serializers();
 
-	private final static byte[] EMPTY = new byte[] {};
+	private static final byte[] EMPTY = new byte[] {};
 
-	private final static String NAME = "jackson";
+	private static final String NAME = "jackson";
 
-	private final static byte SERIAL = 1;
+	private static final byte SERIAL = 1;
 
 	@Override
 	public byte serial() {

@@ -15,7 +15,7 @@ import com.kepler.extension.Extension;
  */
 public class DefaultConfigAware implements ConfigAware, Extension {
 
-	private final static Log LOGGER = LogFactory.getLog(DefaultConfigAware.class);
+	private static final Log LOGGER = LogFactory.getLog(DefaultConfigAware.class);
 
 	private final List<ConfigAware> awares = new ArrayList<ConfigAware>();
 

@@ -16,7 +16,7 @@ import com.kepler.trace.Trace;
  */
 public class TraceProcessor implements HeadersProcessor {
 
-	private final static int SORT = PropertiesUtils.get(TraceProcessor.class.getName().toLowerCase() + ".sort", Integer.MAX_VALUE);
+	private static final int SORT = PropertiesUtils.get(TraceProcessor.class.getName().toLowerCase() + ".sort", Integer.MAX_VALUE);
 
 	private final Profile profile;
 
@@ -28,7 +28,7 @@ public class TraceProcessor implements HeadersProcessor {
 	@Override
 	public Headers process(Service service, Headers headers) {
 		// 如果开启Trace则生成
-		return PropertiesUtils.profile(this.profile.profile(service), Trace.ENABLED_KEY, Trace.ENABLED_DEF) ? headers.put(Trace.TRACE, UUID.randomUUID().toString()) : headers;
+		return PropertiesUtils.profile(this.profile.profile(service), Trace.ENABLED_KEY, Trace.ENABLED_DEF) ? headers.putIfAbsent(Trace.TRACE, UUID.randomUUID().toString()) : headers;
 	}
 
 	@Override

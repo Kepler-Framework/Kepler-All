@@ -18,15 +18,15 @@ import com.kepler.service.Service;
  */
 public class DefaultPromotion implements Exported, Promotion {
 
-	private final static boolean ENABLED = PropertiesUtils.get(DefaultPromotion.class.getName().toLowerCase() + ".enabled", true);
+	private static final boolean ENABLED = PropertiesUtils.get(DefaultPromotion.class.getName().toLowerCase() + ".enabled", true);
 
-	private final static String ELAPSE_KEY = DefaultPromotion.class.getName().toLowerCase() + ".elapse";
+	private static final String ELAPSE_KEY = DefaultPromotion.class.getName().toLowerCase() + ".elapse";
 
-	private final static int ELAPSE_DEF = PropertiesUtils.get(DefaultPromotion.ELAPSE_KEY, 1);
+	private static final int ELAPSE_DEF = PropertiesUtils.get(DefaultPromotion.ELAPSE_KEY, 1);
 
-	private final static String TIMES_KEY = DefaultPromotion.class.getName().toLowerCase() + ".times";
+	private static final String TIMES_KEY = DefaultPromotion.class.getName().toLowerCase() + ".times";
 
-	private final static int TIMES_DEF = PropertiesUtils.get(DefaultPromotion.TIMES_KEY, 8);
+	private static final int TIMES_DEF = PropertiesUtils.get(DefaultPromotion.TIMES_KEY, 8);
 
 	private final MultiKeyMap promtions = new MultiKeyMap();
 

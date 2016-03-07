@@ -38,11 +38,11 @@ public class HessianSerial implements SerialOutput, SerialInput {
 	/**
 	 * 缓冲大小
 	 */
-	private final static int BUFFER = PropertiesUtils.get(HessianSerial.class.getName().toLowerCase() + ".buffer", 0x4 << 6);
+	private static final int BUFFER = PropertiesUtils.get(HessianSerial.class.getName().toLowerCase() + ".buffer", 0x4 << 6);
 
-	private final static byte[] EMPTY = new byte[] {};
+	private static final byte[] EMPTY = new byte[] {};
 
-	private final static byte SERIAL = 0;
+	private static final byte SERIAL = 0;
 
 	// Single HessianSerial4Segment, not static
 	private final ThreadLocal<SegmentOutput> output = new ThreadLocal<SegmentOutput>() {
@@ -205,7 +205,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 
 	private class HessianRequest implements Request {
 
-		private final static long serialVersionUID = 1L;
+		private static final long serialVersionUID = 1L;
 
 		private final Request actual;
 
@@ -290,7 +290,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 
 	private class HessianResponse implements Response {
 
-		private final static long serialVersionUID = 1L;
+		private static final long serialVersionUID = 1L;
 
 		private final Response actual;
 

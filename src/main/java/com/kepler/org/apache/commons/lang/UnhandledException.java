@@ -49,7 +49,7 @@ public class UnhandledException extends NestableRuntimeException {
      * 
      * @see java.io.Serializable
      */
-    private final static long serialVersionUID = 1832101364842773720L;
+    private static final long serialVersionUID = 1832101364842773720L;
 
     /**
      * Constructs the exception using a cause.

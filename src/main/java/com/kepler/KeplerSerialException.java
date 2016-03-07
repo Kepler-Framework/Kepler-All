@@ -5,7 +5,7 @@ package com.kepler;
  */
 public class KeplerSerialException extends KeplerException {
 
-	private final static long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
 	public KeplerSerialException(String e) {
 		super(e);

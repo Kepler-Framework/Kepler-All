@@ -1,7 +1,7 @@
 package com.kepler.service.exported;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.beans.BeansException;
@@ -50,7 +50,7 @@ public class ExportedDiscovery implements BeanPostProcessor {
 	// 如果@Autowire定义了Version则覆盖@Service
 	private void exported(Object bean, String catalog, String profile, String version[]) {
 		// 迭代所有定义@Service的接口
-		for (Class<?> each : this.services(new ArrayList<Class<?>>(), bean.getClass())) {
+		for (Class<?> each : this.services(new HashSet<Class<?>>(), bean.getClass())) {
 			try {
 				Service exported = AnnotationUtils.findAnnotation(each, Service.class);
 				// Autowired.Catalog覆盖Service.Catalog

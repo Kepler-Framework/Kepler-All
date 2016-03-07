@@ -5,7 +5,7 @@ package com.kepler;
  */
 public class KeplerAsyncException extends KeplerException {
 
-	private final static long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
 	public KeplerAsyncException(Throwable e) {
 		super(e);

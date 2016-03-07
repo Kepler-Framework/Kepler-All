@@ -23,36 +23,36 @@ import com.kepler.main.Pid;
  */
 public class ServerHost implements Serializable, Host {
 
-	private final static long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-	private final static Log LOGGER = LogFactory.getLog(ServerHost.class);
+	private static final Log LOGGER = LogFactory.getLog(ServerHost.class);
 
-	private final static int PORT = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".port", 9876);
+	private static final int PORT = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".port", 9876);
 
 	/**
 	 * 本地端口嗅探范围
 	 */
-	private final static int RANGE = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".range", 1000);
+	private static final int RANGE = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".range", 1000);
 
 	/**
 	 * 本地端口嗅探间隔
 	 */
-	private final static int INTERVAL = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".interval", 500);
+	private static final int INTERVAL = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".interval", 500);
 
 	/**
 	 * 是否使用固定端口
 	 */
-	private final static boolean STABLE = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".stable", false);
+	private static final boolean STABLE = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".stable", false);
 
 	/**
 	 * 网卡名称模式
 	 */
-	private final static String PATTERN = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".pattern", ".*");
+	private static final String PATTERN = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".pattern", ".*");
 
 	/**
 	 * 服务唯一ID
 	 */
-	private final static String SID = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".sid", UUID.randomUUID().toString());
+	private static final String SID = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".sid", UUID.randomUUID().toString());
 
 	private final String sid;
 
@@ -64,7 +64,7 @@ public class ServerHost implements Serializable, Host {
 	}
 
 	public ServerHost(Pid pid) throws Exception {
-		this.local = new DefaultHost(Host.GROUP, Host.TOKEN_VAL, Host.TAG_VAL, pid.pid(), this.ip(), ServerHost.STABLE ? ServerHost.PORT : this.available(), Host.PRIORITY_DEF);
+		this.local = new DefaultHost(Host.GROUP, Host.TOKEN_VAL, Host.NAME, Host.TAG_VAL, pid.pid(), this.ip(), ServerHost.STABLE ? ServerHost.PORT : this.available(), Host.PRIORITY_DEF);
 		this.sid = ServerHost.SID;
 	}
 
@@ -127,6 +127,11 @@ public class ServerHost implements Serializable, Host {
 	}
 
 	@Override
+	public String name() {
+		return this.local.name();
+	}
+
+	@Override
 	public String host() {
 		return this.local.host();
 	}
@@ -183,6 +188,8 @@ public class ServerHost implements Serializable, Host {
 
 		private String host;
 
+		private String name;
+
 		private String token;
 
 		private String group;
@@ -192,7 +199,7 @@ public class ServerHost implements Serializable, Host {
 		private int priority;
 
 		public Builder(ServerHost that) {
-			this.setGroup(that.group()).setToken(that.token()).setHost(that.host()).setPid(that.pid()).setPort(that.port()).setPriority(that.priority()).setSid(that.sid()).setTag(that.tag());
+			this.setGroup(that.group()).setToken(that.token()).setName(that.name()).setHost(that.host()).setPid(that.pid()).setPort(that.port()).setPriority(that.priority()).setSid(that.sid()).setTag(that.tag());
 		}
 
 		public Builder setPriority(int priority) {
@@ -212,6 +219,11 @@ public class ServerHost implements Serializable, Host {
 
 		public Builder setHost(String host) {
 			this.host = host;
+			return this;
+		}
+
+		public Builder setName(String name) {
+			this.name = name;
 			return this;
 		}
 
@@ -236,7 +248,7 @@ public class ServerHost implements Serializable, Host {
 		}
 
 		public ServerHost toServerHost() {
-			return new ServerHost(new DefaultHost(this.group, this.token, this.tag, this.pid, this.host, this.port, this.priority), this.sid);
+			return new ServerHost(new DefaultHost(this.group, this.token, this.name, this.tag, this.pid, this.host, this.port, this.priority), this.sid);
 		}
 	}
 }

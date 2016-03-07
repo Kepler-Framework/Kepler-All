@@ -24,16 +24,16 @@ public class MainInvoker implements Imported, Invoker {
 	/**
 	 * 是否开启流控
 	 */
-	private final static String THRESHOLD_ENABLED_KEY = MainInvoker.class.getName().toLowerCase() + ".threshold_enabled";
+	private static final String THRESHOLD_ENABLED_KEY = MainInvoker.class.getName().toLowerCase() + ".threshold_enabled";
 
-	private final static boolean THRESHOLD_ENABLED_DEF = PropertiesUtils.get(MainInvoker.THRESHOLD_ENABLED_KEY, false);
+	private static final boolean THRESHOLD_ENABLED_DEF = PropertiesUtils.get(MainInvoker.THRESHOLD_ENABLED_KEY, false);
 
 	/**
 	 * 阀值
 	 */
-	private final static String THRESHOLD_KEY = MainInvoker.class.getName().toLowerCase() + ".threshold";
+	private static final String THRESHOLD_KEY = MainInvoker.class.getName().toLowerCase() + ".threshold";
 
-	private final static int THRESHOLD_DEF = PropertiesUtils.get(MainInvoker.THRESHOLD_KEY, Integer.MAX_VALUE);
+	private static final int THRESHOLD_DEF = PropertiesUtils.get(MainInvoker.THRESHOLD_KEY, Integer.MAX_VALUE);
 
 	/**
 	 * 取代Semaphore, Failed Fast

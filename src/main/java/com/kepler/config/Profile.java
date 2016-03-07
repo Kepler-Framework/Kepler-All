@@ -16,7 +16,7 @@ public class Profile {
 	/**
 	 * 是否开启偏好
 	 */
-	private final static boolean ENABLED = PropertiesUtils.get(Profile.class.getName().toLowerCase() + ".enabled", false);
+	private static final boolean ENABLED = PropertiesUtils.get(Profile.class.getName().toLowerCase() + ".enabled", false);
 
 	private final Map<Service, String> profiles = new HashMap<Service, String>();
 

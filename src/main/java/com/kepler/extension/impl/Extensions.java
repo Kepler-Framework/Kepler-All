@@ -16,7 +16,7 @@ import com.kepler.extension.Extension;
  */
 public class Extensions implements BeanPostProcessor {
 
-	private final static Log LOGGER = LogFactory.getLog(Extensions.class);
+	private static final Log LOGGER = LogFactory.getLog(Extensions.class);
 
 	private final List<Extension> extensions;
 

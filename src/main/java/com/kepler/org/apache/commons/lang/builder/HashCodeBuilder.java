@@ -108,7 +108,7 @@ public class HashCodeBuilder {
      * 
      * @since 2.3
      */
-    private final static ThreadLocal REGISTRY = new ThreadLocal();
+    private static final ThreadLocal REGISTRY = new ThreadLocal();
 
     /*
      * N.B. we cannot store the actual objects in a HashSet, as that would use the very hashCode()

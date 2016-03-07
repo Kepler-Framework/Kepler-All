@@ -276,7 +276,7 @@ public class UnsafeSerializer extends AbstractSerializer
       throws IOException;
   }
 
-  final static class ObjectFieldSerializer extends FieldSerializer {
+  static final class ObjectFieldSerializer extends FieldSerializer {
     private final Field _field;
     private final long _offset;
     
@@ -311,7 +311,7 @@ public class UnsafeSerializer extends AbstractSerializer
     }
   }
 
-  final static class BooleanFieldSerializer extends FieldSerializer {
+  static final class BooleanFieldSerializer extends FieldSerializer {
     private final Field _field;
     private final long _offset;
     
@@ -333,7 +333,7 @@ public class UnsafeSerializer extends AbstractSerializer
     }
   }
 
-  final static class ByteFieldSerializer extends FieldSerializer {
+  static final class ByteFieldSerializer extends FieldSerializer {
     private final Field _field;
     private final long _offset;
     
@@ -355,7 +355,7 @@ public class UnsafeSerializer extends AbstractSerializer
     }
   }
 
-  final static class CharFieldSerializer extends FieldSerializer {
+  static final class CharFieldSerializer extends FieldSerializer {
     private final Field _field;
     private final long _offset;
     
@@ -377,7 +377,7 @@ public class UnsafeSerializer extends AbstractSerializer
     }
   }
 
-  final static class ShortFieldSerializer extends FieldSerializer {
+  static final class ShortFieldSerializer extends FieldSerializer {
     private final Field _field;
     private final long _offset;
     
@@ -399,7 +399,7 @@ public class UnsafeSerializer extends AbstractSerializer
     }
   }
 
-  final static class IntFieldSerializer extends FieldSerializer {
+  static final class IntFieldSerializer extends FieldSerializer {
     private final Field _field;
     private final long _offset;
     
@@ -421,7 +421,7 @@ public class UnsafeSerializer extends AbstractSerializer
     }
   }
 
-  final static class LongFieldSerializer extends FieldSerializer {
+  static final class LongFieldSerializer extends FieldSerializer {
     private final Field _field;
     private final long _offset;
     
@@ -443,7 +443,7 @@ public class UnsafeSerializer extends AbstractSerializer
     }
   }
 
-  final static class FloatFieldSerializer extends FieldSerializer {
+  static final class FloatFieldSerializer extends FieldSerializer {
     private final Field _field;
     private final long _offset;
     
@@ -465,7 +465,7 @@ public class UnsafeSerializer extends AbstractSerializer
     }
   }
 
-  final static class DoubleFieldSerializer extends FieldSerializer {
+  static final class DoubleFieldSerializer extends FieldSerializer {
     private final Field _field;
     private final long _offset;
     
@@ -487,7 +487,7 @@ public class UnsafeSerializer extends AbstractSerializer
     }
   }
 
-  final static class StringFieldSerializer extends FieldSerializer {
+  static final class StringFieldSerializer extends FieldSerializer {
     private final Field _field;
     private final long _offset;
     
@@ -510,7 +510,7 @@ public class UnsafeSerializer extends AbstractSerializer
     }
   }
 
-  final static class DateFieldSerializer extends FieldSerializer {
+  static final class DateFieldSerializer extends FieldSerializer {
     private final Field _field;
     private final long _offset;
     

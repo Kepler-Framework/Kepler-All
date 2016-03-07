@@ -2996,7 +2996,7 @@ public class Hessian2Input
     }
   };
 
-  final static class ObjectDefinition {
+  static final class ObjectDefinition {
     private final String _type;
     private final Deserializer _reader;
     private final Object []_fields;

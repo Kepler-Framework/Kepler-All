@@ -61,23 +61,23 @@ import com.kepler.org.apache.commons.collections.iterators.EmptyMapIterator;
  */
 public class AbstractHashedMap extends AbstractMap implements IterableMap {
     
-    protected final static String NO_NEXT_ENTRY = "No next() entry in the iteration";
-    protected final static String NO_PREVIOUS_ENTRY = "No previous() entry in the iteration";
-    protected final static String REMOVE_INVALID = "remove() can only be called once after next()";
-    protected final static String GETKEY_INVALID = "getKey() can only be called after next() and before remove()";
-    protected final static String GETVALUE_INVALID = "getValue() can only be called after next() and before remove()";
-    protected final static String SETVALUE_INVALID = "setValue() can only be called after next() and before remove()";
+    protected static final String NO_NEXT_ENTRY = "No next() entry in the iteration";
+    protected static final String NO_PREVIOUS_ENTRY = "No previous() entry in the iteration";
+    protected static final String REMOVE_INVALID = "remove() can only be called once after next()";
+    protected static final String GETKEY_INVALID = "getKey() can only be called after next() and before remove()";
+    protected static final String GETVALUE_INVALID = "getValue() can only be called after next() and before remove()";
+    protected static final String SETVALUE_INVALID = "setValue() can only be called after next() and before remove()";
     
     /** The default capacity to use */
-    protected final static int DEFAULT_CAPACITY = 16;
+    protected static final int DEFAULT_CAPACITY = 16;
     /** The default threshold to use */
-    protected final static int DEFAULT_THRESHOLD = 12;
+    protected static final int DEFAULT_THRESHOLD = 12;
     /** The default load factor to use */
-    protected final static float DEFAULT_LOAD_FACTOR = 0.75f;
+    protected static final float DEFAULT_LOAD_FACTOR = 0.75f;
     /** The maximum capacity allowed */
-    protected final static int MAXIMUM_CAPACITY = 1 << 30;
+    protected static final int MAXIMUM_CAPACITY = 1 << 30;
     /** An object for masking null */
-    protected final static Object NULL = new Object();
+    protected static final Object NULL = new Object();
     
     /** Load factor, normally 0.75 */
     protected transient float loadFactor;

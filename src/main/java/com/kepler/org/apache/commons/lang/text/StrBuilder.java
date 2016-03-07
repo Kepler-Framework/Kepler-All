@@ -76,14 +76,14 @@ public class StrBuilder implements Cloneable {
     /**
      * The extra capacity for new builders.
      */
-    final static int CAPACITY = 32;
+    static final int CAPACITY = 32;
 
     /**
      * Required for serialization support.
      * 
      * @see java.io.Serializable
      */
-    private final static long serialVersionUID = 7628716375283629643L;
+    private static final long serialVersionUID = 7628716375283629643L;
 
     /** Internal data storage. */
     protected char[] buffer; // TODO make private?

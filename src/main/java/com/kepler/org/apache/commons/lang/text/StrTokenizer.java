@@ -87,8 +87,8 @@ import java.util.NoSuchElementException;
  */
 public class StrTokenizer implements ListIterator, Cloneable {
 
-    private final static StrTokenizer CSV_TOKENIZER_PROTOTYPE;
-    private final static StrTokenizer TSV_TOKENIZER_PROTOTYPE;
+    private static final StrTokenizer CSV_TOKENIZER_PROTOTYPE;
+    private static final StrTokenizer TSV_TOKENIZER_PROTOTYPE;
     static {
         CSV_TOKENIZER_PROTOTYPE = new StrTokenizer();
         CSV_TOKENIZER_PROTOTYPE.setDelimiterMatcher(StrMatcher.commaMatcher());

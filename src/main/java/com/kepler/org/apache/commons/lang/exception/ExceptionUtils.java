@@ -54,7 +54,7 @@ public class ExceptionUtils {
      *
      * <p>Package private for accessibility by test suite.</p>
      */
-    final static String WRAPPED_MARKER = " [wrapped] ";
+    static final String WRAPPED_MARKER = " [wrapped] ";
 
     /**
      * <p>The names of methods commonly used to access a wrapped exception.</p>
@@ -77,12 +77,12 @@ public class ExceptionUtils {
     /**
      * <p>The Method object for Java 1.4 getCause.</p>
      */
-    private final static Method THROWABLE_CAUSE_METHOD;
+    private static final Method THROWABLE_CAUSE_METHOD;
 
     /**
      * <p>The Method object for Java 1.4 initCause.</p>
      */
-    private final static Method THROWABLE_INITCAUSE_METHOD;
+    private static final Method THROWABLE_INITCAUSE_METHOD;
     
     static {
         Method causeMethod;

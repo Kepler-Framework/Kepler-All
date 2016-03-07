@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class FutureWrapper<T> implements Serializable, Future<T> {
 
-	private final static long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
 	private final T future;
 

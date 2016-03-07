@@ -34,40 +34,40 @@ public abstract class StrMatcher {
     /**
      * Matches the comma character.
      */
-    private final static StrMatcher COMMA_MATCHER = new CharMatcher(',');
+    private static final StrMatcher COMMA_MATCHER = new CharMatcher(',');
     /**
      * Matches the tab character.
      */
-    private final static StrMatcher TAB_MATCHER = new CharMatcher('\t');
+    private static final StrMatcher TAB_MATCHER = new CharMatcher('\t');
     /**
      * Matches the space character.
      */
-    private final static StrMatcher SPACE_MATCHER = new CharMatcher(' ');
+    private static final StrMatcher SPACE_MATCHER = new CharMatcher(' ');
     /**
      * Matches the same characters as StringTokenizer,
      * namely space, tab, newline, formfeed.
      */
-    private final static StrMatcher SPLIT_MATCHER = new CharSetMatcher(" \t\n\r\f".toCharArray());
+    private static final StrMatcher SPLIT_MATCHER = new CharSetMatcher(" \t\n\r\f".toCharArray());
     /**
      * Matches the String trim() whitespace characters.
      */
-    private final static StrMatcher TRIM_MATCHER = new TrimMatcher();
+    private static final StrMatcher TRIM_MATCHER = new TrimMatcher();
     /**
      * Matches the double quote character.
      */
-    private final static StrMatcher SINGLE_QUOTE_MATCHER = new CharMatcher('\'');
+    private static final StrMatcher SINGLE_QUOTE_MATCHER = new CharMatcher('\'');
     /**
      * Matches the double quote character.
      */
-    private final static StrMatcher DOUBLE_QUOTE_MATCHER = new CharMatcher('"');
+    private static final StrMatcher DOUBLE_QUOTE_MATCHER = new CharMatcher('"');
     /**
      * Matches the single or double quote character.
      */
-    private final static StrMatcher QUOTE_MATCHER = new CharSetMatcher("'\"".toCharArray());
+    private static final StrMatcher QUOTE_MATCHER = new CharSetMatcher("'\"".toCharArray());
     /**
      * Matches no characters.
      */
-    private final static StrMatcher NONE_MATCHER = new NoMatcher();
+    private static final StrMatcher NONE_MATCHER = new NoMatcher();
 
     // -----------------------------------------------------------------------
 
@@ -247,7 +247,7 @@ public abstract class StrMatcher {
     /**
      * Class used to define a set of characters for matching purposes.
      */
-    final static class CharSetMatcher extends StrMatcher {
+    static final class CharSetMatcher extends StrMatcher {
         /** The set of characters to match. */
         private char[] chars;
 
@@ -280,7 +280,7 @@ public abstract class StrMatcher {
     /**
      * Class used to define a character for matching purposes.
      */
-    final static class CharMatcher extends StrMatcher {
+    static final class CharMatcher extends StrMatcher {
         /** The character to match. */
         private char ch;
 
@@ -312,7 +312,7 @@ public abstract class StrMatcher {
     /**
      * Class used to define a set of characters for matching purposes.
      */
-    final static class StringMatcher extends StrMatcher {
+    static final class StringMatcher extends StrMatcher {
         /** The string to match, as a character array. */
         private char[] chars;
 
@@ -353,7 +353,7 @@ public abstract class StrMatcher {
     /**
      * Class used to match no characters.
      */
-    final static class NoMatcher extends StrMatcher {
+    static final class NoMatcher extends StrMatcher {
 
         /**
          * Constructs a new instance of <code>NoMatcher</code>.
@@ -380,7 +380,7 @@ public abstract class StrMatcher {
     /**
      * Class used to match whitespace as per trim().
      */
-    final static class TrimMatcher extends StrMatcher {
+    static final class TrimMatcher extends StrMatcher {
 
         /**
          * Constructs a new instance of <code>TrimMatcher</code>.

@@ -10,7 +10,7 @@ import com.kepler.invoker.forkjoin.Joiner;
  */
 public class Joiner4Complex implements Joiner {
 
-	public final static String NAME = "complex";
+	public static final String NAME = "complex";
 
 	@SuppressWarnings("unchecked")
 	private Object add(Object current, Object joined) {

@@ -26,9 +26,9 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 	/**
 	 * 是否允许多次发布相同Service
 	 */
-	private final static boolean CONFLICT = PropertiesUtils.get(DefaultContext.class.getName().toLowerCase() + ".conflict", true);
+	private static final boolean CONFLICT = PropertiesUtils.get(DefaultContext.class.getName().toLowerCase() + ".conflict", true);
 
-	private final static Log LOGGER = LogFactory.getLog(DefaultContext.class);
+	private static final Log LOGGER = LogFactory.getLog(DefaultContext.class);
 
 	private final Map<Service, Invoker> invokers = new HashMap<Service, Invoker>();
 

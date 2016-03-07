@@ -60,7 +60,7 @@ public class IntMap {
    * Encoding of a null entry.  Since NULL is equal to Integer.MIN_VALUE,
    * it's impossible to distinguish between the two.
    */
-  public final static int NULL = 0xdeadbeef; // Integer.MIN_VALUE + 1;
+  public static final int NULL = 0xdeadbeef; // Integer.MIN_VALUE + 1;
 
   private Object []_keys;
   private int []_values;

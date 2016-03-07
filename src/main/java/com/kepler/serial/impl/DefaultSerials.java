@@ -15,9 +15,9 @@ import com.kepler.serial.Serials;
  */
 public class DefaultSerials implements Serials {
 
-	private final static boolean SMART = PropertiesUtils.get(DefaultSerials.class.getName().toLowerCase() + ".smart", true);
+	private static final boolean SMART = PropertiesUtils.get(DefaultSerials.class.getName().toLowerCase() + ".smart", true);
 
-	private final static Log LOGGER = LogFactory.getLog(DefaultSerials.class);
+	private static final Log LOGGER = LogFactory.getLog(DefaultSerials.class);
 
 	private final DefaultSerialOutputs out;
 

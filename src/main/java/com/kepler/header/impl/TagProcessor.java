@@ -14,7 +14,7 @@ import com.kepler.service.Service;
  */
 public class TagProcessor implements HeadersProcessor {
 
-	private final static int SORT = PropertiesUtils.get(TagProcessor.class.getName().toLowerCase() + ".sort", Integer.MAX_VALUE);
+	private static final int SORT = PropertiesUtils.get(TagProcessor.class.getName().toLowerCase() + ".sort", Integer.MAX_VALUE);
 
 	private final Profile profile;
 

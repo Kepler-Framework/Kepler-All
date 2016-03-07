@@ -10,19 +10,19 @@ import com.kepler.config.PropertiesUtils;
  */
 public interface SerialID {
 
-	public final static String SERIAL_DEF = "default";
+	public static final String SERIAL_DEF = "default";
 
-	public final static String SERIAL_KEY = SerialID.class.getName().toLowerCase() + ".serial";
+	public static final String SERIAL_KEY = SerialID.class.getName().toLowerCase() + ".serial";
 
 	/**
 	 * 默认序列化策略
 	 */
-	public final static String SERIAL_VAL = PropertiesUtils.get(SerialID.SERIAL_KEY, SerialID.SERIAL_DEF);
+	public static final String SERIAL_VAL = PropertiesUtils.get(SerialID.SERIAL_KEY, SerialID.SERIAL_DEF);
 
 	/**
 	 * 是否允许动态化序列化策略(Profile)
 	 */
-	public final static boolean DYAMIC = PropertiesUtils.get(SerialID.class.getName().toLowerCase() + ".dynamic", false);
+	public static final boolean DYAMIC = PropertiesUtils.get(SerialID.class.getName().toLowerCase() + ".dynamic", false);
 
 	/**
 	 * 获取序列化策略

@@ -12,7 +12,7 @@ import com.kepler.service.ServiceInstance;
  */
 public class DefaultImportedListener implements ImportedListener {
 
-	private final static boolean REPAIR = PropertiesUtils.get(DefaultImportedListener.class.getName().toLowerCase() + ".repair", true);
+	private static final boolean REPAIR = PropertiesUtils.get(DefaultImportedListener.class.getName().toLowerCase() + ".repair", true);
 
 	private final HostsContext context;
 

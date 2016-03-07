@@ -26,7 +26,7 @@ package com.kepler.org.apache.commons.lang.exception;
 public class CloneFailedException extends NestableRuntimeException {
     // ~ Static fields/initializers ---------------------------------------------
 
-    private final static long serialVersionUID = 20091223L;
+    private static final long serialVersionUID = 20091223L;
 
     // ~ Constructors -----------------------------------------------------------
 

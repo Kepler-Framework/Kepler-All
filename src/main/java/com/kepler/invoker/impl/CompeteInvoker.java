@@ -28,13 +28,13 @@ import com.kepler.service.Service;
  */
 public class CompeteInvoker implements Imported, Invoker {
 
-	private final static boolean ACTIVED = PropertiesUtils.get(CompeteInvoker.class.getName().toLowerCase() + ".actived", false);
+	private static final boolean ACTIVED = PropertiesUtils.get(CompeteInvoker.class.getName().toLowerCase() + ".actived", false);
 
-	private final static String CANCEL_KEY = CompeteInvoker.class.getName().toLowerCase() + ".cancel";
+	private static final String CANCEL_KEY = CompeteInvoker.class.getName().toLowerCase() + ".cancel";
 
-	private final static boolean CANCEL_DEF = PropertiesUtils.get(CompeteInvoker.CANCEL_KEY, true);
+	private static final boolean CANCEL_DEF = PropertiesUtils.get(CompeteInvoker.CANCEL_KEY, true);
 
-	private final static String SPAN = CompeteInvoker.class.getName().toLowerCase() + ".span";
+	private static final String SPAN = CompeteInvoker.class.getName().toLowerCase() + ".span";
 
 	private final MultiKeyMap competed = new MultiKeyMap();
 

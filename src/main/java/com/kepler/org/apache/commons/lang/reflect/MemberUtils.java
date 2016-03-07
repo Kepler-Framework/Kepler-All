@@ -39,9 +39,9 @@ import com.kepler.org.apache.commons.lang.SystemUtils;
 abstract class MemberUtils {
     // TODO extract an interface to implement compareParameterSets(...)?
 
-    private final static int ACCESS_TEST = Modifier.PUBLIC | Modifier.PROTECTED | Modifier.PRIVATE;
+    private static final int ACCESS_TEST = Modifier.PUBLIC | Modifier.PROTECTED | Modifier.PRIVATE;
 
-    private final static Method IS_SYNTHETIC;
+    private static final Method IS_SYNTHETIC;
     static {
         Method isSynthetic = null;
         if (SystemUtils.isJavaVersionAtLeast(1.5f)) {
@@ -56,7 +56,7 @@ abstract class MemberUtils {
     }
 
     /** Array of primitive number types ordered by "promotability" */
-    private final static Class[] ORDERED_PRIMITIVE_TYPES = { Byte.TYPE, Short.TYPE,
+    private static final Class[] ORDERED_PRIMITIVE_TYPES = { Byte.TYPE, Short.TYPE,
             Character.TYPE, Integer.TYPE, Long.TYPE, Float.TYPE, Double.TYPE };
 
     /**

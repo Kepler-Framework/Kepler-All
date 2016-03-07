@@ -8,7 +8,7 @@ import com.kepler.org.apache.commons.lang.builder.ToStringBuilder;
  */
 public class DefaultHost implements Host {
 
-	private final static long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
 	private final int port;
 
@@ -20,13 +20,16 @@ public class DefaultHost implements Host {
 
 	private final String host;
 
+	private final String name;
+
 	private final String token;
 
 	private final String group;
 
-	public DefaultHost(String group, String token, String tag, String pid, String host, int port, int priority) {
+	public DefaultHost(String group, String token, String name, String tag, String pid, String host, int port, int priority) {
 		this.tag = tag;
 		this.pid = pid;
+		this.name = name;
 		this.host = host;
 		this.port = port;
 		this.token = token;
@@ -50,6 +53,10 @@ public class DefaultHost implements Host {
 
 	public String token() {
 		return this.token;
+	}
+
+	public String name() {
+		return this.name;
 	}
 
 	@Override

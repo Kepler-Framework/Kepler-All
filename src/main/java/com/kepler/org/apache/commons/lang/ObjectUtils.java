@@ -60,7 +60,7 @@ public class ObjectUtils {
      *
      * <p>This instance is Serializable.</p>
      */
-    public final static Null NULL = new Null();
+    public static final Null NULL = new Null();
     
     /**
      * <p><code>ObjectUtils</code> instances should NOT be constructed in
@@ -452,7 +452,7 @@ public class ObjectUtils {
          * 
          * @see java.io.Serializable
          */
-        private final static long serialVersionUID = 7092611880189329093L;
+        private static final long serialVersionUID = 7092611880189329093L;
         
         /**
          * Restricted constructor - singleton.

@@ -18,26 +18,24 @@ import com.kepler.config.PropertiesUtils;
  */
 public class ZkFactory implements FactoryBean<ZkClient> {
 
-	private final static int RETRY_TIMES = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".retry_times", Integer.MAX_VALUE);
+	private static final int RETRY_TIMES = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".retry_times", Integer.MAX_VALUE);
 
-	private final static int RETRY_INTERVAL = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".retry_interval", 20000);
+	private static final int RETRY_INTERVAL = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".retry_interval", 20000);
 
-	private final static int TIMEOUT_SESSION = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".timeout_session", 10000);
+	private static final int TIMEOUT_SESSION = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".timeout_session", 10000);
 
-	private final static int TIMEOUT_CONNECT = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".timeout_connect", 120000);
+	private static final int TIMEOUT_CONNECT = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".timeout_connect", 120000);
 
-	private final static String SCHEME = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".scheme", "digest");
+	private static final String SCHEME = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".scheme", "digest");
 
-	private final static String AUTH = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".auth", "");
-
-	public final static String HOST_KEY = ZkFactory.class.getName().toLowerCase() + ".host";
+	private static final String AUTH = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".auth", "");
 
 	/**
 	 * Using for kepler admin
 	 */
-	public final static String HOST_VAL = PropertiesUtils.get(ZkFactory.HOST_KEY, "");
+	public static final String HOST = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".host", "");
 
-	private final static Log LOGGER = LogFactory.getLog(ZkFactory.class);
+	private static final Log LOGGER = LogFactory.getLog(ZkFactory.class);
 
 	private final ZkConnection connection = new ZkConnection();
 
@@ -64,7 +62,7 @@ public class ZkFactory implements FactoryBean<ZkClient> {
 	}
 
 	public ZkFactory() {
-		this(ZkFactory.HOST_VAL, ZkFactory.SCHEME, ZkFactory.AUTH);
+		this(ZkFactory.HOST, ZkFactory.SCHEME, ZkFactory.AUTH);
 	}
 
 	/**

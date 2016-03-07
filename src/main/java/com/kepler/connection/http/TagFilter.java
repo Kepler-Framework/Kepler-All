@@ -22,7 +22,7 @@ import com.kepler.host.Host;
  */
 public class TagFilter implements Filter {
 
-	private final static String KEY = PropertiesUtils.get(TagFilter.class.getName().toLowerCase() + ".key", "_kepler.tag");
+	private static final String KEY = PropertiesUtils.get(TagFilter.class.getName().toLowerCase() + ".key", "_kepler.tag");
 
 	private HeadersContext context;
 

@@ -14,7 +14,7 @@ import org.apache.commons.logging.LogFactory;
  */
 abstract public class PeriodTask implements Delayed {
 
-	private final static Log LOGGER = LogFactory.getLog(PeriodTask.class);
+	private static final Log LOGGER = LogFactory.getLog(PeriodTask.class);
 
 	private long deadline;
 

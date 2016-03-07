@@ -19,9 +19,9 @@ public class ConfigParser4Date implements ConfigParser {
 	/**
 	 * 默认格式
 	 */
-	private final static String FORMAT = PropertiesUtils.get(ConfigParser4Date.class.getName().toLowerCase() + ".format", "yyyy-MM-dd hh:mm:ss");
+	private static final String FORMAT = PropertiesUtils.get(ConfigParser4Date.class.getName().toLowerCase() + ".format", "yyyy-MM-dd hh:mm:ss");
 
-	private final static Log LOGGER = LogFactory.getLog(ConfigParser4Date.class);
+	private static final Log LOGGER = LogFactory.getLog(ConfigParser4Date.class);
 
 	@Override
 	public Object parse(Class<?> request, String config) {

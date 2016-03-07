@@ -23,14 +23,14 @@ import com.kepler.service.Service;
  */
 public class DefaultTransfers implements Transfers {
 
-	private final static long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-	private final static Log LOGGER = LogFactory.getLog(DefaultTransfers.class);
+	private static final Log LOGGER = LogFactory.getLog(DefaultTransfers.class);
 
 	/**
 	 * 冻结状态阀值
 	 */
-	private final static int FREEZE = PropertiesUtils.get(DefaultTransfers.class.getName().toLowerCase() + ".freeze", 5);
+	private static final int FREEZE = PropertiesUtils.get(DefaultTransfers.class.getName().toLowerCase() + ".freeze", 5);
 
 	/**
 	 * 需要冻结的Transfer
@@ -133,7 +133,7 @@ public class DefaultTransfers implements Transfers {
 
 	private class WriteableTransfer implements Transfer {
 
-		private final static long serialVersionUID = 1L;
+		private static final long serialVersionUID = 1L;
 
 		private final AtomicLong rtt = new AtomicLong();
 

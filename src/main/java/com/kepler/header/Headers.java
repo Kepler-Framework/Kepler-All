@@ -19,7 +19,7 @@ public interface Headers extends Serializable {
 	/**
 	 * 是否开启Header
 	 */
-	public final static boolean ENABLED = PropertiesUtils.get(Headers.class.getName().toLowerCase() + ".enabled", false);
+	public static final boolean ENABLED = PropertiesUtils.get(Headers.class.getName().toLowerCase() + ".enabled", false);
 
 	public Headers put(String key, String value);
 

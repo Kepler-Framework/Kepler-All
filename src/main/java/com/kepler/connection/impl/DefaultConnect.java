@@ -67,43 +67,43 @@ public class DefaultConnect implements Connect {
 	/**
 	 * 连接超时
 	 */
-	private final static int TIMEOUT = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".timeout", 5000);
+	private static final int TIMEOUT = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".timeout", 5000);
 
 	/**
 	 * 黏包最大长度
 	 */
-	private final static int FRAGEMENT = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".fragement", Integer.MAX_VALUE);
+	private static final int FRAGEMENT = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".fragement", Integer.MAX_VALUE);
 
 	/**
 	 * 发送/接受缓冲区大小
 	 */
-	private final static int BUFFER_SEND = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".buffer_send", Integer.MAX_VALUE);
+	private static final int BUFFER_SEND = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".buffer_send", Integer.MAX_VALUE);
 
-	private final static int BUFFER_RECV = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".buffer_recv", Integer.MAX_VALUE);
+	private static final int BUFFER_RECV = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".buffer_recv", Integer.MAX_VALUE);
 
 	/**
 	 * 监听待重连线程数量
 	 */
-	private final static int ESTABLISH_THREAD = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".establish_thread", 1);
+	private static final int ESTABLISH_THREAD = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".establish_thread", 1);
 
 	/**
 	 * 是否允许本地回路
 	 */
-	private final static boolean ESTABLISH_LOOP = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".establish_loop", true);
+	private static final boolean ESTABLISH_LOOP = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".establish_loop", true);
 
 	/**
 	 * 是否使用共享Shared EventLoopGroup
 	 */
-	private final static boolean EVENTLOOP_SHARED = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".eventloop_shared", true);
+	private static final boolean EVENTLOOP_SHARED = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".eventloop_shared", true);
 
 	/**
 	 * EventLoopGroup线程数量
 	 */
-	private final static int EVENTLOOP_THREAD = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".eventloop_thread", Runtime.getRuntime().availableProcessors() * 2);
+	private static final int EVENTLOOP_THREAD = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".eventloop_thread", Runtime.getRuntime().availableProcessors() * 2);
 
-	private final static ChannelFactory<SocketChannel> FACTORY = new DefaultChannelFactory<SocketChannel>(NioSocketChannel.class);
+	private static final ChannelFactory<SocketChannel> FACTORY = new DefaultChannelFactory<SocketChannel>(NioSocketChannel.class);
 
-	private final static Log LOGGER = LogFactory.getLog(DefaultConnect.class);
+	private static final Log LOGGER = LogFactory.getLog(DefaultConnect.class);
 
 	/**
 	 * 共享EventLoopGroup, 如果没有开启则为Null

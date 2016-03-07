@@ -5,7 +5,7 @@ package com.kepler;
  */
 public class KeplerTimeoutException extends KeplerRemoteException {
 
-	private final static long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
 	public KeplerTimeoutException(String e) {
 		super(e);

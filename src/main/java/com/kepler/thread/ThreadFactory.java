@@ -15,25 +15,25 @@ import com.kepler.config.PropertiesUtils;
  */
 public class ThreadFactory implements FactoryBean<ThreadPoolExecutor> {
 
-	private final static Log LOGGER = LogFactory.getLog(ThreadFactory.class);
+	private static final Log LOGGER = LogFactory.getLog(ThreadFactory.class);
 
-	private final static int THREAD_MAX = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".max", Runtime.getRuntime().availableProcessors() * 2);
+	private static final int THREAD_MAX = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".max", Runtime.getRuntime().availableProcessors() * 2);
 
-	private final static int THREAD_CORE = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".core", Runtime.getRuntime().availableProcessors() + 1);
+	private static final int THREAD_CORE = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".core", Runtime.getRuntime().availableProcessors() + 1);
 
-	private final static int THREAD_QUEUE = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".queue", 50);
+	private static final int THREAD_QUEUE = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".queue", 50);
 
-	private final static int THREAD_KEEPALIVE = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".keepalive", 60000);
+	private static final int THREAD_KEEPALIVE = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".keepalive", 60000);
 
 	/**
 	 * 是否使用ShutdownNow
 	 */
-	private final static boolean SHUTDOWN_WAIT = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".shutdown_wait", false);
+	private static final boolean SHUTDOWN_WAIT = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".shutdown_wait", false);
 
 	/**
 	 * 扫描线程池是否完毕间隔
 	 */
-	private final static int SHUTDOWN_INTERVAL = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".shutdown_interval", 1000);
+	private static final int SHUTDOWN_INTERVAL = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".shutdown_interval", 1000);
 
 	private ThreadPoolExecutor threads;
 

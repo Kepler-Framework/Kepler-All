@@ -27,12 +27,12 @@ import com.kepler.service.Quiet;
  */
 public class AckFuture implements Future<Object>, Ack {
 
-	private final static String TIMEOUT_KEY = AckFuture.class.getName().toLowerCase() + ".timeout";
+	private static final String TIMEOUT_KEY = AckFuture.class.getName().toLowerCase() + ".timeout";
 
 	/**
 	 * 默认最大超时
 	 */
-	private final static int TIMEOUT_DEF = PropertiesUtils.get(AckFuture.TIMEOUT_KEY, 60000);
+	private static final int TIMEOUT_DEF = PropertiesUtils.get(AckFuture.TIMEOUT_KEY, 60000);
 
 	/**
 	 * ACK创建时间

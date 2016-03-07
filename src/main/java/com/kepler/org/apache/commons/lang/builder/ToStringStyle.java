@@ -77,7 +77,7 @@ public abstract class ToStringStyle implements Serializable {
      * Person@182f0db[name=John Doe,age=33,smoker=false]
      * </pre>
      */
-    public final static ToStringStyle DEFAULT_STYLE = new DefaultToStringStyle();
+    public static final ToStringStyle DEFAULT_STYLE = new DefaultToStringStyle();
 
     /**
      * The multi line toString style. Using the Using the <code>Person</code>
@@ -91,7 +91,7 @@ public abstract class ToStringStyle implements Serializable {
      * ]
      * </pre>
      */
-    public final static ToStringStyle MULTI_LINE_STYLE = new MultiLineToStringStyle();
+    public static final ToStringStyle MULTI_LINE_STYLE = new MultiLineToStringStyle();
 
     /**
      * The no field names toString style. Using the Using the
@@ -102,7 +102,7 @@ public abstract class ToStringStyle implements Serializable {
      * Person@182f0db[John Doe,33,false]
      * </pre>
      */
-    public final static ToStringStyle NO_FIELD_NAMES_STYLE = new NoFieldNameToStringStyle();
+    public static final ToStringStyle NO_FIELD_NAMES_STYLE = new NoFieldNameToStringStyle();
 
     /**
      * The short prefix toString style. Using the <code>Person</code> example
@@ -114,7 +114,7 @@ public abstract class ToStringStyle implements Serializable {
      *
      * @since 2.1
      */
-    public final static ToStringStyle SHORT_PREFIX_STYLE = new ShortPrefixToStringStyle();
+    public static final ToStringStyle SHORT_PREFIX_STYLE = new ShortPrefixToStringStyle();
 
     /**
      * The simple toString style. Using the Using the <code>Person</code>
@@ -124,7 +124,7 @@ public abstract class ToStringStyle implements Serializable {
      * John Doe,33,false
      * </pre>
      */
-    public final static ToStringStyle SIMPLE_STYLE = new SimpleToStringStyle();
+    public static final ToStringStyle SIMPLE_STYLE = new SimpleToStringStyle();
 
     /**
      * <p>
@@ -132,7 +132,7 @@ public abstract class ToStringStyle implements Serializable {
      * to detect cyclical object references and avoid infinite loops.
      * </p>
      */
-    private final static ThreadLocal REGISTRY = new ThreadLocal();
+    private static final ThreadLocal REGISTRY = new ThreadLocal();
 
     /**
      * <p>
@@ -2121,14 +2121,14 @@ public abstract class ToStringStyle implements Serializable {
      * <p>This is an inner class rather than using
      * <code>StandardToStringStyle</code> to ensure its immutability.</p>
      */
-    private final static class DefaultToStringStyle extends ToStringStyle {
+    private static final class DefaultToStringStyle extends ToStringStyle {
 
         /**
          * Required for serialization support.
          *
          * @see java.io.Serializable
          */
-        private final static long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
         /**
          * <p>Constructor.</p>
@@ -2159,9 +2159,9 @@ public abstract class ToStringStyle implements Serializable {
      * <p>This is an inner class rather than using
      * <code>StandardToStringStyle</code> to ensure its immutability.
      */
-    private final static class NoFieldNameToStringStyle extends ToStringStyle {
+    private static final class NoFieldNameToStringStyle extends ToStringStyle {
 
-        private final static long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
         /**
          * <p>Constructor.</p>
@@ -2193,9 +2193,9 @@ public abstract class ToStringStyle implements Serializable {
      * <p>This is an inner class rather than using
      * <code>StandardToStringStyle</code> to ensure its immutability.</p>
      */
-    private final static class ShortPrefixToStringStyle extends ToStringStyle {
+    private static final class ShortPrefixToStringStyle extends ToStringStyle {
 
-        private final static long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
         /**
          * <p>Constructor.</p>
@@ -2225,9 +2225,9 @@ public abstract class ToStringStyle implements Serializable {
      * <p>This is an inner class rather than using
      * <code>StandardToStringStyle</code> to ensure its immutability.</p>
      */
-    private final static class SimpleToStringStyle extends ToStringStyle {
+    private static final class SimpleToStringStyle extends ToStringStyle {
 
-        private final static long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
         /**
          * <p>Constructor.</p>
@@ -2261,9 +2261,9 @@ public abstract class ToStringStyle implements Serializable {
      * <p>This is an inner class rather than using
      * <code>StandardToStringStyle</code> to ensure its immutability.</p>
      */
-    private final static class MultiLineToStringStyle extends ToStringStyle {
+    private static final class MultiLineToStringStyle extends ToStringStyle {
 
-        private final static long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
         /**
          * <p>Constructor.</p>

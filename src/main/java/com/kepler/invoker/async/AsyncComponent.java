@@ -17,9 +17,9 @@ abstract public class AsyncComponent {
 	/**
 	 * 是否在Future()线程中显示错误日志(Warn)
 	 */
-	private final static boolean WARNING = PropertiesUtils.get(AsyncComponent.class.getName().toLowerCase() + ".warning", false);
+	private static final boolean WARNING = PropertiesUtils.get(AsyncComponent.class.getName().toLowerCase() + ".warning", false);
 
-	private final static Log LOGGER = LogFactory.getLog(AsyncComponent.class);
+	private static final Log LOGGER = LogFactory.getLog(AsyncComponent.class);
 
 	// 创建线程Future, 标记原方法非堵塞
 	private final Future<Object> future = AsyncContext.binding(false);

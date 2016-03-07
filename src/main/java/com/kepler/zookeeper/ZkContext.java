@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,35 +33,46 @@ import com.kepler.serial.Serials;
 import com.kepler.service.Exported;
 import com.kepler.service.Imported;
 import com.kepler.service.ImportedListener;
+import com.kepler.service.ImportedService;
 import com.kepler.service.Service;
 import com.kepler.service.ServiceInstance;
+import com.kepler.service.imported.ImportedServiceImpl;
 
 /**
  * @author zhangjiehao 2015年7月9日
  */
 public class ZkContext implements Demotion, Imported, Exported, ApplicationListener<ContextRefreshedEvent> {
 
-	public final static String CONFIG = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".config", "_configs");
+	public static final String DEPENDENCY = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".dependency", "_dependency");
 
-	public final static String STATUS = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".status", "_status");
+	public static final String CONFIG = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".config", "_configs");
 
-	public final static String ROOT = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".root", "/kepler");
+	public static final String STATUS = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".status", "_status");
+
+	public static final String ROOT = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".root", "/kepler");
+
+	/**
+	 * 是否发布依赖
+	 */
+	public static final String DEPENDENCY_KEY = ZkContext.class.getName().toLowerCase() + ".dependency";
+
+	public static final boolean DEPENDENCY_VAL = PropertiesUtils.get(ZkContext.DEPENDENCY_KEY, true);
 
 	/**
 	 * 是否发布
 	 */
-	public final static String EXPORT_KEY = ZkContext.class.getName().toLowerCase() + ".export";
+	public static final String EXPORT_KEY = ZkContext.class.getName().toLowerCase() + ".export";
 
-	public final static boolean EXPORT_VAL = PropertiesUtils.get(ZkContext.EXPORT_KEY, true);
+	public static final boolean EXPORT_VAL = PropertiesUtils.get(ZkContext.EXPORT_KEY, true);
 
 	/**
 	 * 是否导入
 	 */
-	public final static String IMPORT_KEY = ZkContext.class.getName().toLowerCase() + ".import";
+	public static final String IMPORT_KEY = ZkContext.class.getName().toLowerCase() + ".import";
 
-	public final static boolean IMPORT_VAL = PropertiesUtils.get(ZkContext.IMPORT_KEY, true);
+	public static final boolean IMPORT_VAL = PropertiesUtils.get(ZkContext.IMPORT_KEY, true);
 
-	private final static Log LOGGER = LogFactory.getLog(ZkContext.class);
+	private static final Log LOGGER = LogFactory.getLog(ZkContext.class);
 
 	private final ZkWatcher watcher = new ZkWatcher();
 
@@ -124,7 +136,7 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	 */
 	private void status() throws Exception {
 		if (this.exports.status()) {
-			this.exports.status(this.zoo.create(this.road.roadmap(new StringBuffer(ZkContext.ROOT).append(ZkContext.STATUS).toString()) + "/" + this.local.sid(), this.serials.def4output().output(this.status.get(), Map.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL));
+			this.exports.status(this.zoo.create(this.road.mkdir(new StringBuffer(ZkContext.ROOT).append(ZkContext.STATUS).toString()) + "/" + this.local.sid(), this.serials.def4output().output(this.status.get(), Map.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL));
 		}
 	}
 
@@ -135,7 +147,19 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	 */
 	private void config() throws Exception {
 		if (this.exports.config()) {
-			this.exports.config(new ConfigWatcher(this.zoo.create(this.road.roadmap(new StringBuffer(ZkContext.ROOT).append(ZkContext.CONFIG).toString()) + "/" + this.local.sid(), this.serials.def4output().output(PropertiesUtils.properties(), Map.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL)).path());
+			this.exports.config(new ConfigWatcher(this.zoo.create(this.road.mkdir(new StringBuffer(ZkContext.ROOT).append(ZkContext.CONFIG).toString()) + "/" + this.local.sid(), this.serials.def4output().output(PropertiesUtils.properties(), Map.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL)).path());
+		}
+	}
+
+	/**
+	 * 发布线服务依赖
+	 * 
+	 * @param service
+	 * @throws Exception
+	 */
+	private void dependency(Service service) throws Exception {
+		if (PropertiesUtils.profile(this.profile.profile(service), ZkContext.DEPENDENCY_KEY, ZkContext.DEPENDENCY_VAL)) {
+			this.zoo.create(this.road.mkdir(new StringBuffer(ZkContext.ROOT).append(ZkContext.DEPENDENCY).append("/").append(this.road.road(service.service(), service.versionAndCatalog())).toString()) + "/", this.serials.def4output().output(new ImportedServiceImpl(this.local, service), ImportedService.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
 		}
 	}
 
@@ -171,29 +195,30 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	@Override
 	public void subscribe(Service service) throws Exception {
 		if (!PropertiesUtils.profile(this.profile.profile(service), ZkContext.IMPORT_KEY, ZkContext.IMPORT_VAL)) {
-			ZkContext.LOGGER.warn("Disabled import service: " + service);
+			ZkContext.LOGGER.warn("Disabled import service: " + service + " ... ");
 			return;
 		}
-		// 导入服务并启动Watcher监听
-		this.watcher.watch(this.road.path(service.service(), service.versionAndCatalog()));
-		// 加入已导入服务列表
+		// 订阅服务并启动Watcher监听
+		this.watcher.watch(this.road.road(ZkContext.ROOT, service.service(), service.versionAndCatalog()));
+		// 加入本地服务依赖列表
 		this.snapshot.subscribe(service);
+		this.dependency(service);
 		ZkContext.LOGGER.info("Import service: " + service);
 	}
 
 	@Override
 	public void exported(Service service, Object instance) throws Exception {
 		if (!PropertiesUtils.profile(this.profile.profile(service), ZkContext.EXPORT_KEY, ZkContext.EXPORT_VAL)) {
-			ZkContext.LOGGER.warn("Disabled export service: " + service);
+			ZkContext.LOGGER.warn("Disabled export service: " + service + " ... ");
 			return;
 		}
 		// 生成ZK节点(Profile Tag, Priority)
 		ZkSerial serial = new ZkSerial(new Builder(this.local).setTag(PropertiesUtils.profile(this.profile.profile(service), Host.TAG_KEY, Host.TAG_VAL)).setPriority(Integer.valueOf(PropertiesUtils.profile(this.profile.profile(service), Host.PRIORITY_KEY, Host.PRIORITY_DEF))).toServerHost(), service);
 		// 加入已导出服务列表(Path -> Instance)
-		this.exports.put(this.zoo.create(this.road.roadmap(this.road.path(service.service(), service.versionAndCatalog())) + ("/" + "address=" + serial.host().address() + "&version=" + serial.version() + "&catalog=" + serial.catalog() + "&sequence=" + "_"), this.serials.def4output().output(serial, ServiceInstance.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL), serial);
+		this.exports.put(this.zoo.create(this.road.mkdir(this.road.road(ZkContext.ROOT, service.service(), service.versionAndCatalog())) + "/", this.serials.def4output().output(serial, ServiceInstance.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL), serial);
 		// 加入已导出服务列表(Service -> Instance)
 		this.snapshot.exported(service, instance);
-		ZkContext.LOGGER.info("Export service: " + service);
+		ZkContext.LOGGER.info("Export service: " + service + " ... ");
 	}
 
 	@Override
@@ -210,15 +235,13 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	private class Roadmap {
 
 		/**
-		 * 组合服务路径
-		 * 
-		 * @param service
-		 * @param path
+		 * 以 Content + "/"的形式追加路径
+		 * @param buffer
+		 * @param road
 		 * @return
 		 */
-		public String path(Class<?> service, String... path) {
-			StringBuffer buffer = new StringBuffer(ZkContext.ROOT).append("/").append(service.getName().replaceAll("\\.", "/")).append("/");
-			for (String each : path) {
+		private String road(StringBuffer buffer, String... road) {
+			for (String each : road) {
 				if (StringUtils.hasText(each)) {
 					buffer.append(each).append("/");
 				}
@@ -227,32 +250,56 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		}
 
 		/**
-		 * 递归创建
+		 * 组合不带前缀服务路径
 		 * 
-		 * @param path
+		 * @param service
+		 * @param road
+		 * @return
+		 */
+		public String road(Class<?> service, String... road) {
+			StringBuffer buffer = new StringBuffer().append(service.getName()).append("/");
+			return this.road(buffer, road);
+		}
+
+		/**
+		 * 组合带前缀服务路径
+		 * 
+		 * @param service
+		 * @param road
+		 * @return
+		 */
+		public String road(String prefix, Class<?> service, String... road) {
+			StringBuffer buffer = new StringBuffer(prefix).append("/").append(service.getName()).append("/");
+			return this.road(buffer, road);
+		}
+
+		/**
+		 * 递归创建路径
+		 * 
+		 * @param road
 		 * @return
 		 * @throws Exception
 		 */
-		public String roadmap(String path) throws Exception {
+		public String mkdir(String road) throws Exception {
 			StringBuffer buffer = new StringBuffer();
-			for (String each : path.split("/")) {
+			for (String each : road.split("/")) {
 				if (StringUtils.hasText(each)) {
-					String road = buffer.append("/").append(each).toString();
-					if (ZkContext.this.zoo.exists(road, true) == null) {
-						ZkContext.this.zoo.create(road, new byte[] {}, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+					String current = buffer.append("/").append(each).toString();
+					if (ZkContext.this.zoo.exists(current, true) == null) {
+						ZkContext.this.zoo.create(current, new byte[] {}, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
 					}
 				}
 			}
-			return path;
+			return road;
 		}
 	}
 
 	private class Exports {
 
 		/**
-		 * 已发布服务(Path -> Instance)
+		 * 已发布服务(Path -> Instance)，使用ConcurrentHashMap防止反初始化时有主机同时注册导致注销失败
 		 */
-		private final Map<String, ServiceInstance> exported = new HashMap<String, ServiceInstance>();
+		private final Map<String, ServiceInstance> exported = new ConcurrentHashMap<String, ServiceInstance>();
 
 		/**
 		 * 已发布Config路径

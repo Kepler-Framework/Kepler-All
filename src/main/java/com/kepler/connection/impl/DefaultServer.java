@@ -49,35 +49,35 @@ import com.kepler.traffic.Traffic;
  */
 public class DefaultServer {
 	
-	private final static int EVENTLOOP_PARENT = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".eventloop_parent", 1);
+	private static final int EVENTLOOP_PARENT = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".eventloop_parent", 1);
 
-	private final static int EVENTLOOP_CHILD = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".eventloop_child", Runtime.getRuntime().availableProcessors() * 2);
+	private static final int EVENTLOOP_CHILD = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".eventloop_child", Runtime.getRuntime().availableProcessors() * 2);
 
-	private final static int BUFFER_SEND = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".buffer_send", Integer.MAX_VALUE);
+	private static final int BUFFER_SEND = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".buffer_send", Integer.MAX_VALUE);
 
-	private final static int BUFFER_RECV = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".buffer_recv", Integer.MAX_VALUE);
+	private static final int BUFFER_RECV = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".buffer_recv", Integer.MAX_VALUE);
 
-	private final static boolean IDLE_CLOSE = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".idle_close", true);
+	private static final boolean IDLE_CLOSE = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".idle_close", true);
 
-	private final static short IDLE_ALL = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".idle_all", Short.MAX_VALUE);
+	private static final short IDLE_ALL = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".idle_all", Short.MAX_VALUE);
 
-	private final static short IDLE_READ = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".idle_read", Short.MAX_VALUE);
+	private static final short IDLE_READ = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".idle_read", Short.MAX_VALUE);
 
-	private final static short IDLE_WRITE = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".idle_write", Short.MAX_VALUE);
+	private static final short IDLE_WRITE = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".idle_write", Short.MAX_VALUE);
 
 	/**
 	 * 黏包最大长度
 	 */
-	private final static int FRAGEMENT = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".fragment", Integer.MAX_VALUE);
+	private static final int FRAGEMENT = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".fragment", Integer.MAX_VALUE);
 
 	/**
 	 * 服务绑定的本地IP
 	 */
-	private final static String BINDING = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".binding", "0.0.0.0");
+	private static final String BINDING = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".binding", "0.0.0.0");
 
-	private final static DefaultChannelFactory<ServerChannel> FACTORY = new DefaultChannelFactory<ServerChannel>(NioServerSocketChannel.class);
+	private static final DefaultChannelFactory<ServerChannel> FACTORY = new DefaultChannelFactory<ServerChannel>(NioServerSocketChannel.class);
 
-	private final static Log LOGGER = LogFactory.getLog(DefaultServer.class);
+	private static final Log LOGGER = LogFactory.getLog(DefaultServer.class);
 
 	private final InitializerFactory inits = new InitializerFactory();
 

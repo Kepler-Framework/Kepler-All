@@ -11,11 +11,11 @@ import com.kepler.protocol.Response;
  */
 public interface Trace {
 
-	public final static String ENABLED_KEY = Trace.class.getName().toLowerCase() + ".enabled";
+	public static final String ENABLED_KEY = Trace.class.getName().toLowerCase() + ".enabled";
 
-	public final static boolean ENABLED_DEF = PropertiesUtils.get(Trace.ENABLED_KEY, false);
+	public static final boolean ENABLED_DEF = PropertiesUtils.get(Trace.ENABLED_KEY, false);
 
-	public final static String TRACE = "trace";
+	public static final String TRACE = "trace";
 
 	public void trace(Request request, Response response, String local, String remote, long waiting, long elapse);
 }

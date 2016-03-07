@@ -24,9 +24,9 @@ import com.kepler.service.Service;
  */
 public class DefaultHosts implements Hosts {
 
-	private final static List<Host> EMPTY = Collections.unmodifiableList(new ArrayList<Host>());
+	private static final List<Host> EMPTY = Collections.unmodifiableList(new ArrayList<Host>());
 
-	private final static Log LOGGER = LogFactory.getLog(DefaultHosts.class);
+	private static final Log LOGGER = LogFactory.getLog(DefaultHosts.class);
 
 	/**
 	 * Address维度映射

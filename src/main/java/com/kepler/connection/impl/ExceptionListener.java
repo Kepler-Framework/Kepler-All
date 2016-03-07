@@ -11,9 +11,9 @@ import org.apache.commons.logging.LogFactory;
  */
 public class ExceptionListener implements GenericFutureListener<Future<Void>> {
 
-	public final static ExceptionListener TRACE = new ExceptionListener();
+	public static final ExceptionListener TRACE = new ExceptionListener();
 
-	private final static Log LOGGER = LogFactory.getLog(ExceptionListener.class);
+	private static final Log LOGGER = LogFactory.getLog(ExceptionListener.class);
 
 	private ExceptionListener() {
 

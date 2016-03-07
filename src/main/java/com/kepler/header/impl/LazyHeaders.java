@@ -22,13 +22,13 @@ public class LazyHeaders implements Headers {
 	/**
 	 * 默认初始容量
 	 */
-	private final static int CAPACITY = PropertiesUtils.get(LazyHeaders.class.getName().toLowerCase() + ".capacity", 1);
+	private static final int CAPACITY = PropertiesUtils.get(LazyHeaders.class.getName().toLowerCase() + ".capacity", 1);
 
-	private final static Collection<String> EMPTY_KEYS = Collections.unmodifiableCollection(new ArrayList<String>());
+	private static final Collection<String> EMPTY_KEYS = Collections.unmodifiableCollection(new ArrayList<String>());
 
-	private final static Map<String, String> EMPTY_MAP = Collections.unmodifiableMap(new HashMap<String, String>());
+	private static final Map<String, String> EMPTY_MAP = Collections.unmodifiableMap(new HashMap<String, String>());
 
-	private final static long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
 	private Map<String, String> headers;
 
