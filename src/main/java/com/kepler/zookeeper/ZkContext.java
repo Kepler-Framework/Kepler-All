@@ -22,6 +22,7 @@ import org.springframework.util.StringUtils;
 
 import com.kepler.KeplerLocalException;
 import com.kepler.config.Config;
+import com.kepler.config.ConfigSync;
 import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.host.Host;
@@ -41,7 +42,7 @@ import com.kepler.service.imported.ImportedServiceImpl;
 /**
  * @author zhangjiehao 2015年7月9日
  */
-public class ZkContext implements Demotion, Imported, Exported, ApplicationListener<ContextRefreshedEvent> {
+public class ZkContext implements Demotion, Imported, Exported, ConfigSync, ApplicationListener<ContextRefreshedEvent> {
 
 	public static final String DEPENDENCY = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".dependency", "_dependency");
 
@@ -177,6 +178,18 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		this.zoo.close();
 	}
 
+	/**
+	 * 将本地的config同步到zookeeper
+	 */
+	@Override
+	public void sync() {
+		try {
+			this.exports.destroy4config();
+			this.config();
+		} catch (Throwable throwable) {
+			ZkContext.LOGGER.error(throwable.getMessage(), throwable);
+		}
+	}
 	/**
 	 * 重置/重连
 	 * 
@@ -584,13 +597,8 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		}
 
 		private ConfigWatcher set() {
-			try {
-				ZkContext.this.exports.destroy4config();
-				// 再次同步当前主机Config,保证ZK上节点数据为最新
-				ZkContext.this.config();
-			} catch (Throwable throwable) {
-				ZkContext.LOGGER.error(throwable.getMessage(), throwable);
-			}
+			// 再次同步当前主机Config,保证ZK上节点数据为最新
+			ZkContext.this.sync();
 			return this;
 		}
 
