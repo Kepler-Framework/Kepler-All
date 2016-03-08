@@ -36,10 +36,9 @@ import com.kepler.serial.Serials;
 import com.kepler.service.Exported;
 import com.kepler.service.Imported;
 import com.kepler.service.ImportedListener;
-import com.kepler.service.ImportedService;
 import com.kepler.service.Service;
 import com.kepler.service.ServiceInstance;
-import com.kepler.service.imported.ImportedServiceImpl;
+import com.kepler.service.imported.ImportedService;
 
 /**
  * @author zhangjiehao 2015年7月9日
@@ -172,7 +171,7 @@ public class ZkContext implements Demotion, Imported, Exported, ConfigSync, Appl
 	 */
 	private void dependency(Service service) throws Exception {
 		if (PropertiesUtils.profile(this.profile.profile(service), ZkContext.DEPENDENCY_KEY, ZkContext.DEPENDENCY_VAL)) {
-			this.zoo.create(this.road.mkdir(new StringBuffer(ZkContext.ROOT).append(ZkContext.DEPENDENCY).append("/").append(this.road.road(service.service(), service.versionAndCatalog())).toString()) + "/", this.serials.def4output().output(new ImportedServiceImpl(this.local, service), ImportedService.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
+			this.zoo.create(this.road.mkdir(new StringBuffer(ZkContext.ROOT).append(ZkContext.DEPENDENCY).append("/").append(this.road.road(service.service(), service.versionAndCatalog())).toString()) + "/", this.serials.def4output().output(new ImportedService(this.local, service), ImportedService.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
 		}
 	}
 
