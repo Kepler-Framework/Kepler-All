@@ -77,7 +77,7 @@ public class AsyncPromise {
 		public void run() {
 			try {
 				// 准备数据, 回调
-				this.callback.prepare(this.get4args(this.args, this.timeout)).run();
+				this.callback.callback(this.get4args(this.args, this.timeout));
 			} catch (Throwable throwable) {
 				// 异常处理
 				this.callback.throwable(throwable);
