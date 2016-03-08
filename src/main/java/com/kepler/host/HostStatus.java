@@ -11,11 +11,11 @@ import java.util.Map;
 public interface HostStatus extends Serializable {
 
 	public String getSid();
-	
+
 	public String getPid();
 
 	public String getHost();
-	
+
 	public String getGroup();
 
 	public Map<String, Object> getStatus();
