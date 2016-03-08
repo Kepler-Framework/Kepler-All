@@ -5,27 +5,8 @@ package com.kepler.invoker.async;
  *
  * 2016年2月16日
  */
-abstract public class AsyncCallback implements Runnable {
+abstract public class AsyncCallback {
 
-	/**
-	 * 回调参数值
-	 */
-	private Object[] args;
-
-	/**
-	 * 准备参数
-	 * 
-	 * @param args
-	 * @return
-	 */
-	AsyncCallback prepare(Object... args) {
-		this.args = args;
-		return this;
-	}
-
-	public void run() {
-		this.callback(this.args);
-	}
 
 	/**
 	 * 成功时回调
