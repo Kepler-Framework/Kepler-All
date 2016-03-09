@@ -4,6 +4,8 @@
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
+	<import resource="kepler-connection-reject.xml" />
+
 	<bean id="kepler.connection.connects" class="com.kepler.connection.impl.DefaultConnects" />
 
 	<bean id="kepler.connection.connect" class="com.kepler.connection.impl.DefaultConnect" init-method="init" destroy-method="destroy">
