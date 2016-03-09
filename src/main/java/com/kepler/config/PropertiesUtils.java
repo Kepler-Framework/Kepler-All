@@ -321,7 +321,7 @@ public class PropertiesUtils {
 		// 同步内存(非事务, 不回滚)
 		PropertiesUtils.PROPERTIES.putAll(new FormatedMap(properties));
 		PropertiesUtils.backup(PropertiesUtils.FILE_CONFIG, PropertiesUtils.FILE_VERSION, PropertiesUtils.FILE_DYNAMIC);
-		PropertiesUtils.store(PropertiesUtils.PROPERTIES, PropertiesUtils.FILE_CONFIG, PropertiesUtils.FILE_VERSION, PropertiesUtils.FILE_DYNAMIC);
+		PropertiesUtils.store(PropertiesUtils.memory(), PropertiesUtils.FILE_CONFIG, PropertiesUtils.FILE_VERSION, PropertiesUtils.FILE_DYNAMIC);
 	}
 
 	/**
