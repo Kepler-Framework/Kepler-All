@@ -295,7 +295,17 @@ public class PropertiesUtils {
 	}
 
 	/**
-	 * 获取当前配置(加载配置文件)
+	 * 获取当前配置快照
+	 * @return
+	 */
+	public static Map<String, String> memory() {
+		TreeMap<String, String> memory = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
+		memory.putAll(PropertiesUtils.PROPERTIES);
+		return memory;
+	}
+
+	/**
+	 * 获取当前配置(此方法将重新加载配置文件)
 	 * @return
 	 */
 	public static Map<String, String> properties() {
