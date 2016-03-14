@@ -66,7 +66,7 @@ public class ZkFactory implements FactoryBean<ZkClient> {
 	}
 
 	/**
-	 * 创建ZK物理连接
+	 * 创建ZooKeeper物理连接并绑定至当前使用客户端
 	 * 
 	 * @throws Exception
 	 */

@@ -78,12 +78,17 @@ public class ZkClient {
 		this.zoo.delete(path, version);
 	}
 
+	/**
+	 * 关闭当前使用的ZooKeeper物理连接
+	 * 
+	 * @throws Exception
+	 */
 	public void close() throws Exception {
 		this.zoo.close();
 	}
 
 	/**
-	 * 重置
+	 * 重置, 如刷新底层Service的ZooKeeper地址
 	 * 
 	 * @throws Exception
 	 */
