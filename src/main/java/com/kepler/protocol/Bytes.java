@@ -7,6 +7,10 @@ public class Bytes {
 
 	private byte[] bytes;
 
+	public Bytes() {
+		
+	}
+	
 	public Bytes(byte[] bytes) {
 		this.setBytes(bytes);
 	}
