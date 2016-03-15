@@ -1,10 +1,11 @@
 package com.kepler.protocol;
 
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class Bytes {
 
+	private static final char[] hexCode = "0123456789ABCDEF".toCharArray();
+	
 	private byte[] bytes;
 
 	public Bytes() {
@@ -42,14 +43,12 @@ public class Bytes {
 	
 	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
-		ByteBuffer bw = ByteBuffer.wrap(this.bytes);
-		int m;
-		while (bw.hasRemaining()) {
-			m = bw.getInt();
-			sb.append(Integer.toHexString(m));
-		}
-		return sb.toString();
+		StringBuilder r = new StringBuilder(this.bytes.length * 2);
+        for (byte b : this.bytes) {
+            r.append(hexCode[(b >> 4) & 0xF]);
+            r.append(hexCode[(b & 0xF)]);
+        }
+		return r.toString();
 	}
 
 }
