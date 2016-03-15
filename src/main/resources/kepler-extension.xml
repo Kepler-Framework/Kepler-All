@@ -12,6 +12,7 @@
 				<ref bean="kepler.config.aware" />
 				<ref bean="kepler.invoker.forks" />
 				<ref bean="kepler.invoker.joins" />
+				<ref bean="kepler.reject.context" />
 				<ref bean="kepler.config.parsers" />
 				<ref bean="kepler.router.filters" />
 				<ref bean="kepler.serials.inputs" />

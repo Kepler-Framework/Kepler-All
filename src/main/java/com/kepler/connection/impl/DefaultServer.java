@@ -9,6 +9,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.kepler.KeplerException;
 import com.kepler.config.PropertiesUtils;
+import com.kepler.connection.Reject;
 import com.kepler.connection.handler.CodecHeader;
 import com.kepler.connection.handler.DecoderHandler;
 import com.kepler.connection.handler.EncoderHandler;
@@ -50,7 +51,7 @@ import io.netty.handler.timeout.IdleStateHandler;
  * @author kim 2015年7月8日
  */
 public class DefaultServer {
-	
+
 	private static final int EVENTLOOP_PARENT = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".eventloop_parent", 1);
 
 	private static final int EVENTLOOP_CHILD = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".eventloop_child", Runtime.getRuntime().availableProcessors() * 2);
@@ -105,11 +106,13 @@ public class DefaultServer {
 
 	private final Traffic traffic;
 
+	private final Reject reject;
+
 	private final Trace trace;
 	
-	private ServersideHeadersProcessor headerProcessor;
+	private final ServersideHeadersProcessor headerProcessor;
 
-	public DefaultServer(Trace trace, ServerHost local, Traffic traffic, Serials serials, Promotion promotion, TokenContext token, ExportedContext exported, ResponseFactory response, HeadersContext headers, ThreadPoolExecutor threads, RequestValidation validation, ServersideHeadersProcessor headerProcessor) {
+	public DefaultServer(Trace trace, Reject reject, ServerHost local, Traffic traffic, Serials serials, Promotion promotion, TokenContext token, ExportedContext exported, ResponseFactory response, HeadersContext headers, ThreadPoolExecutor threads, RequestValidation validation, ServersideHeadersProcessor headerProcessor) {
 		super();
 		this.validation = validation;
 		this.promotion = promotion;
@@ -119,6 +122,7 @@ public class DefaultServer {
 		this.headers = headers;
 		this.traffic = traffic;
 		this.serials = serials;
+		this.reject = reject;
 		this.token = token;
 		this.trace = trace;
 		this.local = local;
@@ -289,9 +293,12 @@ public class DefaultServer {
 
 			private Response response(Request request) {
 				try {
-					// DefaultServer.this.token.valid(request, Host.TAG_VAL) Token校验
-					// 校验Request合法性(如JSR 303)
-					DefaultServer.this.validation.valid(DefaultServer.this.token.valid(request, Host.TAG_VAL));
+					// 校验是否Reject
+					request = DefaultServer.this.reject.reject(request, this.ctx.channel().remoteAddress());
+					// 校验请求合法性
+					request = DefaultServer.this.token.valid(request, Host.TAG_VAL);
+					// 校验请求参数(如JSR 303)
+					request = DefaultServer.this.validation.valid(request);
 					// 获取服务并执行
 					return DefaultServer.this.response.response(request.ack(), DefaultServer.this.exported.get(request.service()).invoke(request), request.serial());
 				} catch (Throwable e) {

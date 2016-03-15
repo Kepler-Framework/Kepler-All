@@ -319,9 +319,27 @@ public class PropertiesUtils {
 	 */
 	public static void properties(Map<String, String> properties) {
 		// 同步内存(非事务, 不回滚)
-		PropertiesUtils.PROPERTIES.putAll(properties);
+		PropertiesUtils.PROPERTIES.putAll(new FormatedMap(properties));
 		PropertiesUtils.backup(PropertiesUtils.FILE_CONFIG, PropertiesUtils.FILE_VERSION, PropertiesUtils.FILE_DYNAMIC);
-		PropertiesUtils.store(properties, PropertiesUtils.FILE_CONFIG, PropertiesUtils.FILE_VERSION, PropertiesUtils.FILE_DYNAMIC);
+		PropertiesUtils.store(PropertiesUtils.memory(), PropertiesUtils.FILE_CONFIG, PropertiesUtils.FILE_VERSION, PropertiesUtils.FILE_DYNAMIC);
+	}
+
+	/**
+	 * 对Key,Value做Trim修正
+	 * 
+	 * @author kim
+	 *
+	 * 2016年3月9日
+	 */
+	private static class FormatedMap extends HashMap<String, String> {
+
+		private static final long serialVersionUID = 1L;
+
+		private FormatedMap(Map<String, String> properties) {
+			for (String key : properties.keySet()) {
+				super.put(key.trim().toLowerCase(), properties.get(key).trim());
+			}
+		}
 	}
 
 	/**

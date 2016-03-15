@@ -400,16 +400,20 @@ public class ZkContext implements Demotion, Imported, Exported, ConfigSync, Appl
 		 * 注销Status节点
 		 */
 		public void destroy4status() {
-			this.destroy(this.status);
-			this.status = null;
+			if(status != null){
+				this.destroy(this.status);
+				this.status = null;
+			}
 		}
 
 		/**
 		 * 注销Config节点
 		 */
 		public void destroy4config() {
-			this.destroy(this.config);
-			this.config = null;
+			if(config != null){
+				this.destroy(this.config);
+				this.config = null;
+			}
 		}
 
 		/**
