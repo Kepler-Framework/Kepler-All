@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kepler.header.Headers;
 import com.kepler.header.impl.LazyHeaders;
 import com.kepler.org.apache.commons.lang.builder.ToStringBuilder;
+import com.kepler.protocol.Bytes;
 import com.kepler.protocol.Request;
 import com.kepler.service.Service;
 
@@ -35,25 +36,25 @@ public class DefaultRequest implements Request {
 
 	private final byte serial;
 
-	private final Integer ack;
+	private final Bytes ack;
 
-	public DefaultRequest(Request request, Integer ack) {
+	public DefaultRequest(Request request, Bytes ack) {
 		this(ack, DefaultRequest.clone(request.headers()), request.service(), request.method(), request.async(), request.args(), request.types(), request.serial());
 	}
 
-	public DefaultRequest(Request request, Integer ack, boolean async) {
+	public DefaultRequest(Request request, Bytes ack, boolean async) {
 		this(ack, DefaultRequest.clone(request.headers()), request.service(), request.method(), async, request.args(), request.types(), request.serial());
 	}
 
-	public DefaultRequest(Request request, Integer ack, Object[] args) {
+	public DefaultRequest(Request request, Bytes ack, Object[] args) {
 		this(ack, DefaultRequest.clone(request.headers()), request.service(), request.method(), request.async(), args, request.types(), request.serial());
 	}
 
-	public DefaultRequest(Integer ack, Headers headers, Service service, Method method, boolean async, Object[] args, byte serial) {
+	public DefaultRequest(Bytes ack, Headers headers, Service service, Method method, boolean async, Object[] args, byte serial) {
 		this(ack, headers, service, method.getName(), async, args, method.getParameterTypes(), serial);
 	}
 
-	public DefaultRequest(@JsonProperty("ack") Integer ack, @JsonProperty("headers") Headers headers, @JsonProperty("service") Service service, @JsonProperty("method") String method, @JsonProperty("async") boolean async, @JsonProperty("args") Object[] args, @JsonProperty("types") Class<?>[] types, @JsonProperty("serial") byte serial) {
+	public DefaultRequest(@JsonProperty("ack") Bytes ack, @JsonProperty("headers") Headers headers, @JsonProperty("service") Service service, @JsonProperty("method") String method, @JsonProperty("async") boolean async, @JsonProperty("args") Object[] args, @JsonProperty("types") Class<?>[] types, @JsonProperty("serial") byte serial) {
 		super();
 		this.service = service;
 		this.headers = headers;
@@ -99,7 +100,7 @@ public class DefaultRequest implements Request {
 		return this.serial;
 	}
 
-	public Integer ack() {
+	public Bytes ack() {
 		return this.ack;
 	}
 

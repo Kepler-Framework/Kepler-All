@@ -20,6 +20,8 @@
 				<ref bean="kepler.header.processor" />
 				<ref bean="kepler.protocol.validation4client" />
 				<ref bean="kepler.protocol.validation4service" />
+				<ref bean="kepler.id" />
+				<ref bean="kepler.server.header.processor" />
 			</util:list>
 		</constructor-arg>
 	</bean>

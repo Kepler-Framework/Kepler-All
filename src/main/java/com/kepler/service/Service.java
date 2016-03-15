@@ -8,7 +8,6 @@ import org.springframework.util.Assert;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kepler.org.apache.commons.lang.StringUtils;
 import com.kepler.org.apache.commons.lang.builder.HashCodeBuilder;
-import com.kepler.org.apache.commons.lang.builder.ToStringBuilder;
 
 /**
  * 服务
@@ -88,7 +87,7 @@ public final class Service implements Serializable {
 	}
 
 	public String toString() {
-		return ToStringBuilder.reflectionToString(this);
+		return "[service]" + this.service.getName() + "[versionAndCatelog]" + this.versionAndCatalog();
 	}
 
 	public static String versionAndCatalog(String version, String catalog) {

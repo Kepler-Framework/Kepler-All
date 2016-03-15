@@ -17,7 +17,7 @@ import com.kepler.serial.SerialID;
 public interface Response extends SerialID, Serializable {
 
 	@JsonProperty
-	public Integer ack();
+	public Bytes ack();
 
 	@JsonProperty
 	@JsonTypeInfo(use = Id.CLASS, include = As.WRAPPER_OBJECT)

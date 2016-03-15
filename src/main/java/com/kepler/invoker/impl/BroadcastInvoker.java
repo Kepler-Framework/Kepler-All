@@ -12,7 +12,7 @@ import com.kepler.channel.ChannelContext;
 import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.host.Host;
-import com.kepler.id.IDGenerator;
+import com.kepler.id.IDGenerators;
 import com.kepler.invoker.Invoker;
 import com.kepler.org.apache.commons.collections.map.MultiKeyMap;
 import com.kepler.protocol.Request;
@@ -40,14 +40,14 @@ public class BroadcastInvoker implements Imported, Invoker {
 
 	private final RequestFactory request;
 
-	private final IDGenerator generator;
+	private final IDGenerators generators;
 
 	private final Profile profile;
 
 	private final Router router;
 
-	public BroadcastInvoker(Router router, Profile profile, RequestFactory request, ChannelContext context, IDGenerator generator) {
-		this.generator = generator;
+	public BroadcastInvoker(Router router, Profile profile, RequestFactory request, ChannelContext context, IDGenerators generators) {
+		this.generators = generators;
 		this.profile = profile;
 		this.request = request;
 		this.context = context;
@@ -89,7 +89,7 @@ public class BroadcastInvoker implements Imported, Invoker {
 		List<Future<Object>> futures = new ArrayList<Future<Object>>();
 		for (Host host : this.router.hosts(request)) {
 			// 转换为底层Future(异步)并定向发送Request
-			futures.add(Future.class.cast(this.context.get(host).invoke(this.request.request(request, this.generator.generate(request.service(), request.method()), true))));
+			futures.add(Future.class.cast(this.context.get(host).invoke(this.request.request(request, this.generators.get(request.service(), request.method()).generate(), true))));
 		}
 		return futures;
 	}

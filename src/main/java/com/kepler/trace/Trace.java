@@ -15,7 +15,11 @@ public interface Trace {
 
 	public static final boolean ENABLED_DEF = PropertiesUtils.get(Trace.ENABLED_KEY, false);
 
-	public static final String TRACE = "trace";
+	public static final String PARENT_SPAN = "parent_span";
+
+	public static final String SPAN = "span";
+
+	public static final String START_TIME = "start_time";
 
 	public void trace(Request request, Response response, String local, String remote, long waiting, long elapse);
 }

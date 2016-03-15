@@ -16,6 +16,7 @@
 	<import resource="kepler-filter.xml" />
 	<import resource="kepler-config.xml" />
 	<import resource="kepler-header.xml" />
+	<import resource="kepler-service-header-processor.xml" />
 	<import resource="kepler-thread.xml" />
 	<import resource="kepler-serial.xml" />
 	<import resource="kepler-invoker.xml" />

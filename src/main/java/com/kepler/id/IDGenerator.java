@@ -1,8 +1,6 @@
 package com.kepler.id;
 
-import java.lang.reflect.Method;
-
-import com.kepler.service.Service;
+import com.kepler.protocol.Bytes;
 
 /**
  * @author kim
@@ -11,9 +9,7 @@ import com.kepler.service.Service;
  */
 public interface IDGenerator {
 
-	public Integer generate(Service service, Method method);
-
-	public Integer generate(Service service, String method);
+	public Bytes generate();
 
 	public String name();
 }

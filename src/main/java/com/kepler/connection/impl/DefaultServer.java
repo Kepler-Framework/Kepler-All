@@ -1,5 +1,34 @@
 package com.kepler.connection.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.kepler.KeplerException;
+import com.kepler.config.PropertiesUtils;
+import com.kepler.connection.handler.CodecHeader;
+import com.kepler.connection.handler.DecoderHandler;
+import com.kepler.connection.handler.EncoderHandler;
+import com.kepler.connection.handler.ResourceHandler;
+import com.kepler.header.Headers;
+import com.kepler.header.HeadersContext;
+import com.kepler.header.ServersideHeadersProcessor;
+import com.kepler.host.Host;
+import com.kepler.host.impl.ServerHost;
+import com.kepler.promotion.Promotion;
+import com.kepler.protocol.Request;
+import com.kepler.protocol.RequestValidation;
+import com.kepler.protocol.Response;
+import com.kepler.protocol.ResponseFactory;
+import com.kepler.serial.Serials;
+import com.kepler.service.ExportedContext;
+import com.kepler.token.TokenContext;
+import com.kepler.trace.Trace;
+import com.kepler.traffic.Traffic;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelHandler;
@@ -16,33 +45,6 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import com.kepler.KeplerException;
-import com.kepler.config.PropertiesUtils;
-import com.kepler.connection.handler.CodecHeader;
-import com.kepler.connection.handler.DecoderHandler;
-import com.kepler.connection.handler.EncoderHandler;
-import com.kepler.connection.handler.ResourceHandler;
-import com.kepler.header.HeadersContext;
-import com.kepler.host.Host;
-import com.kepler.host.impl.ServerHost;
-import com.kepler.promotion.Promotion;
-import com.kepler.protocol.Request;
-import com.kepler.protocol.RequestValidation;
-import com.kepler.protocol.Response;
-import com.kepler.protocol.ResponseFactory;
-import com.kepler.serial.Serials;
-import com.kepler.service.ExportedContext;
-import com.kepler.token.TokenContext;
-import com.kepler.trace.Trace;
-import com.kepler.traffic.Traffic;
 
 /**
  * @author kim 2015年7月8日
@@ -104,8 +106,10 @@ public class DefaultServer {
 	private final Traffic traffic;
 
 	private final Trace trace;
+	
+	private ServersideHeadersProcessor headerProcessor;
 
-	public DefaultServer(Trace trace, ServerHost local, Traffic traffic, Serials serials, Promotion promotion, TokenContext token, ExportedContext exported, ResponseFactory response, HeadersContext headers, ThreadPoolExecutor threads, RequestValidation validation) {
+	public DefaultServer(Trace trace, ServerHost local, Traffic traffic, Serials serials, Promotion promotion, TokenContext token, ExportedContext exported, ResponseFactory response, HeadersContext headers, ThreadPoolExecutor threads, RequestValidation validation, ServersideHeadersProcessor headerProcessor) {
 		super();
 		this.validation = validation;
 		this.promotion = promotion;
@@ -118,6 +122,7 @@ public class DefaultServer {
 		this.token = token;
 		this.trace = trace;
 		this.local = local;
+		this.headerProcessor = headerProcessor;
 	}
 
 	/**
@@ -265,7 +270,8 @@ public class DefaultServer {
 				// Reply执行时间
 				this.running = System.currentTimeMillis();
 				// 线程Copy Header, 用于嵌套服务调用时传递(In Kepler Threads)
-				DefaultServer.this.headers.set(this.request.headers());
+				Headers headers = DefaultServer.this.headerProcessor.process(request.service(), this.request.headers());
+				DefaultServer.this.headers.set(headers);
 				return this;
 			}
 

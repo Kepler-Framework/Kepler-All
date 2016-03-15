@@ -11,8 +11,8 @@ public interface ResponseFactory {
 	 * @param serial 序列化策略
 	 * @return
 	 */
-	public Response response(Integer ack, Object response, byte serial);
+	public Response response(Bytes ack, Object response, byte serial);
 
-	public Response throwable(Integer ack, Throwable throwable, byte serial);
+	public Response throwable(Bytes ack, Throwable throwable, byte serial);
 
 }

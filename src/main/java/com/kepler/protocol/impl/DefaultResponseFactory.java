@@ -1,5 +1,6 @@
 package com.kepler.protocol.impl;
 
+import com.kepler.protocol.Bytes;
 import com.kepler.protocol.Response;
 import com.kepler.protocol.ResponseFactory;
 
@@ -9,11 +10,11 @@ import com.kepler.protocol.ResponseFactory;
 public class DefaultResponseFactory implements ResponseFactory {
 
 	@Override
-	public Response response(Integer ack, Object response, byte serial) {
+	public Response response(Bytes ack, Object response, byte serial) {
 		return new DefaultResponse(serial, ack, response);
 	}
 
-	public Response throwable(Integer ack, Throwable throwable, byte serial) {
+	public Response throwable(Bytes ack, Throwable throwable, byte serial) {
 		return new DefaultResponse(serial, ack, throwable);
 	}
 }
