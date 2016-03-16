@@ -118,8 +118,16 @@ public class DefaultHostContext implements HostsContext, Router {
 	// 只读(协商)
 	public List<Host> hosts(Request request) {
 		Hosts hosts = this.getOrCreate(request.service());
+		
 		// Request.header(Host.TAG_KEY, Host.TAG_DEF)), 获取Tag, 如果不存在则使用默认""
-		List<Host> matched = hosts.tags(request.get(Host.TAG_KEY, Host.TAG_DEF));
+		String tag = request.get(Host.TAG_KEY, Host.TAG_DEF);
+		List<Host> matched = hosts.tags(tag);
+		
+		//若没有main, 也没有匹配tag, 则提前异常
+		if(matched.isEmpty() && hosts.main().isEmpty()){
+			throw new KeplerRoutingException("None service for " + request.service() + " with tag " + tag);
+		}
+		
 		// 获取Tag对应Host集合, 如果不存在则使用Main集合
 		return this.valid(request, this.filter.filter(request, matched.isEmpty() ? hosts.main() : matched));
 	}
