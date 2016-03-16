@@ -36,6 +36,7 @@ import com.kepler.host.Host;
 import com.kepler.host.impl.ServerHost;
 import com.kepler.promotion.Promotion;
 import com.kepler.protocol.Request;
+import com.kepler.protocol.RequestProcessor;
 import com.kepler.protocol.RequestValidation;
 import com.kepler.protocol.Response;
 import com.kepler.protocol.ResponseFactory;
@@ -88,6 +89,8 @@ public class DefaultServer {
 
 	private final ThreadPoolExecutor threads;
 
+	private final RequestProcessor processor;
+
 	private final ExportedContext exported;
 
 	private final ResponseFactory response;
@@ -108,9 +111,10 @@ public class DefaultServer {
 
 	private final Trace trace;
 
-	public DefaultServer(Trace trace, Reject reject, ServerHost local, Traffic traffic, Serials serials, Promotion promotion, TokenContext token, ExportedContext exported, ResponseFactory response, HeadersContext headers, ThreadPoolExecutor threads, RequestValidation validation) {
+	public DefaultServer(Trace trace, Reject reject, ServerHost local, Traffic traffic, Serials serials, Promotion promotion, TokenContext token, ExportedContext exported, ResponseFactory response, HeadersContext headers, ThreadPoolExecutor threads, RequestValidation validation, RequestProcessor processor) {
 		super();
 		this.validation = validation;
+		this.processor = processor;
 		this.promotion = promotion;
 		this.exported = exported;
 		this.response = response;
@@ -265,19 +269,22 @@ public class DefaultServer {
 				this.request = request;
 			}
 
-			private Reply init() {
+			private Reply init(Request request) {
 				// Reply执行时间
 				this.running = System.currentTimeMillis();
 				// 线程Copy Header, 用于嵌套服务调用时传递(In Kepler Threads)
-				DefaultServer.this.headers.set(this.request.headers());
+				DefaultServer.this.headers.set(request.headers());
 				return this;
 			}
 
 			@Override
 			public void run() {
-				Response response = this.init().response(this.request);
+				// Request After Process
+				Request request = DefaultServer.this.processor.process(this.request);
+				// 使用处理后Request
+				Response response = this.init(request).response(request);
 				this.ctx.writeAndFlush(response).addListener(ExceptionListener.TRACE);
-				// 记录调用栈
+				// 记录调用栈 (使用原始Request)
 				DefaultServer.this.trace.trace(this.request, response, ExportedHandler.this.local, ExportedHandler.this.target, this.running - this.created, System.currentTimeMillis() - this.running);
 			}
 

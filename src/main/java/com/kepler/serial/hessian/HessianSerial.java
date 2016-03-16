@@ -258,7 +258,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 		}
 
 		@Override
-		public Integer ack() {
+		public byte[] ack() {
 			return this.actual.ack();
 		}
 
@@ -308,7 +308,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 		}
 
 		@Override
-		public Integer ack() {
+		public byte[] ack() {
 			return this.actual.ack();
 		}
 
@@ -485,7 +485,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 			output.writeString(request.service().version());
 			output.writeString(request.service().catalog());
 			output.writeString(request.method());
-			output.writeInt(request.ack());
+			output.writeBytes(request.ack());
 			return this;
 		}
 
@@ -506,7 +506,8 @@ public class HessianSerial implements SerialOutput, SerialInput {
 			// 元数据
 			Service service = new Service(input.readString(), input.readString(), input.readString());
 			String method = input.readString();
-			Integer ack = input.readInt();
+			// ACK
+			byte[] ack = input.readBytes();
 			// 当前序列化策略即为Request实际序列化策略
 			return HessianSerial.this.request.request(headers, service, method, false, args, types, ack, HessianSerial.SERIAL);
 		}
@@ -553,7 +554,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 		}
 
 		private void write4response(HessianOutput output, Response response) throws Exception {
-			output.writeInt(response.ack());
+			output.writeBytes(response.ack());
 			output.writeBoolean(response.valid());
 			if (response.valid()) {
 				output.writeObject(response.response());
@@ -563,7 +564,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 		}
 
 		private Response read4response(HessianInput input) throws Exception {
-			Integer ack = input.readInt();
+			byte[] ack = input.readBytes();
 			return input.readBoolean() ? HessianSerial.this.response.response(ack, input.readObject(), HessianSerial.SERIAL) : HessianSerial.this.response.throwable(ack, Throwable.class.cast(input.readObject()), HessianSerial.SERIAL);
 		}
 	}

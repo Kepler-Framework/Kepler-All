@@ -21,7 +21,7 @@ import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.header.Headers;
 import com.kepler.host.Host;
-import com.kepler.id.IDGenerator;
+import com.kepler.id.IDGenerators;
 import com.kepler.invoker.Invoker;
 import com.kepler.invoker.forkjoin.Forker;
 import com.kepler.invoker.forkjoin.Joiner;
@@ -57,7 +57,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 
 	private final RequestFactory request;
 
-	private final IDGenerator generator;
+	private final IDGenerators generators;
 
 	private final MockerContext mocker;
 
@@ -69,9 +69,9 @@ public class ForkJoinInvoker implements Imported, Invoker {
 
 	private final Joins joins;
 
-	public ForkJoinInvoker(Forks forks, Joins joins, Invoker delegate, Profile profile, IDGenerator generator, RequestFactory request, MockerContext mocker, ThreadPoolExecutor threads) {
+	public ForkJoinInvoker(Forks forks, Joins joins, Invoker delegate, Profile profile, IDGenerators generator, RequestFactory request, MockerContext mocker, ThreadPoolExecutor threads) {
 		super();
-		this.generator = generator;
+		this.generators = generator;
 		this.delegate = delegate;
 		this.threads = threads;
 		this.profile = profile;
@@ -265,7 +265,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 		public ForkJoinProcessor fork(Request request, Forker forker, String[] tags) {
 			for (String tag : tags) {
 				// Fork Request Args
-				Request actual = ForkJoinInvoker.this.request.request(request, ForkJoinInvoker.this.generator.generate(request.service(), request.method()), forker.fork(request.args(), tag, this.monitor.get()));
+				Request actual = ForkJoinInvoker.this.request.request(request, ForkJoinInvoker.this.generators.get(request.service(), request.method()).generate(), forker.fork(request.args(), tag, this.monitor.get()));
 				// 指定Header
 				actual.put(Host.TAG_KEY, tag);
 				ForkJoinInvoker.this.threads.execute(new ForkerRunnable(this, this.monitor, actual));

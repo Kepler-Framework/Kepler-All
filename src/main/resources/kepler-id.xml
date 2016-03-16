@@ -4,15 +4,15 @@
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-	<bean id="kepler.id" class="com.kepler.id.impl.DefaultGenerator">
+	<bean id="kepler.id" class="com.kepler.id.impl.DefaultIDGenerators">
 		<constructor-arg ref="kepler.config.profile" />
-		<constructor-arg>
-			<util:list>
-				<ref bean="kepler.id.incr" />
-			</util:list>
-		</constructor-arg>
 	</bean>
 
 	<bean id="kepler.id.incr" class="com.kepler.id.impl.IncrGenerator" />
+
+	<bean id="kepler.id.guid" class="com.kepler.id.impl.GuidGenerator">
+		<constructor-arg ref="kepler.host.local" />
+		<constructor-arg ref="kepler.main.pid" />
+	</bean>
 
 </beans>

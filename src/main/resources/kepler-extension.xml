@@ -7,6 +7,7 @@
 	<bean class="com.kepler.extension.impl.Extensions">
 		<constructor-arg>
 			<util:list>
+				<ref bean="kepler.id" />
 				<ref bean="kepler.mock.context" />
 				<ref bean="kepler.trace.traces" />
 				<ref bean="kepler.config.aware" />
@@ -19,6 +20,7 @@
 				<ref bean="kepler.serials.outputs" />
 				<ref bean="kepler.router.routings" />
 				<ref bean="kepler.header.processor" />
+				<ref bean="kepler.protocol.processor" />
 				<ref bean="kepler.protocol.validation4client" />
 				<ref bean="kepler.protocol.validation4service" />
 			</util:list>

@@ -18,6 +18,7 @@ import io.netty.handler.codec.LengthFieldPrepender;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -455,15 +456,38 @@ public class DefaultConnect implements Connect {
 
 	private class Acks {
 
-		private final Map<Integer, AckFuture> waitings = new ConcurrentHashMap<Integer, AckFuture>();
+		private final Map<Bytes, AckFuture> waitings = new ConcurrentHashMap<Bytes, AckFuture>();
 
 		public AckFuture put(AckFuture future) {
-			this.waitings.put(future.request().ack(), future);
+			this.waitings.put(new Bytes(future.request().ack()), future);
 			return future;
 		}
 
-		public AckFuture del(Integer ack) {
-			return this.waitings.remove(ack);
+		public AckFuture del(byte[] ack) {
+			return this.waitings.remove(new Bytes(ack));
+		}
+	}
+
+	private class Bytes {
+
+		private final byte[] bytes;
+
+		private Bytes(byte[] bytes) {
+			this.bytes = bytes;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			Bytes that = Bytes.class.cast(obj);
+			return Arrays.equals(this.bytes, that.bytes);
+		}
+
+		@Override
+		public int hashCode() {
+			return Arrays.hashCode(this.bytes);
 		}
 	}
 }

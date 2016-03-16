@@ -4,17 +4,6 @@
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-	<bean id="kepler.header.context" class="com.kepler.header.impl.ThreadHeaders" />
+	<bean id="kepler.protocol.processor" class="com.kepler.protocol.impl.ChainedProcessor" />
 
-	<bean id="kepler.header.processor" class="com.kepler.header.impl.ChainedProcessor" />
-
-	<bean class="com.kepler.header.impl.TagProcessor">
-		<constructor-arg ref="kepler.config.profile" />
-	</bean>
-
-	<bean class="com.kepler.header.impl.TraceProcessor">
-		<constructor-arg ref="kepler.config.profile" />
-		<constructor-arg ref="kepler.id.guid" />
-	</bean>
-	 
 </beans>

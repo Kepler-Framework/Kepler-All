@@ -35,25 +35,25 @@ public class DefaultRequest implements Request {
 
 	private final byte serial;
 
-	private final Integer ack;
+	private final byte[] ack;
 
-	public DefaultRequest(Request request, Integer ack) {
+	public DefaultRequest(Request request, byte[] ack) {
 		this(ack, DefaultRequest.clone(request.headers()), request.service(), request.method(), request.async(), request.args(), request.types(), request.serial());
 	}
 
-	public DefaultRequest(Request request, Integer ack, boolean async) {
+	public DefaultRequest(Request request, byte[] ack, boolean async) {
 		this(ack, DefaultRequest.clone(request.headers()), request.service(), request.method(), async, request.args(), request.types(), request.serial());
 	}
 
-	public DefaultRequest(Request request, Integer ack, Object[] args) {
+	public DefaultRequest(Request request, byte[] ack, Object[] args) {
 		this(ack, DefaultRequest.clone(request.headers()), request.service(), request.method(), request.async(), args, request.types(), request.serial());
 	}
 
-	public DefaultRequest(Integer ack, Headers headers, Service service, Method method, boolean async, Object[] args, byte serial) {
+	public DefaultRequest(byte[] ack, Headers headers, Service service, Method method, boolean async, Object[] args, byte serial) {
 		this(ack, headers, service, method.getName(), async, args, method.getParameterTypes(), serial);
 	}
 
-	public DefaultRequest(@JsonProperty("ack") Integer ack, @JsonProperty("headers") Headers headers, @JsonProperty("service") Service service, @JsonProperty("method") String method, @JsonProperty("async") boolean async, @JsonProperty("args") Object[] args, @JsonProperty("types") Class<?>[] types, @JsonProperty("serial") byte serial) {
+	public DefaultRequest(@JsonProperty("ack") byte[] ack, @JsonProperty("headers") Headers headers, @JsonProperty("service") Service service, @JsonProperty("method") String method, @JsonProperty("async") boolean async, @JsonProperty("args") Object[] args, @JsonProperty("types") Class<?>[] types, @JsonProperty("serial") byte serial) {
 		super();
 		this.service = service;
 		this.headers = headers;
@@ -99,7 +99,7 @@ public class DefaultRequest implements Request {
 		return this.serial;
 	}
 
-	public Integer ack() {
+	public byte[] ack() {
 		return this.ack;
 	}
 

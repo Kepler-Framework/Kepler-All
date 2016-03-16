@@ -21,9 +21,9 @@ public interface RequestFactory {
 	 * @param serial 序列化策略
 	 * @return
 	 */
-	public Request request(Headers headers, Service service, String method, boolean async, Object[] args, Class<?>[] types, Integer ack, byte serial);
+	public Request request(Headers headers, Service service, String method, boolean async, Object[] args, Class<?>[] types, byte[] ack, byte serial);
 
-	public Request request(Headers headers, Service service, Method method, boolean async, Object[] args, Integer ack, byte serial);
+	public Request request(Headers headers, Service service, Method method, boolean async, Object[] args, byte[] ack, byte serial);
 
 	/**
 	 * 复制Request参数并替换Args
@@ -32,7 +32,7 @@ public interface RequestFactory {
 	 * @param args
 	 * @return
 	 */
-	public Request request(Request request, Integer ack, Object[] args);
+	public Request request(Request request, byte[] ack, Object[] args);
 
 	/**
 	 * 复制Request参数并替换Async
@@ -41,7 +41,7 @@ public interface RequestFactory {
 	 * @param ack
 	 * @return
 	 */
-	public Request request(Request request, Integer ack, boolean async);
+	public Request request(Request request, byte[] ack, boolean async);
 
 	/**
 	 * 复制Request参数并替换Ack
@@ -50,5 +50,5 @@ public interface RequestFactory {
 	 * @param ack
 	 * @return
 	 */
-	public Request request(Request request, Integer ack);
+	public Request request(Request request, byte[] ack);
 }

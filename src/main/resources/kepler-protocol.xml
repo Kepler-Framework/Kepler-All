@@ -6,6 +6,7 @@
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
 	<import resource="kepler-protocol-validation.xml" />
+	<import resource="kepler-protocol-processor.xml" />
 	
 	<bean id="kepler.protocol.response" class="com.kepler.protocol.impl.DefaultResponseFactory" />
 
