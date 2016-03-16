@@ -1,10 +1,8 @@
 package com.kepler.id.impl;
 
-import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.kepler.id.IDGenerator;
-import com.kepler.protocol.Bytes;
 
 /**
  * @author kim
@@ -18,11 +16,13 @@ public class IncrGenerator implements IDGenerator {
 	private final AtomicLong next = new AtomicLong();
 
 	@Override
-	public Bytes generate() {
-		byte b[] = new byte[32];
-		ByteBuffer bb = ByteBuffer.wrap(b);
-		bb.putInt((int) (this.next.incrementAndGet() & Integer.MAX_VALUE));
-		return new Bytes(b);
+	public byte[] generate() {
+		int next = (int) (this.next.incrementAndGet() & Integer.MAX_VALUE);
+		byte b1 = (byte)((next >>> 24) & 0xFF);
+		byte b2 = (byte)((next >>> 16) & 0xFF);
+		byte b3 = (byte)((next >>> 8) & 0xFF);
+		byte b4 = (byte)((next >>> 0) & 0xFF);
+		return new byte[] { b1, b2, b3, b4 };
 	}
 
 	public String name() {

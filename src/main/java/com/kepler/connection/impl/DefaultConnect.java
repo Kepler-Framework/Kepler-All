@@ -1,8 +1,24 @@
 package com.kepler.connection.impl;
 
+import io.netty.bootstrap.Bootstrap;
+import io.netty.bootstrap.ChannelFactory;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.LengthFieldPrepender;
+
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,28 +46,12 @@ import com.kepler.host.Host;
 import com.kepler.host.HostLocks;
 import com.kepler.host.HostsContext;
 import com.kepler.host.impl.SegmentLocks;
-import com.kepler.protocol.Bytes;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.Response;
 import com.kepler.serial.Serials;
 import com.kepler.service.Quiet;
 import com.kepler.token.TokenContext;
 import com.kepler.traffic.Traffic;
-
-import io.netty.bootstrap.Bootstrap;
-import io.netty.bootstrap.ChannelFactory;
-import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import io.netty.handler.codec.LengthFieldPrepender;
 
 /**
  * Client 2 Service Connection
@@ -459,12 +459,35 @@ public class DefaultConnect implements Connect {
 		private final Map<Bytes, AckFuture> waitings = new ConcurrentHashMap<Bytes, AckFuture>();
 
 		public AckFuture put(AckFuture future) {
-			this.waitings.put(future.request().ack(), future);
+			this.waitings.put(new Bytes(future.request().ack()), future);
 			return future;
 		}
 
-		public AckFuture del(Bytes ack) {
-			return this.waitings.remove(ack);
+		public AckFuture del(byte[] ack) {
+			return this.waitings.remove(new Bytes(ack));
+		}
+	}
+
+	private class Bytes {
+
+		private final byte[] bytes;
+
+		private Bytes(byte[] bytes) {
+			this.bytes = bytes;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			Bytes that = Bytes.class.cast(obj);
+			return Arrays.equals(this.bytes, that.bytes);
+		}
+
+		@Override
+		public int hashCode() {
+			return Arrays.hashCode(this.bytes);
 		}
 	}
 }

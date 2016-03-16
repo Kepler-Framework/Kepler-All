@@ -20,9 +20,9 @@ import com.kepler.service.Service;
 public class DefaultIDGenerators implements IDGenerators, Extension {
 
 	private final Profile profile;
-	
+
 	private final Map<String, IDGenerator> ids = new HashMap<String, IDGenerator>();
-	
+
 	private static final String GENERATOR_KEY = DefaultIDGenerators.class.getName().toLowerCase() + ".generator";
 
 	private static final String GENERATOR_DEF = PropertiesUtils.get(DefaultIDGenerators.GENERATOR_KEY, IncrGenerator.NAME);
@@ -30,7 +30,7 @@ public class DefaultIDGenerators implements IDGenerators, Extension {
 	public DefaultIDGenerators(Profile profile) {
 		this.profile = profile;
 	}
-	
+
 	@Override
 	public IDGenerator get(Service service, Method method) {
 		return get(service, method.getName());
@@ -38,16 +38,16 @@ public class DefaultIDGenerators implements IDGenerators, Extension {
 
 	@Override
 	public IDGenerator get(Service service, String method) {
-		String generatorName = PropertiesUtils.profile(this.profile.profile(service), GENERATOR_KEY, GENERATOR_DEF);
-		if (!ids.containsKey(generatorName)) {
-			throw new KeplerException("加载错误。找不到可用的ID generator");
+		String name = PropertiesUtils.profile(this.profile.profile(service), DefaultIDGenerators.GENERATOR_KEY, DefaultIDGenerators.GENERATOR_DEF);
+		if (!this.ids.containsKey(name)) {
+			throw new KeplerException("Can not found mathched generator: " + name + " ... ");
 		}
-		return this.ids.get(PropertiesUtils.profile(this.profile.profile(service), GENERATOR_KEY, GENERATOR_DEF));
+		return this.ids.get(name);
 	}
-	
+
 	@Override
 	public Extension install(Object instance) {
-		IDGenerator generator = (IDGenerator)instance; 
+		IDGenerator generator = IDGenerator.class.cast(instance);
 		this.ids.put(generator.name(), generator);
 		return this;
 	}
@@ -56,5 +56,4 @@ public class DefaultIDGenerators implements IDGenerators, Extension {
 	public Class<?> interested() {
 		return IDGenerator.class;
 	}
-
 }

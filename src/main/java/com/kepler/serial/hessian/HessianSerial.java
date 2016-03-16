@@ -19,7 +19,6 @@ import com.kepler.config.PropertiesUtils;
 import com.kepler.header.Headers;
 import com.kepler.header.impl.LazyHeaders;
 import com.kepler.org.apache.commons.io.IOUtils;
-import com.kepler.protocol.Bytes;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.RequestFactory;
 import com.kepler.protocol.Response;
@@ -259,7 +258,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 		}
 
 		@Override
-		public Bytes ack() {
+		public byte[] ack() {
 			return this.actual.ack();
 		}
 
@@ -309,7 +308,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 		}
 
 		@Override
-		public Bytes ack() {
+		public byte[] ack() {
 			return this.actual.ack();
 		}
 
@@ -486,7 +485,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 			output.writeString(request.service().version());
 			output.writeString(request.service().catalog());
 			output.writeString(request.method());
-			output.writeBytes(request.ack().getBytes());
+			output.writeBytes(request.ack());
 			return this;
 		}
 
@@ -507,10 +506,10 @@ public class HessianSerial implements SerialOutput, SerialInput {
 			// 元数据
 			Service service = new Service(input.readString(), input.readString(), input.readString());
 			String method = input.readString();
-			
+			// ACK
 			byte[] ack = input.readBytes();
 			// 当前序列化策略即为Request实际序列化策略
-			return HessianSerial.this.request.request(headers, service, method, false, args, types, new Bytes(ack), HessianSerial.SERIAL);
+			return HessianSerial.this.request.request(headers, service, method, false, args, types, ack, HessianSerial.SERIAL);
 		}
 
 		private void read4args(HessianInput input, Class<?>[] types, Object[] args, int length) throws Exception {
@@ -555,7 +554,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 		}
 
 		private void write4response(HessianOutput output, Response response) throws Exception {
-			output.writeBytes(response.ack().getBytes());
+			output.writeBytes(response.ack());
 			output.writeBoolean(response.valid());
 			if (response.valid()) {
 				output.writeObject(response.response());
@@ -565,7 +564,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 		}
 
 		private Response read4response(HessianInput input) throws Exception {
-			Bytes ack = new Bytes(input.readBytes());
+			byte[] ack = input.readBytes();
 			return input.readBoolean() ? HessianSerial.this.response.response(ack, input.readObject(), HessianSerial.SERIAL) : HessianSerial.this.response.throwable(ack, Throwable.class.cast(input.readObject()), HessianSerial.SERIAL);
 		}
 	}

@@ -4,6 +4,6 @@
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-	<bean id="kepler.server.header.processor" class="com.kepler.header.impl.ChainedServersideProcessor" />
+	<bean id="kepler.protocol.processor" class="com.kepler.protocol.impl.ChainedProcessor" />
 
 </beans>

@@ -49,7 +49,7 @@ public interface Request extends SerialID, Serializable {
 	public boolean async();
 
 	@JsonProperty
-	public Bytes ack();
+	public byte[] ack();
 
 	@JsonProperty
 	public Headers headers();

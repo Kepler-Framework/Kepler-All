@@ -10,6 +10,9 @@
 
 	<bean id="kepler.id.incr" class="com.kepler.id.impl.IncrGenerator" />
 
-	<bean id="kepler.id.guid" class="com.kepler.id.impl.GuidGenerator" />	
+	<bean id="kepler.id.guid" class="com.kepler.id.impl.GuidGenerator">
+		<constructor-arg ref="kepler.host.local" />
+		<constructor-arg ref="kepler.main.pid" />
+	</bean>
 
 </beans>

@@ -17,9 +17,9 @@
 		<constructor-arg ref="kepler.reject.context" />
 		<constructor-arg ref="kepler.header.context" />
 		<constructor-arg ref="kepler.protocol.response" />
+		<constructor-arg ref="kepler.protocol.processor" />
 		<constructor-arg ref="kepler.service.exported.context" />
 		<constructor-arg ref="kepler.protocol.validation4service" />
-		<constructor-arg ref="kepler.server.header.processor" />
 	</bean>
 
 </beans>

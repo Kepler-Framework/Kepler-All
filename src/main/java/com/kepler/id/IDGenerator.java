@@ -1,6 +1,5 @@
 package com.kepler.id;
 
-import com.kepler.protocol.Bytes;
 
 /**
  * @author kim
@@ -9,7 +8,7 @@ import com.kepler.protocol.Bytes;
  */
 public interface IDGenerator {
 
-	public Bytes generate();
+	public byte[] generate();
 
 	public String name();
 }
