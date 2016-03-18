@@ -11,7 +11,7 @@
 		<maven.project.name>kepler-all</maven.project.name>
 		<maven.project.compile.version>1.7</maven.project.compile.version>
 		<maven.project.jackson.version>2.4.2</maven.project.jackson.version>
-		<maven.project.spring.version>4.2.4.RELEASE</maven.project.spring.version>
+		<maven.project.spring.version>3.2.4.RELEASE</maven.project.spring.version>
 		<maven.project.build.sourceEncoding>UTF-8</maven.project.build.sourceEncoding>
 	</properties>
 
