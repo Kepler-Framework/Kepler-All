@@ -308,6 +308,8 @@ public class DefaultServer {
 					return DefaultServer.this.response.throwable(request.ack(), e, request.serial());
 				} finally {
 					DefaultServer.this.promotion.record(request, this.running);
+					// 释放Header避免同线程的其他业务复用
+					DefaultServer.this.headers.release();
 				}
 			}
 		}
