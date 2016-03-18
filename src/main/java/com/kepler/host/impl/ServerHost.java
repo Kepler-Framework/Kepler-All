@@ -64,7 +64,7 @@ public class ServerHost implements Serializable, Host {
 	}
 
 	public ServerHost(Pid pid) throws Exception {
-		this.local = new DefaultHost(Host.GROUP, Host.TOKEN_VAL, Host.NAME, Host.TAG_VAL, pid.pid(), this.ip(), ServerHost.STABLE ? ServerHost.PORT : this.available(), Host.PRIORITY_DEF);
+		this.local = new DefaultHost(Host.GROUP_VAL, Host.TOKEN_VAL, Host.NAME, Host.TAG_VAL, pid.pid(), this.ip(), ServerHost.STABLE ? ServerHost.PORT : this.available(), Host.PRIORITY_DEF);
 		this.sid = ServerHost.SID;
 	}
 

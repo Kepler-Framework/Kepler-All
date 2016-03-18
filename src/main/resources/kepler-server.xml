@@ -18,6 +18,7 @@
 		<constructor-arg ref="kepler.header.context" />
 		<constructor-arg ref="kepler.protocol.response" />
 		<constructor-arg ref="kepler.protocol.processor" />
+		<constructor-arg ref="kepler.connection.counter" />
 		<constructor-arg ref="kepler.service.exported.context" />
 		<constructor-arg ref="kepler.protocol.validation4service" />
 	</bean>

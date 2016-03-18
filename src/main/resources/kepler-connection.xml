@@ -5,6 +5,7 @@
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
 	<import resource="kepler-connection-reject.xml" />
+	<import resource="kepler-connection-counter.xml" />
 
 	<bean id="kepler.connection.connects" class="com.kepler.connection.impl.DefaultConnects" />
 
