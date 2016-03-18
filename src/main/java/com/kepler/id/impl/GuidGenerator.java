@@ -35,22 +35,23 @@ public class GuidGenerator implements IDGenerator {
 	 * @return 当前索引
 	 */
 	private int write(byte[] bytes, int index, int data) {
-		bytes[index] = (byte) (0xff & data);
+		bytes[(index++)] = (byte) (0xff & data);
 		bytes[(index++)] = (byte) ((0xff00 & data) >> 8);
 		bytes[(index++)] = (byte) ((0xff0000 & data) >> 16);
 		bytes[(index++)] = (byte) ((0xff000000 & data) >> 24);
-		return index + 1;
+		return index;
 	}
 
 	@Override
 	public byte[] generate() {
 		byte bytes[] = new byte[12];
 		// 写入时间相关信息
-		int index_time = this.write(bytes, 0, (int) (System.currentTimeMillis() / 1000));
+		int offset = 0;
+		offset = this.write(bytes, offset, (int) (System.currentTimeMillis() / 1000));
 		// 写入机器相关信息
-		int index_machine = this.write(bytes, index_time, this.machine | this.pid);
+		offset = this.write(bytes, offset, this.machine | this.pid);
 		// 写入自增信息
-		this.write(bytes, index_machine, this.incr.incrementAndGet());
+		this.write(bytes, offset, this.incr.incrementAndGet());
 		return bytes;
 	}
 
