@@ -17,14 +17,11 @@ public class ThreadFactory implements FactoryBean<ThreadPoolExecutor> {
 
 	private static final Log LOGGER = LogFactory.getLog(ThreadFactory.class);
 
-	/**
-	 * 最小线程数量
-	 */
 	private static final int THREAD_MIN = 3;
 
 	private static final int THREAD_CORE = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".core", ThreadFactory.THREAD_MIN + Runtime.getRuntime().availableProcessors() * 2);
 
-	private static final int THREAD_MAX = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".max", ThreadFactory.THREAD_CORE);
+	private static final int THREAD_MAX = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".max", ThreadFactory.THREAD_CORE * 2);
 
 	private static final int THREAD_KEEPALIVE = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".keepalive", 60000);
 

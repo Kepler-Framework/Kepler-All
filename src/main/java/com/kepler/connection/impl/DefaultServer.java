@@ -26,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.kepler.KeplerException;
 import com.kepler.config.PropertiesUtils;
+import com.kepler.connection.Counter;
 import com.kepler.connection.Reject;
 import com.kepler.connection.handler.CodecHeader;
 import com.kepler.connection.handler.DecoderHandler;
@@ -105,19 +106,22 @@ public class DefaultServer {
 
 	private final Serials serials;
 
+	private final Counter counter;
+
 	private final Traffic traffic;
 
 	private final Reject reject;
 
 	private final Trace trace;
 
-	public DefaultServer(Trace trace, Reject reject, ServerHost local, Traffic traffic, Serials serials, Promotion promotion, TokenContext token, ExportedContext exported, ResponseFactory response, HeadersContext headers, ThreadPoolExecutor threads, RequestValidation validation, RequestProcessor processor) {
+	public DefaultServer(Trace trace, Reject reject, Traffic traffic, Serials serials, Counter counter, ServerHost local, Promotion promotion, TokenContext token, ExportedContext exported, ResponseFactory response, HeadersContext headers, ThreadPoolExecutor threads, RequestValidation validation, RequestProcessor processor) {
 		super();
 		this.validation = validation;
 		this.processor = processor;
 		this.promotion = promotion;
 		this.exported = exported;
 		this.response = response;
+		this.counter = counter;
 		this.threads = threads;
 		this.headers = headers;
 		this.traffic = traffic;
@@ -270,6 +274,8 @@ public class DefaultServer {
 			}
 
 			private Reply init(Request request) {
+				// Request计数
+				DefaultServer.this.counter.incr();
 				// Reply执行时间
 				this.running = System.currentTimeMillis();
 				// 线程Copy Header, 用于嵌套服务调用时传递(In Kepler Threads)
@@ -308,6 +314,10 @@ public class DefaultServer {
 					return DefaultServer.this.response.throwable(request.ack(), e, request.serial());
 				} finally {
 					DefaultServer.this.promotion.record(request, this.running);
+					// 释放Header避免同线程的其他业务复用
+					DefaultServer.this.headers.release();
+					// Request执行完毕
+					DefaultServer.this.counter.decr();
 				}
 			}
 		}

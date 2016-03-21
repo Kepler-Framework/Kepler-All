@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.UUID;
 
 import com.kepler.config.PropertiesUtils;
+import com.kepler.org.apache.commons.lang.StringUtils;
 
 /**
  * @author kim 2015年7月8日
@@ -41,9 +42,14 @@ public interface Host extends Serializable {
 	public static final String NAME = PropertiesUtils.get(Host.class.getName().toLowerCase() + ".name", "unknow");
 
 	/**
+	 * 主机默认分组
+	 */
+	public static final String GROUP_DEF = "unknow";
+
+	/**
 	 * 主机分组, 默认使用环境变量USER(用于Admin)
 	 */
-	public static final String GROUP = PropertiesUtils.get(Host.class.getName().toLowerCase() + ".group", System.getenv("USER"));
+	public static final String GROUP_VAL = PropertiesUtils.get(Host.class.getName().toLowerCase() + ".group", StringUtils.defaultString(System.getenv("USER"), Host.GROUP_DEF));
 
 	public int port();
 

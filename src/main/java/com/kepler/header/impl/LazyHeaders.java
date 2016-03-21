@@ -83,6 +83,14 @@ public class LazyHeaders implements Headers {
 		return this.headers == null ? LazyHeaders.EMPTY_KEYS : this.headers.keySet();
 	}
 
+	public LazyHeaders reset() {
+		// 已存在则清除
+		if (this.headers != null) {
+			this.headers.clear();
+		}
+		return this;
+	}
+
 	public int length() {
 		return this.headers == null ? 0 : this.headers.size();
 	}

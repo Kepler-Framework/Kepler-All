@@ -10,6 +10,13 @@ public interface HeadersContext {
 	public Headers set(Headers headers);
 
 	/**
+	 * 重置当前Headers
+	 * 
+	 * @return
+	 */
+	public Headers reset();
+
+	/**
 	 * 返回并释放Headers
 	 * 
 	 * @return

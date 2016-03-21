@@ -126,7 +126,7 @@ public class ImportedServiceFactory<T> implements FactoryBean<T> {
 
 		private Object invoke(Method method, Object[] args) throws Throwable {
 			// 从当前上下文获取Headers并进行合并
-			Headers headers = Headers.ENABLED ? ImportedServiceFactory.this.processor.process(ImportedServiceFactory.this.service, ImportedServiceFactory.this.header.release()) : null;
+			Headers headers = Headers.ENABLED ? ImportedServiceFactory.this.processor.process(ImportedServiceFactory.this.service, ImportedServiceFactory.this.header.get()) : null;
 			// PropertiesUtils.profile(ImportedServiceFactory.this.profile.profile(service), SerialID.Serial.SERIAL_KEY, SerialID.Serial.SERIAL_VAL)), 获取与Service相关的序列化策略, 并将String转换为对应Byte
 			byte serial = SerialID.DYAMIC ? ImportedServiceFactory.this.serials.output(PropertiesUtils.profile(ImportedServiceFactory.this.profile.profile(ImportedServiceFactory.this.service), SerialID.SERIAL_KEY, SerialID.SERIAL_VAL)) : ImportedServiceFactory.this.serials.output(SerialID.SERIAL_VAL);
 			// 如果返回类型为Future(Future.class.isAssignableFrom(method.getReturnType()))则标记为Async

@@ -33,6 +33,8 @@ public interface Headers extends Serializable {
 	public Map<String, String> get();
 
 	public Collection<String> keys();
+	
+	public Headers reset();
 
 	public int length();
 }
