@@ -17,9 +17,13 @@ public interface Trace {
 
 	public static final String PARENT_SPAN = "parent_span";
 
+	public static final String TRACE = "trace";
+	
 	public static final String SPAN = "span";
-
+	
+	public static final String TRACE_TO_COVER = "trace_to_cover";
+	
 	public static final String START_TIME = "start_time";
 
-	public void trace(Request request, Response response, String local, String remote, long waiting, long elapse);
+	public void trace(Request request, Response response, String local, String remote, long waiting, long elapse, long receivedTime);
 }
