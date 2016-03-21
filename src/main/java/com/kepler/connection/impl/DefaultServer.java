@@ -291,7 +291,7 @@ public class DefaultServer {
 				Response response = this.init(request).response(request);
 				this.ctx.writeAndFlush(response).addListener(ExceptionListener.TRACE);
 				// 记录调用栈 (使用原始Request)
-				DefaultServer.this.trace.trace(this.request, response, ExportedHandler.this.local, ExportedHandler.this.target, this.running - this.created, System.currentTimeMillis() - this.running);
+				DefaultServer.this.trace.trace(this.request, response, ExportedHandler.this.local, ExportedHandler.this.target, this.running - this.created, System.currentTimeMillis() - this.running, this.created);
 			}
 
 			public Request request() {
