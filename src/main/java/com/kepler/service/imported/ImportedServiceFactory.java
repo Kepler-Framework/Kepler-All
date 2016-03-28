@@ -6,6 +6,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Future;
 
+import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
+
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.core.annotation.AnnotationUtils;
 
@@ -22,10 +26,6 @@ import com.kepler.serial.SerialID;
 import com.kepler.serial.Serials;
 import com.kepler.service.Imported;
 import com.kepler.service.Service;
-
-import net.sf.cglib.proxy.Enhancer;
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
 
 /**
  * @author kim 2015年7月8日
@@ -56,6 +56,8 @@ public class ImportedServiceFactory<T> implements FactoryBean<T> {
 
 	private final Invoker invoker;
 
+	private final Class<?> clazz;
+
 	private ImportedServiceFactory(Class<T> clazz, com.kepler.annotation.Service service, String profile, Invoker invoker, RequestValidation validation, RequestFactory factory, HeadersContext header, HeadersProcessor processor, IDGenerators generators, Profile profiles, Serials serials, Imported imported) {
 		this(clazz, profile, service.version(), service.catalog(), invoker, validation, factory, header, processor, generators, profiles, serials, imported);
 	}
@@ -82,6 +84,7 @@ public class ImportedServiceFactory<T> implements FactoryBean<T> {
 	// 不使用@Service
 	public ImportedServiceFactory(Class<T> clazz, String profile, String version, String catalog, Invoker invoker, RequestValidation validation, RequestFactory factory, HeadersContext header, HeadersProcessor processor, IDGenerators generators, Profile profiles, Serials serials, Imported imported) {
 		super();
+		this.clazz = clazz;
 		this.header = header;
 		this.invoker = invoker;
 		this.factory = factory;
@@ -91,17 +94,17 @@ public class ImportedServiceFactory<T> implements FactoryBean<T> {
 		this.processor = processor;
 		this.validation = validation;
 		this.methods = new HashSet<>(Arrays.asList(clazz.getMethods()));
-		this.service = new Service(clazz, version, catalog);
+		this.service = new Service(clazz.getName(), version, catalog);
 		this.profile = profiles.add(this.service, profile);
 	}
 
 	public T getObject() throws Exception {
 		this.imported.subscribe(this.service);
-		return this.proxy.getProxy(this.service.service());
+		return this.proxy.getProxy(ImportedServiceFactory.this.clazz);
 	}
 
 	public Class<?> getObjectType() {
-		return this.service.service();
+		return ImportedServiceFactory.this.clazz;
 	}
 
 	public boolean isSingleton() {

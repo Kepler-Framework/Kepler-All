@@ -42,9 +42,9 @@ public class DefaultCollector implements Collector, Imported {
 		}
 	}
 
-	private void methods(Service service, int index) {
+	private void methods(Service service, int index) throws Exception {
 		// 获取所有Method并初始化DefaultTransfers
-		for (Method method : service.service().getMethods()) {
+		for (Method method : Service.clazz(service).getMethods()) {
 			this.transfers[index].put(service, method.getName(), new DefaultTransfers(service, method.getName()));
 		}
 	}

@@ -29,7 +29,7 @@ public class Profile {
 	 */
 	public Profile add(Service service, String profile) {
 		// 如果Profile为空(Null | "")则使用全类名
-		this.profiles.put(service, StringUtils.isEmpty(profile) ? service.service().getName().toLowerCase() : profile);
+		this.profiles.put(service, StringUtils.isEmpty(profile) ? service.service().toLowerCase() : profile);
 		return this;
 	}
 

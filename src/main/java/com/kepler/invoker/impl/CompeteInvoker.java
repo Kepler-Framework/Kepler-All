@@ -67,7 +67,7 @@ public class CompeteInvoker implements Imported, Invoker {
 
 	@Override
 	public void subscribe(Service service) throws Exception {
-		for (Method method : service.service().getMethods()) {
+		for (Method method : Service.clazz(service).getMethods()) {
 			// 注册Compete方法
 			Compete compete = method.getAnnotation(Compete.class);
 			if (compete != null) {

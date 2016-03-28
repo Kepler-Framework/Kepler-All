@@ -77,7 +77,7 @@ public class ExportedDelegate {
 		super();
 		this.exported = exported;
 		this.instance = instance;
-		this.service = new Service(service, version, catalog);
+		this.service = new Service(service.getName(), version, catalog);
 		profiles.add(this.service, profile);
 	}
 

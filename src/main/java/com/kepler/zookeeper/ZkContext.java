@@ -164,14 +164,14 @@ public class ZkContext implements Demotion, Imported, Exported, ConfigSync, Appl
 	}
 
 	/**
-	 * 发布线服务依赖
+	 * 发布服务依赖
 	 * 
 	 * @param service
 	 * @throws Exception
 	 */
 	private void dependency(Service service) throws Exception {
 		if (PropertiesUtils.profile(this.profile.profile(service), ZkContext.DEPENDENCY_KEY, ZkContext.DEPENDENCY_VAL)) {
-			this.zoo.create(this.road.mkdir(new StringBuffer(ZkContext.ROOT).append(ZkContext.DEPENDENCY).append("/").append(this.road.road(service.service(), service.versionAndCatalog())).toString()) + "/", this.serials.def4output().output(new ImportedService(this.local, service), ImportedService.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
+			this.zoo.create(this.road.mkdir(this.road.road(new StringBuffer(ZkContext.ROOT).append(ZkContext.DEPENDENCY).toString(), service.service(), service.versionAndCatalog())) + "/", this.serials.def4output().output(new ImportedService(this.local, service), ImportedService.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
 		}
 	}
 
@@ -262,26 +262,14 @@ public class ZkContext implements Demotion, Imported, Exported, ConfigSync, Appl
 		}
 
 		/**
-		 * 组合不带前缀服务路径
-		 * 
-		 * @param service
-		 * @param road
-		 * @return
-		 */
-		public String road(Class<?> service, String... road) {
-			StringBuffer buffer = new StringBuffer().append(service.getName()).append("/");
-			return this.road(buffer, road);
-		}
-
-		/**
 		 * 组合带前缀服务路径
 		 * 
 		 * @param service
 		 * @param road
 		 * @return
 		 */
-		public String road(String prefix, Class<?> service, String... road) {
-			StringBuffer buffer = new StringBuffer(prefix).append("/").append(service.getName()).append("/");
+		public String road(String prefix, String service, String... road) {
+			StringBuffer buffer = new StringBuffer(prefix).append("/").append(service).append("/");
 			return this.road(buffer, road);
 		}
 
@@ -400,7 +388,7 @@ public class ZkContext implements Demotion, Imported, Exported, ConfigSync, Appl
 		 * 注销Status节点
 		 */
 		public void destroy4status() {
-			if(status != null){
+			if (status != null) {
 				this.destroy(this.status);
 				this.status = null;
 			}
@@ -410,7 +398,7 @@ public class ZkContext implements Demotion, Imported, Exported, ConfigSync, Appl
 		 * 注销Config节点
 		 */
 		public void destroy4config() {
-			if(config != null){
+			if (config != null) {
 				this.destroy(this.config);
 				this.config = null;
 			}

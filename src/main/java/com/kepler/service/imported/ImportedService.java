@@ -30,7 +30,7 @@ public class ImportedService implements Serializable {
 		this.sid = host.sid();
 		this.name = host.name();
 		this.group = host.group();
-		this.service = service.service().getName();
+		this.service = service.service();
 		this.versionAndCatalog = service.versionAndCatalog();
 	}
 

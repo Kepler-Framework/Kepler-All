@@ -38,7 +38,7 @@ public class QuietExceptions implements Quiet, Imported {
 	@Override
 	public void subscribe(Service service) throws Exception {
 		QuietMethods methods = new QuietMethods();
-		for (Method each : service.service().getMethods()) {
+		for (Method each : Service.clazz(service).getMethods()) {
 			// Method Name : Quite List
 			methods.put(each.getName(), this.quiet(AnnotationUtils.findAnnotation(each, QuietMethod.class)));
 		}
