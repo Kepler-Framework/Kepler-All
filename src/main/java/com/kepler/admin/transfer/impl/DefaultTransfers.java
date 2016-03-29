@@ -53,7 +53,7 @@ public class DefaultTransfers implements Transfers {
 	public DefaultTransfers(Service service, String method) {
 		super();
 		this.method = method;
-		this.service = service.service().getName();
+		this.service = service.service();
 		this.version = service.versionAndCatalog();
 	}
 

@@ -61,7 +61,7 @@ public class BroadcastInvoker implements Imported, Invoker {
 
 	@Override
 	public void subscribe(Service service) throws Exception {
-		for (Method method : service.service().getMethods()) {
+		for (Method method : Service.clazz(service).getMethods()) {
 			// 注册Broadcast方法
 			Broadcast broadcast = method.getAnnotation(Broadcast.class);
 			if (broadcast != null) {

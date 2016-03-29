@@ -39,7 +39,7 @@ public class DefaultPromotion implements Exported, Promotion {
 
 	@Override
 	public void exported(Service service, Object instance) throws Exception {
-		for (Method method : service.service().getMethods()) {
+		for (Method method : Service.clazz(service).getMethods()) {
 			this.promtions.put(service, method.getName(), new Guess());
 		}
 	}

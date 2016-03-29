@@ -481,7 +481,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 		}
 
 		private RequestSerializer write4metadata(HessianOutput output, Request request) throws Exception {
-			output.writeString(request.service().service().getName());
+			output.writeString(request.service().service());
 			output.writeString(request.service().version());
 			output.writeString(request.service().catalog());
 			output.writeString(request.method());

@@ -74,7 +74,7 @@ public class ExportedDiscovery implements BeanPostProcessor {
 	 */
 	private void exported(Class<?> clazz, Object bean, String profile, String catalog, String... versions) throws Exception {
 		for (String version : versions) {
-			com.kepler.service.Service service = new com.kepler.service.Service(clazz, version, catalog);
+			com.kepler.service.Service service = new com.kepler.service.Service(clazz.getName(), version, catalog);
 			this.profile.add(service, profile);
 			this.exported.exported(service, bean);
 		}

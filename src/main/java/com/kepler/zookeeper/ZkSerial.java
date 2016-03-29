@@ -33,7 +33,7 @@ public class ZkSerial implements ServiceInstance {
 		this.host = host;
 		this.catalog = service.catalog();
 		this.version = service.version();
-		this.service = service.service().getName();
+		this.service = service.service();
 	}
 
 	public ServerHost host() {

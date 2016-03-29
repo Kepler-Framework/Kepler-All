@@ -67,7 +67,7 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 		@Override
 		public Object invoke(Request request) throws Throwable {
 			// MethodUtils.getMatchingAccessibleMethod(request.service(), request.method(), request.types()) 获取指定Method
-			Method method = MethodUtils.getMatchingAccessibleMethod(request.service().service(), request.method(), request.types());
+			Method method = MethodUtils.getMatchingAccessibleMethod(Service.clazz(request.service()), request.method(), request.types());
 			try {
 				return this.response(request, this.exists(request, method).invoke(this.service, request.args()));
 			} catch (NoSuchMethodException exception) {

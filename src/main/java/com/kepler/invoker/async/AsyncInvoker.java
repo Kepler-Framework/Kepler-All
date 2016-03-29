@@ -49,7 +49,7 @@ public class AsyncInvoker implements Imported, Invoker {
 	@Override
 	public void subscribe(Service service) throws Exception {
 		Set<String> methods = new HashSet<String>();
-		for (Method method : service.service().getMethods()) {
+		for (Method method : Service.clazz(service).getMethods()) {
 			// 注册异步方法(@Async && return void)
 			if (method.getAnnotation(Async.class) != null) {
 				Assert.state(method.getReturnType().equals(void.class), "Method must return void ... ");
