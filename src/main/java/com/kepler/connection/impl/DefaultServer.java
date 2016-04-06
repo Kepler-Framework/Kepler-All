@@ -158,6 +158,7 @@ public class DefaultServer {
 	 */
 	public void destroy() throws Exception {
 		this.bootstrap.group().shutdownGracefully().sync();
+		this.bootstrap.childGroup().shutdownGracefully().sync();
 		DefaultServer.LOGGER.warn("Server shutdown ... ");
 	}
 
