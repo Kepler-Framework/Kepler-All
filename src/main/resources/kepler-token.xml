@@ -4,6 +4,21 @@
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-	<bean id="kepler.token" class="com.kepler.token.impl.DefaultTokenContext" />
+	<alias name="kepler.token.chained" alias="kepler.token" />
+
+	<bean id="kepler.token.chained" class="com.kepler.token.impl.ChainedTokenContext">
+		<constructor-arg>
+			<util:list>
+				<ref bean="kepler.token.connect" />
+				<ref bean="kepler.token.access" />
+			</util:list>
+		</constructor-arg>
+	</bean>
+
+	<bean id="kepler.token.connect" class="com.kepler.token.impl.ConnectTokenContext" />
+
+	<bean id="kepler.token.access" class="com.kepler.token.impl.AccessTokenContext">
+		<constructor-arg ref="kepler.config.profile" />
+	</bean>
 
 </beans>

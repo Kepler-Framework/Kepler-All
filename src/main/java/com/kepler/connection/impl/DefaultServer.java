@@ -33,7 +33,6 @@ import com.kepler.connection.handler.DecoderHandler;
 import com.kepler.connection.handler.EncoderHandler;
 import com.kepler.connection.handler.ResourceHandler;
 import com.kepler.header.HeadersContext;
-import com.kepler.host.Host;
 import com.kepler.host.impl.ServerHost;
 import com.kepler.promotion.Promotion;
 import com.kepler.protocol.Request;
@@ -304,7 +303,7 @@ public class DefaultServer {
 					// 校验是否Reject
 					request = DefaultServer.this.reject.reject(request, this.ctx.channel().remoteAddress());
 					// 校验请求合法性
-					request = DefaultServer.this.token.valid(request, Host.TAG_VAL);
+					request = DefaultServer.this.token.valid(request);
 					// 校验请求参数(如JSR 303)
 					request = DefaultServer.this.validation.valid(request);
 					// 获取服务并执行

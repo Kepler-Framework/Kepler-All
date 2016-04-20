@@ -1,6 +1,7 @@
 package com.kepler.token;
 
 import com.kepler.KeplerValidateException;
+import com.kepler.channel.ChannelInvoker;
 import com.kepler.protocol.Request;
 
 /**
@@ -14,18 +15,17 @@ public interface TokenContext {
 	 * 追加Token
 	 * 
 	 * @param request
-	 * @param token
+	 * @param invoker
 	 * @return
 	 */
-	public Request set(Request request, String token);
+	public Request set(Request request, ChannelInvoker invoker);
 
 	/**
 	 * 校验Token
 	 * 
 	 * @param request
-	 * @param token
 	 * @return
 	 * @throws KeplerValidateException
 	 */
-	public Request valid(Request request, String token) throws KeplerValidateException;
+	public Request valid(Request request) throws KeplerValidateException;
 }

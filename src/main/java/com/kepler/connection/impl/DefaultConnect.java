@@ -342,7 +342,7 @@ public class DefaultConnect implements Connect {
 
 		public Object invoke(Request request) throws Throwable {
 			// DefaultConnect.this.token.set(request, this.target.token())增加Token
-			AckFuture future = new AckFuture(DefaultConnect.this.collector, DefaultConnect.this.local, this.target, DefaultConnect.this.token.set(request, this.target.token()), DefaultConnect.this.profiles, DefaultConnect.this.quiet);
+			AckFuture future = new AckFuture(DefaultConnect.this.collector, DefaultConnect.this.local, this.target, DefaultConnect.this.token.set(request, this), DefaultConnect.this.profiles, DefaultConnect.this.quiet);
 			try {
 				// 加入ACK -> 发送消息 -> 等待ACK
 				this.ctx.writeAndFlush(DefaultConnect.this.acks.put(future).request()).addListener(ExceptionListener.TRACE);
