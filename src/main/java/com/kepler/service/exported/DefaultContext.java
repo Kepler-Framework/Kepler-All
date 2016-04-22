@@ -108,14 +108,19 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 		}
 
 		/**
-		 * 如果异常为已声明异常(或其子类)则抛出否则包装为KeplerRemoteException
+		 * 如果异常为已声明异常(及其子类)或JDK内置异常则抛出否则包装为KeplerRemoteException
 		 * 
 		 * @param method
 		 * @param throwable
 		 * @return
 		 */
 		private Throwable throwable(Method method, Throwable throwable) {
+			// Guard case
+			if (throwable.getClass().getName().startsWith("java")) {
+				return throwable;
+			}
 			for (Class<?> exception : method.getExceptionTypes()) {
+				// 声明异常或JDK内置异常
 				if (exception.isAssignableFrom(throwable.getClass())) {
 					return throwable;
 				}
