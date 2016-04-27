@@ -6,11 +6,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Future;
 
-import net.sf.cglib.proxy.Enhancer;
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
-
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.cglib.proxy.Enhancer;
+import org.springframework.cglib.proxy.MethodInterceptor;
+import org.springframework.cglib.proxy.MethodProxy;
 import org.springframework.core.annotation.AnnotationUtils;
 
 import com.kepler.config.Profile;
