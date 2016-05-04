@@ -26,6 +26,9 @@ public class Jsr303Validation implements RequestValidation {
 	@Override
 	public Request valid(Request request) throws KeplerValidateException {
 		for (Object arg : request.args()) {
+			if (arg == null) {
+				continue;
+			}
 			for (ConstraintViolation<Object> valid : Jsr303Validation.VALIDATOR.validate(arg)) {
 				throw new KeplerLocalException(valid.getMessage());
 			}
