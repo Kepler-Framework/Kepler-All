@@ -1,15 +1,13 @@
 package com.kepler.main;
 
-import com.kepler.config.PropertiesUtils;
-
 /**
  * 启动前调用
- * 
+ *
  * @author kim 2015年9月15日
  */
 public interface Prepare {
 
-	public static final String CLASS = PropertiesUtils.get(Prepare.class.getName().toLowerCase() + ".class");
+    String CLASS = System.getProperty(Prepare.class.getName().toLowerCase() + ".class", null);
 
-	public void prepare() throws Exception;
+    void prepare() throws Exception;
 }
