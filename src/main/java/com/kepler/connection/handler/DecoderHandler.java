@@ -57,12 +57,7 @@ public class DecoderHandler extends ChannelInboundHandlerAdapter {
 			this.traffic.input(buffer.readableBytes());
 			// buffer.readByte(), 首个字节保存序列化策略
 			// buffer.readableBytes() * DecoderHandler.ADJUST确定Buffer大小
-			ctx.fireChannelRead(
-					this.serials.input(buffer.readByte())
-						.input(
-								DecoderHandler.INPUT.get().reset(buffer), (int) (buffer.readableBytes() * DecoderHandler.ADJUST), this.clazz
-								)
-					);
+			ctx.fireChannelRead(this.serials.input(buffer.readByte()).input(DecoderHandler.INPUT.get().reset(buffer), (int) (buffer.readableBytes() * DecoderHandler.ADJUST), this.clazz));
 		} catch (Throwable throwable) {
 			DecoderHandler.LOGGER.error("From:(" + ctx.channel().remoteAddress() + ") " + throwable.getMessage(), throwable);
 		} finally {

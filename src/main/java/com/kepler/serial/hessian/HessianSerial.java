@@ -215,14 +215,14 @@ public class HessianSerial implements SerialOutput, SerialInput {
 		}
 
 		/**
-		 * 基础类型降级(Short/Float)
+		 * 基础类型降级(Byte/Short/Float)
 		 * 
 		 * @param clazz
 		 * @param instance
 		 * @return
 		 */
 		private Object demotion(Class<?> clazz, Object instance) {
-			return instance != null && (clazz.equals(Short.class) || clazz.equals(short.class)) ? Number.class.cast(instance).shortValue() : (clazz.equals(Float.class) || clazz.equals(float.class)) ? Number.class.cast(instance).floatValue() : instance;
+			return instance != null && (clazz.equals(Short.class) || clazz.equals(short.class)) ? Number.class.cast(instance).shortValue() : (clazz.equals(Float.class) || clazz.equals(float.class)) ? Number.class.cast(instance).floatValue() : (clazz.equals(Byte.class) || clazz.equals(byte.class)) ? Number.class.cast(instance).byteValue() : instance;
 		}
 
 		@Override
@@ -409,13 +409,13 @@ public class HessianSerial implements SerialOutput, SerialInput {
 		}
 
 		/**
-		 * Short/Float需要强制标注类型, Hessian无此类型
+		 * Byte/Short/Float需要强制标注类型, Hessian无此类型
 		 * 
 		 * @param arg
 		 * @return
 		 */
 		private boolean force(Class<?> clazz) {
-			return short.class.equals(clazz) || float.class.equals(clazz) || Short.class.equals(clazz) || Float.class.equals(clazz);
+			return byte.class.equals(clazz) || short.class.equals(clazz) || float.class.equals(clazz) || Byte.class.equals(clazz) || Short.class.equals(clazz) || Float.class.equals(clazz);
 		}
 
 		public void write(HessianOutput output, Object object) throws Exception {

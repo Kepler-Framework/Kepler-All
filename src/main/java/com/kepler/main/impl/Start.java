@@ -13,93 +13,89 @@ import com.kepler.main.Prepare;
  */
 public class Start {
 
-    private static final Log LOGGER = LogFactory.getLog(Start.class);
+	private static final Log LOGGER = LogFactory.getLog(Start.class);
 
-    public static void main(String[] args) throws Exception {
-        try {
-            Start.prepare();
+	public static void main(String[] args) throws Exception {
+		try {
+			// 加载Prepare
+			Start.prepare();
+			// 默认启动XML为kepler-runtime
+			String xml = System.getProperty(Start.class.getName().toLowerCase() + ".xml", "kepler-runtime.xml");
+			ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("classpath:" + xml);
+			Runtime.getRuntime().addShutdownHook(new Shutdown(context));
+			Start.wait(context);
+			Start.LOGGER.warn("Service closed ...");
+		} catch (Throwable e) {
+			e.printStackTrace();
+			Start.LOGGER.fatal(e.getMessage(), e);
+			System.exit(1);
+		}
+	}
 
-            // default run config file is kepler-runtime.xml
-            String springContextXml = System.getProperty(Start.class.getName().toLowerCase() + ".xml",
-                    "kepler-runtime.xml");
+	/**
+	 * 前置初始化
+	 *
+	 * @throws Exception
+	 */
+	private static void prepare() throws Exception {
+		if (Prepare.CLASS != null) {
+			for (String clazz : Prepare.CLASS.split(";")) {
+				Prepare.class.cast(Class.forName(clazz).newInstance()).prepare();
+			}
+		}
+	}
 
-            ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-                    "classpath:" + springContextXml);
-            Runtime.getRuntime().addShutdownHook(new Shutdown(context));
-            Start.wait(context);
-            Start.LOGGER.warn("Service closed ...");
-        } catch (Throwable e) {
-            e.printStackTrace();
-            Start.LOGGER.fatal(e.getMessage(), e);
-            System.exit(1);
-        }
-    }
+	/**
+	 * Hold主线程
+	 *
+	 * @param context
+	 *
+	 * @throws InterruptedException
+	 */
+	private static void wait(ClassPathXmlApplicationContext context) throws InterruptedException {
+		synchronized (context) {
+			while (context.isActive()) {
+				context.wait();
+			}
+		}
+	}
 
-    /**
-     * 前置初始化
-     *
-     * @throws Exception
-     */
-    private static void prepare() throws Exception {
-        if (Prepare.CLASS != null) {
-            for (String clazz : Prepare.CLASS.split(";")) {
-                Prepare.class.cast(Class.forName(clazz).newInstance()).prepare();
-            }
-        }
-    }
+	/**
+	 * Shutdowo hook
+	 *
+	 * @author kim 2016年1月11日
+	 */
+	private static class Shutdown extends Thread {
 
-    /**
-     * Hold主线程
-     *
-     * @param context
-     *
-     * @throws InterruptedException
-     */
-    private static void wait(ClassPathXmlApplicationContext context) throws InterruptedException {
-        synchronized(context) {
-            while (context.isActive()) {
-                context.wait();
-            }
-        }
-    }
+		private final ClassPathXmlApplicationContext context;
 
-    /**
-     * Shutdowo hook
-     *
-     * @author kim 2016年1月11日
-     */
-    private static class Shutdown extends Thread {
+		private Shutdown(ClassPathXmlApplicationContext context) {
+			super();
+			this.context = context;
+		}
 
-        private final ClassPathXmlApplicationContext context;
+		@Override
+		public void run() {
+			synchronized (this.context) {
+				// 服务降级
+				this.demote();
+				// 先关闭后唤醒
+				this.context.close();
+				this.context.notifyAll();
+			}
+		}
 
-        private Shutdown(ClassPathXmlApplicationContext context) {
-            super();
-            this.context = context;
-        }
-
-        @Override
-        public void run() {
-            synchronized(this.context) {
-                // 服务降级
-                this.demote();
-                // 先关闭后唤醒
-                this.context.close();
-                this.context.notifyAll();
-            }
-        }
-
-        private void demote() {
-
-            int DEMOTE_WAITING = PropertiesUtils.get(Start.class.getName().toLowerCase() + ".demote_waiting", 500);
-
-            try {
-                for (Demotion each : this.context.getBeansOfType(Demotion.class).values()) {
-                    each.demote();
-                }
-                Thread.sleep(DEMOTE_WAITING);
-            } catch (Exception e) {
-                Start.LOGGER.error(e.getMessage(), e);
-            }
-        }
-    }
+		private void demote() {
+			// 等待间隔
+			int waiting = PropertiesUtils.get(Start.class.getName().toLowerCase() + ".demote_waiting", 500);
+			try {
+				for (Demotion each : this.context.getBeansOfType(Demotion.class).values()) {
+					each.demote();
+				}
+				Thread.sleep(waiting);
+			} catch (Exception e) {
+				Start.LOGGER.error(e.getMessage(), e);
+			}
+		}
+	}
 }

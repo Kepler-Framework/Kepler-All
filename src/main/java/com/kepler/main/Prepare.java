@@ -7,7 +7,10 @@ package com.kepler.main;
  */
 public interface Prepare {
 
-    String CLASS = System.getProperty(Prepare.class.getName().toLowerCase() + ".class", null);
+	/**
+	 * 从System读取, Prepare不依赖PropertiesUtils
+	 */
+	public static final String CLASS = System.getProperty(Prepare.class.getName().toLowerCase() + ".class", null);
 
-    void prepare() throws Exception;
+	public void prepare() throws Exception;
 }
