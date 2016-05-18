@@ -33,7 +33,7 @@ public class TraceProcessor implements HeadersProcessor {
 	@Override
 	public Headers process(Service service, Headers headers) {
 		// 如果开启Trace则生成
-		if (PropertiesUtils.profile(this.profile.profile(service), Trace.ENABLED_KEY, Trace.ENABLED_DEF)) {
+		if (PropertiesUtils.profile(this.profile.profile(service), Trace.ENABLED_KEY, Trace.ENABLED_DEF) && headers != null) {
 			if (!StringUtils.isEmpty(headers.get(Trace.TRACE_TO_COVER))) {
 				headers.put(Trace.TRACE, headers.get(Trace.TRACE_TO_COVER));
 			} else {
