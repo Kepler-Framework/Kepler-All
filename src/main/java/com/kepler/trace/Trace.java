@@ -17,11 +17,11 @@ public interface Trace {
 
 	public static final String TRACE = "trace";
 
-	public static final String TRACE_TO_COVER = "trace_to_cover";
+	public static final String TRACE_COVER = "trace_cover";
 
 	public static final String SPAN = "span";
 
-	public static final String PARENT_SPAN = "parent_span";
+	public static final String SPAN_PARENT = "span_parent";
 
 	public static final String START_TIME = "start_time";
 

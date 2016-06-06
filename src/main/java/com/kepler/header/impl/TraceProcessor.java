@@ -40,8 +40,8 @@ public class TraceProcessor implements HeadersProcessor {
 		// 如果开启Trace则生成
 		if (PropertiesUtils.profile(this.profile.profile(service), Trace.ENABLED_KEY, Trace.ENABLED_DEF) && headers != null) {
 			// 如果已存在Trace ID则覆盖否则创建新Trace ID
-			if (!StringUtils.isEmpty(headers.get(Trace.TRACE_TO_COVER))) {
-				headers.put(Trace.TRACE, headers.get(Trace.TRACE_TO_COVER));
+			if (!StringUtils.isEmpty(headers.get(Trace.TRACE_COVER))) {
+				headers.put(Trace.TRACE, headers.get(Trace.TRACE_COVER));
 			} else {
 				headers.put(Trace.TRACE, this.bytesToString(this.generator.generate()));
 			}
