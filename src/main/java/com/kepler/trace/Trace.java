@@ -15,15 +15,24 @@ public interface Trace {
 
 	public static final boolean ENABLED_DEF = PropertiesUtils.get(Trace.ENABLED_KEY, false);
 
-	public static final String PARENT_SPAN = "parent_span";
-
 	public static final String TRACE = "trace";
-	
+
+	public static final String TRACE_COVER = "trace_cover";
+
 	public static final String SPAN = "span";
-	
-	public static final String TRACE_TO_COVER = "trace_to_cover";
-	
+
+	public static final String SPAN_PARENT = "span_parent";
+
 	public static final String START_TIME = "start_time";
 
-	public void trace(Request request, Response response, String local, String remote, long waiting, long elapse, long receivedTime);
+	/**
+	 * @param request 请求
+	 * @param response 响应
+	 * @param local 本地主机
+	 * @param remote 远程主机
+	 * @param waiting 请求等待时间
+	 * @param elapse 请求消耗时间
+	 * @param received 请求接受时间
+	 */
+	public void trace(Request request, Response response, String local, String remote, long waiting, long elapse, long received);
 }

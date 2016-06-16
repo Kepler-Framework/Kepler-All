@@ -28,7 +28,7 @@ public class DefaultMockerContext implements Extension, MockerContext {
 
 	private static final Log LOGGER = LogFactory.getLog(DefaultMockerContext.class);
 
-	private final Map<Class<?>, Mocker> mockers = new HashMap<Class<?>, Mocker>();
+	private final Map<String, Mocker> mockers = new HashMap<String, Mocker>();
 
 	private final Profile profile;
 
@@ -61,7 +61,7 @@ public class DefaultMockerContext implements Extension, MockerContext {
 	@Override
 	public DefaultMockerContext install(Object instance) {
 		Mocker mocker = Mocker.class.cast(instance);
-		this.mockers.put(mocker.support(), mocker);
+		this.mockers.put(mocker.support().getName(), mocker);
 		return this;
 	}
 
