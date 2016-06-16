@@ -41,8 +41,20 @@ public class TraceProcessor implements HeadersProcessor {
 			}
 			headers.put(Trace.SPAN, bytesToString(this.generator.generate()));
 			headers.put(Trace.START_TIME, String.valueOf(System.currentTimeMillis()));
+		} else {
+			if (headers != null) {
+				resetTraceHeader(headers);
+			}
 		}
 		return headers;
+	}
+
+	private void resetTraceHeader(Headers headers) {
+		headers.put(Trace.TRACE, null);
+		headers.put(Trace.SPAN, null);
+		headers.put(Trace.PARENT_SPAN, null);
+		headers.put(Trace.START_TIME, null);
+		headers.put(Trace.TRACE_TO_COVER, null);
 	}
 
 	private String bytesToString(byte[] bytes) {
