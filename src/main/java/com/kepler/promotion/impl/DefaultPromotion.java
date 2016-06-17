@@ -14,7 +14,7 @@ import com.kepler.service.Service;
 /**
  * @author kim
  *
- * 2016年2月12日
+ *         2016年2月12日
  */
 public class DefaultPromotion implements Exported, Promotion {
 
@@ -46,7 +46,14 @@ public class DefaultPromotion implements Exported, Promotion {
 
 	@Override
 	public boolean promote(Request request) {
-		return DefaultPromotion.ENABLED && Guess.class.cast(this.promtions.get(request.service(), request.method())).guess(request.service());
+		if (DefaultPromotion.ENABLED) {
+			Guess guess = Guess.class.cast(this.promtions.get(request.service(), request.method()));
+			// 当出现NoSuchMethod时Guess可能为Null
+			return guess != null ? guess.guess(request.service()) : false;
+		} else {
+			// 关闭Promotion则立即返回False
+			return false;
+		}
 	}
 
 	@Override
