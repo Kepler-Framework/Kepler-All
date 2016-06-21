@@ -37,22 +37,32 @@ public class ServerHost implements Serializable, Host {
 	/**
 	 * 本地端口嗅探间隔
 	 */
-	private static final int INTERVAL = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".interval", 500);
+	private static final int INTERVAL = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".interval",
+			500);
 
 	/**
 	 * 是否使用固定端口
 	 */
-	private static final boolean STABLE = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".stable", false);
+	private static final boolean STABLE = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".stable",
+			false);
+
+	/**
+	 * 是否校验网卡类型
+	 */
+	private static final boolean CHECK = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".check",
+			false);
 
 	/**
 	 * 网卡名称模式
 	 */
-	private static final String PATTERN = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".pattern", ".*");
+	private static final String PATTERN = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".pattern",
+			".*");
 
 	/**
 	 * 服务唯一ID
 	 */
-	private static final String SID = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".sid", UUID.randomUUID().toString());
+	private static final String SID = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".sid",
+			UUID.randomUUID().toString());
 
 	private final String sid;
 
@@ -64,7 +74,8 @@ public class ServerHost implements Serializable, Host {
 	}
 
 	public ServerHost(Pid pid) throws Exception {
-		this.local = new DefaultHost(Host.GROUP_VAL, Host.TOKEN_VAL, Host.NAME, Host.TAG_VAL, pid.pid(), this.ip(), ServerHost.STABLE ? ServerHost.PORT : this.available(), Host.PRIORITY_DEF);
+		this.local = new DefaultHost(Host.GROUP_VAL, Host.TOKEN_VAL, Host.NAME, Host.TAG_VAL, pid.pid(), this.ip(),
+				ServerHost.STABLE ? ServerHost.PORT : this.available(), Host.PRIORITY_DEF);
 		this.sid = ServerHost.SID;
 	}
 
@@ -78,7 +89,7 @@ public class ServerHost implements Serializable, Host {
 				Enumeration<InetAddress> addresses = intr.getInetAddresses();
 				while (addresses.hasMoreElements()) {
 					InetAddress address = addresses.nextElement();
-					if (address.isSiteLocalAddress() && !address.isLoopbackAddress()) {
+					if (!ServerHost.CHECK || (address.isSiteLocalAddress() && !address.isLoopbackAddress())) {
 						return address.getHostAddress();
 					}
 				}
@@ -199,7 +210,9 @@ public class ServerHost implements Serializable, Host {
 		private int priority;
 
 		public Builder(ServerHost that) {
-			this.setGroup(that.group()).setToken(that.token()).setName(that.name()).setHost(that.host()).setPid(that.pid()).setPort(that.port()).setPriority(that.priority()).setSid(that.sid()).setTag(that.tag());
+			this.setGroup(that.group()).setToken(that.token()).setName(that.name()).setHost(that.host())
+					.setPid(that.pid()).setPort(that.port()).setPriority(that.priority()).setSid(that.sid())
+					.setTag(that.tag());
 		}
 
 		public Builder setPriority(int priority) {
@@ -248,7 +261,8 @@ public class ServerHost implements Serializable, Host {
 		}
 
 		public ServerHost toServerHost() {
-			return new ServerHost(new DefaultHost(this.group, this.token, this.name, this.tag, this.pid, this.host, this.port, this.priority), this.sid);
+			return new ServerHost(new DefaultHost(this.group, this.token, this.name, this.tag, this.pid, this.host,
+					this.port, this.priority), this.sid);
 		}
 	}
 }
