@@ -50,7 +50,7 @@ public class ServerHost implements Serializable, Host {
 	 * 是否校验网卡类型
 	 */
 	private static final boolean CHECK = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".check",
-			false);
+			true);
 
 	/**
 	 * 网卡名称模式
