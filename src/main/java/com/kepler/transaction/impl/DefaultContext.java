@@ -95,8 +95,29 @@ public class DefaultContext implements TranscationContext, ApplicationContextAwa
 	}
 
 	public boolean commit(TranscationRequest request) {
-		// 持久化成功则表示提交成功
-		return this.persistent.persistent(request) ? this.invoke(request) : false;
+		// 持久化成功 -> 同步执行成功则提交成功, 否则回滚
+		return this.persistent.persist(request) ? this.invoke(request) : false;
+	}
+
+	/**
+	 * 执行事务
+	 * 
+	 * @param request 
+	 * @return
+	 */
+	private boolean invoke(TranscationRequest request) {
+		try {
+			// 执行事务
+			this.context.getBean(request.main()).transcation(request.uuid(), request.args());
+			// 执行成功释放事务
+			this.persistent.release(request.uuid());
+			return true;
+		} catch (Throwable e) {
+			DefaultContext.LOGGER.error(e.getMessage(), e);
+			// 执行失败则回滚事务
+			this.rollback(request);
+			return false;
+		}
 	}
 
 	/**
@@ -115,26 +136,6 @@ public class DefaultContext implements TranscationContext, ApplicationContextAwa
 	}
 
 	/**
-	 * 执行事务
-	 * 
-	 * @param request 
-	 * @return
-	 */
-	private boolean invoke(TranscationRequest request) {
-		try {
-			// 执行事务
-			this.context.getBean(request.main()).transcation(request.uuid(), request.args());
-			// 执行成功删除事务
-			this.persistent.delete(request.uuid());
-		} catch (Throwable e) {
-			DefaultContext.LOGGER.error(e.getMessage(), e);
-			// 执行失败则回滚任务
-			this.rollback(request);
-		}
-		return true;
-	}
-
-	/**
 	 * 加入回滚任务队列
 	 * 
 	 * @param request
@@ -148,19 +149,15 @@ public class DefaultContext implements TranscationContext, ApplicationContextAwa
 				// 对于失败的事务推送至延迟回滚队列
 				this.queue.put(new DelayRollback(request));
 			}
-		} catch (Throwable failed) {
+		} catch (Throwable e) {
 			// 如无法推送至延迟回滚队列则仅下次重启时才会读取持久化事务进行回滚
-			DefaultContext.LOGGER.error(failed.getMessage(), failed);
+			DefaultContext.LOGGER.error(e.getMessage(), e);
 		}
 	}
 
 	/**
 	 * 延迟回滚任务
 	 * 
-	 * @author KimShen
-	 *
-	 */
-	/**
 	 * @author KimShen
 	 *
 	 */
@@ -202,6 +199,7 @@ public class DefaultContext implements TranscationContext, ApplicationContextAwa
 
 		/**
 		 * 延迟回滚任务准备, 包括重置延迟时间和增加内置请求次数日志
+		 * 
 		 * @return
 		 */
 		public DelayRollback prepare() {
@@ -230,13 +228,13 @@ public class DefaultContext implements TranscationContext, ApplicationContextAwa
 			try {
 				this.rollback.transcation(this.uuid, this.args);
 				// 回滚成功并且删除持久化文件才表示成功
-				DefaultContext.this.persistent.delete(this.uuid);
+				DefaultContext.this.persistent.release(this.uuid);
+				return true;
 			} catch (Throwable e) {
 				// 回滚失败
 				DefaultContext.LOGGER.error(e.getMessage(), e);
 				return false;
 			}
-			return true;
 		}
 
 		/**
@@ -267,6 +265,8 @@ public class DefaultContext implements TranscationContext, ApplicationContextAwa
 					DefaultContext.this.threshold.decrementAndGet();
 					// 尝试回滚, 如果失败则计算是否允许加入延迟回滚队列. 如果允许则放入延迟回滚队列
 					if (!rollback.rollback() && DefaultContext.this.allowed(rollback.uuid())) {
+						// 增加阈值计数
+						DefaultContext.this.threshold.incrementAndGet();
 						DefaultContext.this.queue.offer(rollback.prepare());
 					}
 				} catch (Throwable e) {
@@ -287,7 +287,7 @@ public class DefaultContext implements TranscationContext, ApplicationContextAwa
 
 		@Override
 		public void run() {
-			for (TranscationRequest request : DefaultContext.this.persistent.remain()) {
+			for (TranscationRequest request : DefaultContext.this.persistent.list()) {
 				try {
 					DefaultContext.this.queue.put(new DelayRollback(request));
 				} catch (Throwable e) {

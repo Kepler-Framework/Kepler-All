@@ -86,7 +86,7 @@ public class DefaultTransfers implements Transfers {
 	private void remove(Transfer each) {
 		Transfer removed = Transfer.class.cast(this.transfers.removeMultiKey(each.local(), each.target()));
 		if (removed != null) {
-			DefaultTransfers.LOGGER.warn("Transfer: (" + removed.local() + ") to (" + removed.target() + ") removed ... (" + this + ")");
+			DefaultTransfers.LOGGER.info("Transfer: (" + removed.local() + ") to (" + removed.target() + ") removed ... (" + this + ")");
 		}
 	}
 

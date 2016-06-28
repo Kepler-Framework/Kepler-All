@@ -77,19 +77,7 @@ public class FilePersistent implements TranscationPersistent {
 	}
 
 	@Override
-	public List<TranscationRequest> remain() {
-		List<TranscationRequest> requests = new ArrayList<TranscationRequest>();
-		// 遍历还未删除的请求
-		for (File each : new File(StringUtils.isEmpty(FilePersistent.DIR) ? "." : FilePersistent.DIR).listFiles()) {
-			if (each.isFile()) {
-				this.restore(requests, each);
-			}
-		}
-		return requests;
-	}
-
-	@Override
-	public boolean persistent(TranscationRequest request) {
+	public boolean persist(TranscationRequest request) {
 		// 序列化至磁盘
 		try (FileOutputStream stream = new FileOutputStream(this.location(request.uuid()))) {
 			// 使用默认序列化策略序列化
@@ -101,7 +89,7 @@ public class FilePersistent implements TranscationPersistent {
 		}
 	}
 
-	public boolean delete(String uuid) {
+	public boolean release(String uuid) {
 		File file = this.location(uuid);
 		// 如果文件存在则删除
 		if (file.exists()) {
@@ -110,5 +98,17 @@ public class FilePersistent implements TranscationPersistent {
 		} else {
 			return false;
 		}
+	}
+
+	@Override
+	public List<TranscationRequest> list() {
+		List<TranscationRequest> requests = new ArrayList<TranscationRequest>();
+		// 遍历还未删除的请求
+		for (File each : new File(StringUtils.isEmpty(FilePersistent.DIR) ? "." : FilePersistent.DIR).listFiles()) {
+			if (each.isFile()) {
+				this.restore(requests, each);
+			}
+		}
+		return requests;
 	}
 }
