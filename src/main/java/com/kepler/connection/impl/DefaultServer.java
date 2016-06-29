@@ -23,6 +23,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.util.StringUtils;
 
 import com.kepler.KeplerException;
 import com.kepler.config.PropertiesUtils;
@@ -310,7 +311,11 @@ public class DefaultServer {
 					return DefaultServer.this.response.response(request.ack(), DefaultServer.this.exported.get(request.service()).invoke(request), request.serial());
 				} catch (Throwable e) {
 					// 业务异常
-					DefaultServer.LOGGER.error(e.getMessage(), e);
+					String prefix = "";
+					if (request.headers() != null && !StringUtils.isEmpty(request.headers().get(Trace.TRACE))) {
+						prefix = "[Trace=" + request.headers().get(Trace.TRACE) + "]";
+					}
+					DefaultServer.LOGGER.error(prefix + e.getMessage(), e);
 					return DefaultServer.this.response.throwable(request.ack(), e, request.serial());
 				} finally {
 					DefaultServer.this.promotion.record(request, this.running);
