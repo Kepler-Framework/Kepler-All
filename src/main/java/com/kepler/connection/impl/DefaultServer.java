@@ -1,22 +1,5 @@
 package com.kepler.connection.impl;
 
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ServerChannel;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import io.netty.handler.codec.LengthFieldPrepender;
-import io.netty.handler.timeout.IdleStateEvent;
-import io.netty.handler.timeout.IdleStateHandler;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -49,6 +32,23 @@ import com.kepler.token.TokenContext;
 import com.kepler.trace.Trace;
 import com.kepler.traffic.Traffic;
 
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.ServerChannel;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.LengthFieldPrepender;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
+
 /**
  * @author kim 2015年7月8日
  */
@@ -74,7 +74,7 @@ public class DefaultServer {
 	 * 静默IP列表
 	 */
 	private static final String MUTE_IP = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".mute_ip", "");
-	
+
 	private static final String IP_SEPARATOR = ",";
 	/**
 	 * 黏包最大长度
@@ -212,7 +212,7 @@ public class DefaultServer {
 		public void channelActive(ChannelHandlerContext ctx) throws Exception {
 			this.local = ctx.channel().localAddress().toString();
 			this.target = ctx.channel().remoteAddress().toString();
-			if(!this.isMuteIp(this.target)) {
+			if (!this.isMuteIp(this.target)) {
 				DefaultServer.LOGGER.info("Connect active (" + this.local + " to " + this.target + ") ...");
 			}
 			ctx.fireChannelActive();
@@ -222,7 +222,7 @@ public class DefaultServer {
 		 * @see com.kepler.host.ServerHost扫描端口时会触发对本地服务端口嗅探
 		 */
 		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-			if(!this.isMuteIp(this.target)) {
+			if (!this.isMuteIp(this.target)) {
 				DefaultServer.LOGGER.info("Connect inactive (" + this.local + " to " + this.target + ") ...");
 			}
 			ctx.fireChannelInactive();
@@ -234,11 +234,11 @@ public class DefaultServer {
 			// 关闭通道, 并启动Inactive
 			ctx.close().addListener(ExceptionListener.TRACE);
 		}
-		
+
 		private boolean isMuteIp(String address) {
-			if(StringUtils.isEmpty(DefaultServer.MUTE_IP) || StringUtils.isEmpty(address)) {
+			if (StringUtils.isEmpty(DefaultServer.MUTE_IP) || StringUtils.isEmpty(address)) {
 				return false;
-			}else{
+			} else {
 				String host = address.substring(address.indexOf("/") + 1, address.indexOf(":"));
 				return Arrays.asList(DefaultServer.MUTE_IP.split(DefaultServer.IP_SEPARATOR)).contains(host);
 			}
@@ -334,11 +334,7 @@ public class DefaultServer {
 					return DefaultServer.this.response.response(request.ack(), DefaultServer.this.exported.get(request.service()).invoke(request), request.serial());
 				} catch (Throwable e) {
 					// 业务异常
-					String prefix = "";
-					if (request.headers() != null && !StringUtils.isEmpty(request.headers().get(Trace.TRACE))) {
-						prefix = "[Trace=" + request.headers().get(Trace.TRACE) + "]";
-					}
-					DefaultServer.LOGGER.error(prefix + e.getMessage(), e);
+					DefaultServer.LOGGER.error("[trace=" + request.get(Trace.TRACE) + "][message=" + e.getMessage() + "]", e);
 					return DefaultServer.this.response.throwable(request.ack(), e, request.serial());
 				} finally {
 					DefaultServer.this.promotion.record(request, this.running);
