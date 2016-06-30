@@ -4,9 +4,9 @@ import com.kepler.config.PropertiesUtils;
 import com.kepler.connection.Connect;
 import com.kepler.host.HostsContext;
 import com.kepler.service.ImportedListener;
+import com.kepler.service.InstanceBlocker;
 import com.kepler.service.Service;
 import com.kepler.service.ServiceInstance;
-import com.kepler.zookeeper.blocker.ServiceInstanceBlocker;
 
 /**
  * @author 张皆浩 2015年9月11日
@@ -19,9 +19,9 @@ public class DefaultImportedListener implements ImportedListener {
 
 	private final Connect connect;
 	
-	private final ServiceInstanceBlocker blocker;
+	private final InstanceBlocker blocker;
 
-	public DefaultImportedListener(HostsContext context, Connect connect, ServiceInstanceBlocker blocker) {
+	public DefaultImportedListener(HostsContext context, Connect connect, InstanceBlocker blocker) {
 		super();
 		this.context = context;
 		this.connect = connect;

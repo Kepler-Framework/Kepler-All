@@ -30,6 +30,7 @@
 	<import resource="kepler-connection.xml" />
 	<import resource="kepler-transaction.xml" />
 	<import resource="kepler-service-quiet.xml" />
+	<import resource="kepler-service-blocker.xml" />
 	<import resource="kepler-service-imported.xml" />
 	<import resource="kepler-service-exported.xml" />
 

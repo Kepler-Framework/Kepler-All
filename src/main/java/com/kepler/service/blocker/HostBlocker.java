@@ -1,21 +1,23 @@
-package com.kepler.zookeeper.blocker.impl;
+package com.kepler.service.blocker;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.kepler.config.PropertiesUtils;
+import com.kepler.service.InstanceBlocker;
 import com.kepler.service.ServiceInstance;
-import com.kepler.zookeeper.blocker.ServiceInstanceBlocker;
 
 /**
  * 根据IP地址进行阻断通知
  * 
  * @author longyaokun
+ * 
  * @date 2016年6月30日
  */
-public class HostBlocker implements ServiceInstanceBlocker {
+public class HostBlocker implements InstanceBlocker {
 
 	private static final Log LOGGER = LogFactory.getLog(HostBlocker.class);
+	
 	/**
 	 * Format:[ip1][ip2]
 	 */
