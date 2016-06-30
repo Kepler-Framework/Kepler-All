@@ -5,10 +5,17 @@ import java.util.UUID;
 import com.kepler.transaction.Transcation;
 import com.kepler.transaction.TranscationRequest;
 
+/**
+ * @author KimShen
+ *
+ */
 public class DefaultRequest implements TranscationRequest {
 
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * 事务号
+	 */
 	private final String uuid = UUID.randomUUID().toString();
 
 	private final Class<? extends Transcation> rollback;

@@ -28,7 +28,7 @@ public class FilePersistent implements TranscationPersistent {
 	private static final int MAX = PropertiesUtils.get(FilePersistent.class.getName().toLowerCase() + ".max", Integer.MAX_VALUE);
 
 	/**
-	 * 文件
+	 * 读写缓冲
 	 */
 	private static final int BUFFER = PropertiesUtils.get(FilePersistent.class.getName().toLowerCase() + ".buffer", 500);
 
