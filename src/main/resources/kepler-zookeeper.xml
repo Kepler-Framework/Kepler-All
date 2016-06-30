@@ -3,6 +3,8 @@
 	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+	
+	<import resource="kepler-zookeeper-blocker.xml"/>
 
 	<alias name="kepler.zookeeper.factory" alias="kepler.zookeeper" />
 
@@ -17,6 +19,7 @@
 	<bean id="kepler.zookeeper.listener" class="com.kepler.service.imported.DefaultImportedListener">
 		<constructor-arg ref="kepler.host.context" />
 		<constructor-arg ref="kepler.connection.connect" />
+		<constructor-arg ref="kepler.zookeeper.blockers" />
 	</bean>
 
 	<bean id="kepler.zookeeper.context" class="com.kepler.zookeeper.ZkContext" destroy-method="destroy">

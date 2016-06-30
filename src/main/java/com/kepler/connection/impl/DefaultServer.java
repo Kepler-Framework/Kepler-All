@@ -16,7 +16,6 @@ import com.kepler.connection.Reject;
 import com.kepler.connection.handler.CodecHeader;
 import com.kepler.connection.handler.DecoderHandler;
 import com.kepler.connection.handler.EncoderHandler;
-import com.kepler.connection.handler.IpFilterHandler;
 import com.kepler.connection.handler.ResourceHandler;
 import com.kepler.header.HeadersContext;
 import com.kepler.host.impl.ServerHost;
@@ -146,8 +145,6 @@ public class DefaultServer {
 	 * @throws Exception
 	 */
 	public void init() throws Exception {
-		// IP地址过滤
-		this.inits.add(new IpFilterHandler());
 		// 连接控制
 		this.inits.add(new ResourceHandler());
 		// 黏包

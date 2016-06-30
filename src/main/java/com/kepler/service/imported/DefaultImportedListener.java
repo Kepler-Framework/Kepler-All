@@ -6,6 +6,7 @@ import com.kepler.host.HostsContext;
 import com.kepler.service.ImportedListener;
 import com.kepler.service.Service;
 import com.kepler.service.ServiceInstance;
+import com.kepler.zookeeper.blocker.ServiceInstanceBlocker;
 
 /**
  * @author 张皆浩 2015年9月11日
@@ -17,15 +18,21 @@ public class DefaultImportedListener implements ImportedListener {
 	private final HostsContext context;
 
 	private final Connect connect;
+	
+	private final ServiceInstanceBlocker blocker;
 
-	public DefaultImportedListener(HostsContext context, Connect connect) {
+	public DefaultImportedListener(HostsContext context, Connect connect, ServiceInstanceBlocker blocker) {
 		super();
 		this.context = context;
 		this.connect = connect;
+		this.blocker = blocker;
 	}
 
 	@Override
 	public void add(ServiceInstance instance) throws Exception {
+		if(this.blocker.blocked(instance)) {
+			return;
+		}
 		this.context.getOrCreate(new Service(instance.service(), instance.version(), instance.catalog())).wait(instance.host());
 		this.connect.connect(instance.host());
 	}
@@ -37,6 +44,10 @@ public class DefaultImportedListener implements ImportedListener {
 
 	@Override
 	public void change(ServiceInstance current, ServiceInstance newInstance) throws Exception {
+		if(this.blocker.blocked(newInstance)) {
+			this.delete(current);
+			return;
+		}
 		this.context.getOrCreate(new Service(current.service(), current.version(), current.catalog())).replace(current.host(), newInstance.host());
 		this.repair(newInstance);
 	}
