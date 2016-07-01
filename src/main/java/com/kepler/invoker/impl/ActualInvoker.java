@@ -50,12 +50,12 @@ public class ActualInvoker implements Invoker {
 		this.mocker = mocker;
 	}
 
-	@Config(value = "com.kepler.invoker.impl.actualinvoker.interval")
+	@Config(name = "com.kepler.invoker.impl.actualinvoker.interval")
 	public void interval(int interval) {
 		this.interval = interval;
 	}
 
-	@Config(value = "com.kepler.invoker.impl.actualinvoker.timeout")
+	@Config(name = "com.kepler.invoker.impl.actualinvoker.timeout")
 	public void timeout(int timeout) {
 		this.timeout = timeout;
 	}

@@ -23,6 +23,11 @@ import com.kepler.transaction.TranscationRequest;
 public class FilePersistent implements TranscationPersistent {
 
 	/**
+	 * 持久化文件前缀
+	 */
+	private static final String PREFIX = PropertiesUtils.get(FilePersistent.class.getName().toLowerCase() + ".prefix", "transcation_");
+
+	/**
 	 * 任务恢复时的数量限制(防止OOM)
 	 */
 	private static final int MAX = PropertiesUtils.get(FilePersistent.class.getName().toLowerCase() + ".max", Integer.MAX_VALUE);
@@ -53,7 +58,7 @@ public class FilePersistent implements TranscationPersistent {
 	 * @return
 	 */
 	private File location(String uuid) {
-		return StringUtils.isEmpty(FilePersistent.DIR) ? new File(uuid) : new File(FilePersistent.DIR, uuid);
+		return StringUtils.isEmpty(FilePersistent.DIR) ? new File(FilePersistent.PREFIX + uuid) : new File(FilePersistent.DIR, FilePersistent.PREFIX + uuid);
 	}
 
 	/**
@@ -105,7 +110,7 @@ public class FilePersistent implements TranscationPersistent {
 		List<TranscationRequest> requests = new ArrayList<TranscationRequest>();
 		// 遍历还未删除的请求
 		for (File each : new File(StringUtils.isEmpty(FilePersistent.DIR) ? "." : FilePersistent.DIR).listFiles()) {
-			if (each.isFile()) {
+			if (each.isFile() && each.getName().startsWith(FilePersistent.PREFIX)) {
 				this.restore(requests, each);
 			}
 		}
