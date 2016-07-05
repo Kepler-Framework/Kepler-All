@@ -1,7 +1,7 @@
 package com.kepler.transaction;
 
 /**
- * 事务
+ * 事务上下文
  * 
  * @author KimShen
  *
@@ -9,11 +9,12 @@ package com.kepler.transaction;
 public interface Transcation {
 
 	/**
-	 * 执行事务(回调)
+	 * 提交事务
 	 * 
-	 * @param uuid 事务编号
-	 * @param args 事务相关参数
-	 * @throws Exception
+	 * @param request 事务请求
+	 * @param location 同步执行器
+	 * @return 是否执行成功, 如果为False则异步触发回滚逻辑
+ 	 * @throws Exception 执行异常
 	 */
-	public void transcation(String uuid, Object... args) throws Exception;
+	public Object commit(Request request, Invoker invoker) throws Exception;
 }

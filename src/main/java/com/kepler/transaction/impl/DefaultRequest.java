@@ -2,14 +2,14 @@ package com.kepler.transaction.impl;
 
 import java.util.UUID;
 
-import com.kepler.transaction.Transcation;
-import com.kepler.transaction.TranscationRequest;
+import com.kepler.transaction.Location;
+import com.kepler.transaction.Request;
 
 /**
  * @author KimShen
  *
  */
-public class DefaultRequest implements TranscationRequest {
+public class DefaultRequest implements Request {
 
 	private static final long serialVersionUID = 1L;
 
@@ -18,23 +18,23 @@ public class DefaultRequest implements TranscationRequest {
 	 */
 	private final String uuid = UUID.randomUUID().toString();
 
-	private final Class<? extends Transcation> rollback;
-
-	private final Class<? extends Transcation> main;
+	private final Location location;
 
 	private final Object[] args;
 
-	public DefaultRequest(Class<? extends Transcation> main, Object... args) {
+	/**
+	 * @param location 回滚入口
+	 * @param args 参数集
+	 */
+	public DefaultRequest(Location location, Object... args) {
 		super();
-		this.rollback = main;
-		this.main = main;
+		this.location = location;
 		this.args = args;
 	}
 
-	public DefaultRequest(Class<? extends Transcation> main, Class<? extends Transcation> rollback, Object... args) {
+	public DefaultRequest(Class<?> clazz, String method, Object... args) {
 		super();
-		this.rollback = rollback;
-		this.main = main;
+		this.location = new DefaultLocation(clazz, method);
 		this.args = args;
 	}
 
@@ -48,12 +48,7 @@ public class DefaultRequest implements TranscationRequest {
 	}
 
 	@Override
-	public Class<? extends Transcation> main() {
-		return this.main;
-	}
-
-	@Override
-	public Class<? extends Transcation> rollback() {
-		return this.rollback;
+	public Location location() {
+		return this.location;
 	}
 }

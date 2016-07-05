@@ -13,19 +13,19 @@ import org.apache.commons.logging.LogFactory;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.org.apache.commons.lang.StringUtils;
 import com.kepler.serial.Serials;
-import com.kepler.transaction.TranscationPersistent;
-import com.kepler.transaction.TranscationRequest;
+import com.kepler.transaction.Persistent;
+import com.kepler.transaction.Request;
 
 /**
  * @author KimShen
  *
  */
-public class FilePersistent implements TranscationPersistent {
+public class FilePersistent implements Persistent {
 
 	/**
 	 * 持久化文件前缀
 	 */
-	private static final String PREFIX = PropertiesUtils.get(FilePersistent.class.getName().toLowerCase() + ".prefix", "transcation_");
+	private static final String PREFIX = PropertiesUtils.get(FilePersistent.class.getName().toLowerCase() + ".prefix", "persistent_");
 
 	/**
 	 * 任务恢复时的数量限制(防止OOM)
@@ -61,53 +61,26 @@ public class FilePersistent implements TranscationPersistent {
 		return StringUtils.isEmpty(FilePersistent.DIR) ? new File(FilePersistent.PREFIX + uuid) : new File(FilePersistent.DIR, FilePersistent.PREFIX + uuid);
 	}
 
-	/**
-	 * 恢复请求
-	 * 
-	 * @param requests
-	 * @param each
-	 */
-	private void restore(List<TranscationRequest> requests, File each) {
-		try (InputStream input = new FileInputStream(each)) {
-			// 如果恢复数量未达到阈值则加载
-			if (requests.size() <= FilePersistent.MAX) {
-				// 使用默认序列化策略反序列化
-				requests.add(this.serials.def4input().input(input, FilePersistent.BUFFER, TranscationRequest.class));
-			} else {
-				FilePersistent.LOGGER.warn("Too many restored requests (" + FilePersistent.MAX + ") ... ");
-			}
-		} catch (Throwable e) {
-			FilePersistent.LOGGER.error(e.getMessage(), e);
-		}
-	}
-
 	@Override
-	public boolean persist(TranscationRequest request) {
+	public void persist(Request request) throws Exception {
 		// 序列化至磁盘
 		try (FileOutputStream stream = new FileOutputStream(this.location(request.uuid()))) {
 			// 使用默认序列化策略序列化
-			this.serials.def4output().output(request, TranscationRequest.class, stream, FilePersistent.BUFFER);
-			return true;
-		} catch (Throwable e) {
-			FilePersistent.LOGGER.error(e.getMessage(), e);
-			return false;
+			this.serials.def4output().output(request, Request.class, stream, FilePersistent.BUFFER);
 		}
 	}
 
-	public boolean release(String uuid) {
+	public void release(String uuid) throws Exception {
 		File file = this.location(uuid);
 		// 如果文件存在则删除
 		if (file.exists()) {
 			file.delete();
-			return true;
-		} else {
-			return false;
 		}
 	}
 
 	@Override
-	public List<TranscationRequest> list() {
-		List<TranscationRequest> requests = new ArrayList<TranscationRequest>();
+	public List<Request> list() {
+		List<Request> requests = new ArrayList<Request>();
 		// 遍历还未删除的请求
 		for (File each : new File(StringUtils.isEmpty(FilePersistent.DIR) ? "." : FilePersistent.DIR).listFiles()) {
 			if (each.isFile() && each.getName().startsWith(FilePersistent.PREFIX)) {
@@ -115,5 +88,25 @@ public class FilePersistent implements TranscationPersistent {
 			}
 		}
 		return requests;
+	}
+
+	/**
+	 * 恢复请求
+	 * 
+	 * @param requests
+	 * @param each
+	 */
+	private void restore(List<Request> requests, File each) {
+		try (InputStream input = new FileInputStream(each)) {
+			// 如果恢复数量未达到阈值则加载
+			if (requests.size() <= FilePersistent.MAX) {
+				// 使用默认序列化策略反序列化
+				requests.add(this.serials.def4input().input(input, FilePersistent.BUFFER, Request.class));
+			} else {
+				FilePersistent.LOGGER.warn("Too many restored requests (" + FilePersistent.MAX + ") ... ");
+			}
+		} catch (Throwable e) {
+			FilePersistent.LOGGER.error(e.getMessage(), e);
+		}
 	}
 }
