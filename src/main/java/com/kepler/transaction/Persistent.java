@@ -10,6 +10,8 @@ import java.util.List;
  */
 public interface Persistent {
 	
+	public String name();
+	
 	/**
 	 * 获取尚未删除持久化事务请求
 	 * 

@@ -22,6 +22,8 @@ import com.kepler.transaction.Request;
  */
 public class FilePersistent implements Persistent {
 
+	public static final String NAME = "file";
+
 	/**
 	 * 持久化文件前缀
 	 */
@@ -49,6 +51,10 @@ public class FilePersistent implements Persistent {
 	public FilePersistent(Serials serials) {
 		super();
 		this.serials = serials;
+	}
+
+	public String name() {
+		return FilePersistent.NAME;
 	}
 
 	/**

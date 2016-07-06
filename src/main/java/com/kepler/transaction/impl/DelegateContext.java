@@ -9,7 +9,7 @@ import com.kepler.KeplerTranscationException;
 import com.kepler.annotation.Rollback;
 import com.kepler.transaction.Guid;
 import com.kepler.transaction.Invoker;
-import com.kepler.transaction.Transcation;
+import com.kepler.transaction.Transaction;
 
 /**
  * 事务代理
@@ -19,9 +19,9 @@ import com.kepler.transaction.Transcation;
  */
 public class DelegateContext {
 
-	private final Transcation transcation;
+	private final Transaction transcation;
 
-	public DelegateContext(Transcation transcation) {
+	public DelegateContext(Transaction transcation) {
 		super();
 		this.transcation = transcation;
 	}

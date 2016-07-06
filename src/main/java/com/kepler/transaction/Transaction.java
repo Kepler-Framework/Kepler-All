@@ -6,7 +6,7 @@ package com.kepler.transaction;
  * @author KimShen
  *
  */
-public interface Transcation {
+public interface Transaction {
 
 	/**
 	 * 提交事务

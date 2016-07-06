@@ -19,40 +19,45 @@ import com.kepler.transaction.Guid;
 import com.kepler.transaction.Invoker;
 import com.kepler.transaction.Persistent;
 import com.kepler.transaction.Request;
-import com.kepler.transaction.Transcation;
+import com.kepler.transaction.Transaction;
 
 /**
  * @author KimShen
  *
  */
-public class DefaultTranscation implements Transcation, ApplicationContextAware {
+public class DefaultTransaction implements Transaction, ApplicationContextAware {
 
 	/**
 	 * 回滚延迟加权
 	 */
-	private static final int INTERVAL_ADJUST = PropertiesUtils.get(DefaultTranscation.class.getName().toLowerCase() + ".interval_adjust", 100);
+	private static final int INTERVAL_ADJUST = PropertiesUtils.get(DefaultTransaction.class.getName().toLowerCase() + ".interval_adjust", 100);
 
 	/**
 	 * 回滚延迟加权上限
 	 */
-	private static final int INTERVAL_MAX = PropertiesUtils.get(DefaultTranscation.class.getName().toLowerCase() + ".interval_max", 10);
+	private static final int INTERVAL_MAX = PropertiesUtils.get(DefaultTransaction.class.getName().toLowerCase() + ".interval_max", 10);
 
 	/**
 	 * 回滚队列上限
 	 */
-	private static final int DELAY_MAX = PropertiesUtils.get(DefaultTranscation.class.getName().toLowerCase() + ".delay_max", Integer.MAX_VALUE);
+	private static final int DELAY_MAX = PropertiesUtils.get(DefaultTransaction.class.getName().toLowerCase() + ".delay_max", Integer.MAX_VALUE);
 
 	/**
 	 * 回滚队列延迟
 	 */
-	private static final int DELAY_INTERVAL = PropertiesUtils.get(DefaultTranscation.class.getName().toLowerCase() + ".delay_interval", 500);
+	private static final int DELAY_INTERVAL = PropertiesUtils.get(DefaultTransaction.class.getName().toLowerCase() + ".delay_interval", 500);
+
+	/**
+	 * 是否激活事务回滚
+	 */
+	private static final boolean ACTIVED = PropertiesUtils.get(DefaultTransaction.class.getName().toLowerCase() + ".actived", false);
 
 	/**
 	 * 回滚线程数量
 	 */
-	private static final int THREAD = PropertiesUtils.get(DefaultTranscation.class.getName().toLowerCase() + ".thread", 1);
+	private static final int THREAD = PropertiesUtils.get(DefaultTransaction.class.getName().toLowerCase() + ".thread", 1);
 
-	private static final Log LOGGER = LogFactory.getLog(DefaultTranscation.class);
+	private static final Log LOGGER = LogFactory.getLog(DefaultTransaction.class);
 
 	/**
 	 * 内置用于回滚延迟队列
@@ -72,7 +77,7 @@ public class DefaultTranscation implements Transcation, ApplicationContextAware 
 
 	private ApplicationContext context;
 
-	public DefaultTranscation(ThreadPoolExecutor executor, Persistent persistent) {
+	public DefaultTransaction(ThreadPoolExecutor executor, Persistent persistent) {
 		super();
 		this.persistent = persistent;
 		this.executor = executor;
@@ -84,12 +89,15 @@ public class DefaultTranscation implements Transcation, ApplicationContextAware 
 	}
 
 	public void init() {
-		// 用于延迟处理
-		for (int index = 0; index < DefaultTranscation.THREAD; index++) {
-			this.executor.execute(new Rollback());
+		if (DefaultTransaction.ACTIVED) {
+			DefaultTransaction.LOGGER.info("Init rollback threads: " + DefaultTransaction.THREAD + " ... ");
+			// 用于延迟处理
+			for (int index = 0; index < DefaultTransaction.THREAD; index++) {
+				this.executor.execute(new Rollback());
+			}
+			// 用于任务恢复
+			this.executor.execute(new Restore());
 		}
-		// 用于任务恢复
-		this.executor.execute(new Restore());
 	}
 
 	public void destroy() {
@@ -108,9 +116,11 @@ public class DefaultTranscation implements Transcation, ApplicationContextAware 
 			this.persistent.release(request.uuid());
 			return response;
 		} catch (Exception e) {
-			DefaultTranscation.LOGGER.error(e.getMessage(), e);
-			// 执行失败则回滚事务
-			this.rollback(request);
+			DefaultTransaction.LOGGER.error(e.getMessage(), e);
+			// 如果激活回滚则执行失败则回滚事务
+			if (DefaultTransaction.ACTIVED) {
+				this.rollback(request);
+			}
 			throw e;
 		} finally {
 			// 释放Guid
@@ -125,10 +135,10 @@ public class DefaultTranscation implements Transcation, ApplicationContextAware 
 	 * @return
 	 */
 	private boolean allowed(String uuid) {
-		boolean allowed = this.threshold.get() <= DefaultTranscation.DELAY_MAX;
+		boolean allowed = this.threshold.get() <= DefaultTransaction.DELAY_MAX;
 		// 如果拒绝加入延迟队列则记录日志
 		if (!allowed) {
-			DefaultTranscation.LOGGER.warn("Delay queue not allowed this request: " + uuid + " ... ");
+			DefaultTransaction.LOGGER.warn("Delay queue not allowed this request: " + uuid + " ... ");
 		}
 		return allowed;
 	}
@@ -149,7 +159,7 @@ public class DefaultTranscation implements Transcation, ApplicationContextAware 
 			}
 		} catch (Throwable e) {
 			// 如无法推送至延迟回滚队列则仅下次重启时才会读取持久化事务进行回滚
-			DefaultTranscation.LOGGER.error(e.getMessage(), e);
+			DefaultTransaction.LOGGER.error(e.getMessage(), e);
 		}
 	}
 
@@ -187,9 +197,9 @@ public class DefaultTranscation implements Transcation, ApplicationContextAware 
 		 */
 		public DelayRollback prepare() {
 			// 计算重试次数相关的额外延迟
-			long extend = Math.min(this.tries, DefaultTranscation.INTERVAL_MAX) * DefaultTranscation.INTERVAL_ADJUST;
-			DefaultTranscation.LOGGER.info("Rollback for " + this.request.location() + ", retry " + this.tries + " times and extend " + extend + " ms ... ");
-			this.deadline = extend + TimeUnit.MILLISECONDS.convert(DefaultTranscation.DELAY_INTERVAL, TimeUnit.MILLISECONDS) + System.currentTimeMillis();
+			long extend = Math.min(this.tries, DefaultTransaction.INTERVAL_MAX) * DefaultTransaction.INTERVAL_ADJUST;
+			DefaultTransaction.LOGGER.info("Rollback for " + this.request.location() + ", retry " + this.tries + " times and extend " + extend + " ms ... ");
+			this.deadline = extend + TimeUnit.MILLISECONDS.convert(DefaultTransaction.DELAY_INTERVAL, TimeUnit.MILLISECONDS) + System.currentTimeMillis();
 			this.tries++;
 			return this;
 		}
@@ -210,13 +220,19 @@ public class DefaultTranscation implements Transcation, ApplicationContextAware 
 		public boolean rollback() {
 			try {
 				Guid.set(this.request.uuid());
-				MethodUtils.invokeMethod(DefaultTranscation.this.context.getBean(this.request.location().clazz()), this.request.location().method(), this.request.args());
+				Object service = DefaultTransaction.this.context.getBean(this.request.location().clazz());
+				// 如果为Invoker则执行Invoker, 否则执行特定Class
+				if (Invoker.class.isAssignableFrom(service.getClass())) {
+					Invoker.class.cast(service).invoke(this.request.uuid(), this.request.args());
+				} else {
+					MethodUtils.invokeMethod(service, this.request.location().method(), this.request.args());
+				}
 				// 回滚成功并且删除持久化文件才表示成功
-				DefaultTranscation.this.persistent.release(this.request.uuid());
+				DefaultTransaction.this.persistent.release(this.request.uuid());
 				return true;
 			} catch (Throwable e) {
 				// 回滚失败
-				DefaultTranscation.LOGGER.error(e.getMessage(), e);
+				DefaultTransaction.LOGGER.error("UUID: " + this.request.uuid() + " message: " + e.getMessage(), e);
 				return false;
 			} finally {
 				Guid.release();
@@ -243,23 +259,23 @@ public class DefaultTranscation implements Transcation, ApplicationContextAware 
 
 		@Override
 		public void run() {
-			while (!DefaultTranscation.this.shutdown.get()) {
+			while (!DefaultTransaction.this.shutdown.get()) {
 				try {
 					// 如果延迟回滚任务再次失败则重置后推送至等待队列
-					DelayRollback rollback = DefaultTranscation.this.queue.take();
+					DelayRollback rollback = DefaultTransaction.this.queue.take();
 					// 减少阈值计数
-					DefaultTranscation.this.threshold.decrementAndGet();
+					DefaultTransaction.this.threshold.decrementAndGet();
 					// 尝试回滚, 如果失败则计算是否允许加入延迟回滚队列. 如果允许则放入延迟回滚队列
-					if (!rollback.rollback() && DefaultTranscation.this.allowed(rollback.uuid())) {
+					if (!rollback.rollback() && DefaultTransaction.this.allowed(rollback.uuid())) {
 						// 增加阈值计数
-						DefaultTranscation.this.threshold.incrementAndGet();
-						DefaultTranscation.this.queue.offer(rollback.prepare());
+						DefaultTransaction.this.threshold.incrementAndGet();
+						DefaultTransaction.this.queue.offer(rollback.prepare());
 					}
 				} catch (Throwable e) {
-					DefaultTranscation.LOGGER.error(e.getMessage(), e);
+					DefaultTransaction.LOGGER.error(e.getMessage(), e);
 				}
 			}
-			DefaultTranscation.LOGGER.warn(this.getClass() + " shutdown on thread (" + Thread.currentThread().getId() + ")");
+			DefaultTransaction.LOGGER.warn(this.getClass() + " shutdown on thread (" + Thread.currentThread().getId() + ")");
 		}
 	}
 
@@ -273,11 +289,11 @@ public class DefaultTranscation implements Transcation, ApplicationContextAware 
 
 		@Override
 		public void run() {
-			for (Request request : DefaultTranscation.this.persistent.list()) {
+			for (Request request : DefaultTransaction.this.persistent.list()) {
 				try {
-					DefaultTranscation.this.queue.put(new DelayRollback(request));
+					DefaultTransaction.this.queue.put(new DelayRollback(request));
 				} catch (Throwable e) {
-					DefaultTranscation.LOGGER.error(e.getMessage(), e);
+					DefaultTransaction.LOGGER.error(e.getMessage(), e);
 				}
 			}
 		}
