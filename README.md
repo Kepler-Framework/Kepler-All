@@ -29,7 +29,5 @@
 <br></br>
 <br></br>
 * @See[<a href="https://github.com/Kepler-Framework/Kepler-All/wiki/%E5%85%A5%E9%97%A8-%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B">快速开始</a>]
-<br></br>
-* @See[<a href="https://github.com/Kepler-Framework/Kepler-Admin">管理手册</a>]  
-<br></br>
+* * @See[<a href="https://github.com/Kepler-Framework/Kepler-Admin">管理手册</a>]  
 * @See[<a href="https://github.com/Kepler-Framework/Kepler-All/wiki">更多...</a>]
