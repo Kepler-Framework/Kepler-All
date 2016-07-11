@@ -22,17 +22,17 @@ public class ThreadFactoryConfig {
 		this.threads = threads;
 	}
 
-	@Config(name = "com.kepler.thread.threadfactory.max")
+	@Config(value = "com.kepler.thread.threadfactory.max")
 	public void max(int size) {
 		this.threads.setMaximumPoolSize(size);
 	}
 
-	@Config(name = "com.kepler.thread.threadfactory.core")
+	@Config(value = "com.kepler.thread.threadfactory.core")
 	public void core(int size) {
 		this.threads.setCorePoolSize(size);
 	}
 
-	@Config(name = "com.kepler.thread.threadfactory.keepalive")
+	@Config(value = "com.kepler.thread.threadfactory.keepalive")
 	public void keepalive(long keepalive) {
 		this.threads.setKeepAliveTime(keepalive, TimeUnit.MILLISECONDS);
 	}

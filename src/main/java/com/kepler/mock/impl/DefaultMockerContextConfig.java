@@ -18,7 +18,7 @@ public class DefaultMockerContextConfig {
 		this.context = context;
 	}
 
-	@Config(name = "com.kepler.mock.impl.defaultmockercontext.mock")
+	@Config(value = "com.kepler.mock.impl.defaultmockercontext.mock")
 	public void mock(boolean mock) {
 		this.context.mock(mock);
 	}

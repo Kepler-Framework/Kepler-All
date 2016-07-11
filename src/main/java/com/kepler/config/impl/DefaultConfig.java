@@ -94,12 +94,12 @@ public class DefaultConfig implements Config, BeanPostProcessor {
 			if (config != null) {
 				Invoker invoker = this.generate(bean, method);
 				// 注册监听指定Key回调
-				this.invokers.get(config.name()).add(invoker);
+				this.invokers.get(config.value()).add(invoker);
 				// 是否立即初始化
 				if (config.init()) {
-					invoker.invoker(PropertiesUtils.get(config.name()));
+					invoker.invoker(PropertiesUtils.get(config.value()));
 				}
-				DefaultConfig.LOGGER.info("Config binding: " + config.name());
+				DefaultConfig.LOGGER.info("Config binding: " + config.value());
 			}
 		}
 		return bean;

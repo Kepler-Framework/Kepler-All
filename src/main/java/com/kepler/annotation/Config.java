@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface Config {
 
-	public String name();
+	public String value();
 
 	/**
 	 * 是否启动时初始化
