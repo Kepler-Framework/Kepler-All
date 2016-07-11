@@ -7,7 +7,7 @@
 
 	<bean id="kepler.transaction.persistent" class="com.kepler.transaction.impl.Persistents" />
 
-	<bean class="com.kepler.transaction.impl.FilePersistent">
+	<bean id="persistent.file" class="com.kepler.transaction.impl.FilePersistent">
 		<constructor-arg ref="kepler.serials" />
 	</bean>
 

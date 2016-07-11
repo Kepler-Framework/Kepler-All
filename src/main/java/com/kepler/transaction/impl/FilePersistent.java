@@ -10,6 +10,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.kepler.KeplerPersistentException;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.org.apache.commons.lang.StringUtils;
 import com.kepler.serial.Serials;
@@ -64,19 +65,23 @@ public class FilePersistent implements Persistent {
 	 * @return
 	 */
 	private File location(String uuid) {
-		return StringUtils.isEmpty(FilePersistent.DIR) ? new File(FilePersistent.PREFIX + uuid) : new File(FilePersistent.DIR, FilePersistent.PREFIX + uuid);
+		File location = StringUtils.isEmpty(FilePersistent.DIR) ? new File(FilePersistent.PREFIX + uuid) : new File(FilePersistent.DIR, FilePersistent.PREFIX + uuid);
+		FilePersistent.LOGGER.debug("Location: " + location);
+		return location;
 	}
 
 	@Override
-	public void persist(Request request) throws Exception {
+	public void persist(Request request) throws KeplerPersistentException {
 		// 序列化至磁盘
 		try (FileOutputStream stream = new FileOutputStream(this.location(request.uuid()))) {
 			// 使用默认序列化策略序列化
 			this.serials.def4output().output(request, Request.class, stream, FilePersistent.BUFFER);
+		}catch(Exception e){
+			throw new KeplerPersistentException(e);
 		}
 	}
 
-	public void release(String uuid) throws Exception {
+	public void release(String uuid) throws KeplerPersistentException {
 		File file = this.location(uuid);
 		// 如果文件存在则删除
 		if (file.exists()) {

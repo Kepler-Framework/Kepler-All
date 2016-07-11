@@ -4,6 +4,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.kepler.KeplerPersistentException;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.extension.Extension;
 import com.kepler.transaction.Persistent;
@@ -19,6 +23,8 @@ public class Persistents implements Persistent, Extension {
 	 * 持久化策略, 默认文件持久化
 	 */
 	private static final String NAME = PropertiesUtils.get(Persistents.class.getName().toLowerCase() + ".name", FilePersistent.NAME);
+
+	private static final Log LOGGER = LogFactory.getLog(Persistents.class);
 
 	private final Map<String, Persistent> persistents = new HashMap<String, Persistent>();
 
@@ -40,16 +46,18 @@ public class Persistents implements Persistent, Extension {
 
 	@Override
 	public List<Request> list() {
-		return this.persistents.get(Persistents.NAME).list();
+		Persistents.LOGGER.info("Persistents: " + this.persistents);
+		Persistent persistent = this.persistents.get(Persistents.NAME);
+		return persistent.list();
 	}
 
 	@Override
-	public void release(String uuid) throws Exception {
+	public void release(String uuid) throws KeplerPersistentException {
 		this.persistents.get(Persistents.NAME).release(uuid);
 	}
 
 	@Override
-	public void persist(Request request) throws Exception {
+	public void persist(Request request) throws KeplerPersistentException {
 		this.persistents.get(Persistents.NAME).persist(request);
 	}
 }
