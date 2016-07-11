@@ -7,6 +7,11 @@
 
 	<bean id="kepler.threads" class="com.kepler.thread.ThreadFactory" init-method="init" destroy-method="destroy" />
 
+	<bean id="kepler.threads.delegate" class="com.kepler.thread.ThreadFactoryDelegate">
+		<constructor-arg ref="kepler.header.context" />
+		<constructor-arg ref="kepler.threads" />
+	</bean>
+
 	<bean class="com.kepler.thread.ThreadExceptionHandler" init-method="init" />
 
 	<bean class="com.kepler.thread.ThreadFactoryConfig">

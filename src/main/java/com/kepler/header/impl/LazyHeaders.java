@@ -38,7 +38,7 @@ public class LazyHeaders implements Headers {
 
 	public LazyHeaders(@JsonProperty("headers") Map<String, String> headers) {
 		// 如果为空则指定为Null(惰性)
-		this.headers = headers.isEmpty() ? null : headers;
+		this.headers = (headers == null || headers.isEmpty()) ? null : headers;
 	}
 
 	private boolean initial(String key, String value) {
