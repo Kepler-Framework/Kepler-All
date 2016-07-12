@@ -127,7 +127,7 @@ public class ThreadFactoryDelegate implements ExecutorService {
 	private class HeaderRunnable implements Runnable {
 
 		// 复制当期线程Headers
-		private final Headers header = new LazyHeaders(ThreadFactoryDelegate.this.context.get().get());
+		private final Headers header = new LazyHeaders(ThreadFactoryDelegate.this.context.get());
 
 		private final Runnable runnable;
 
@@ -153,7 +153,7 @@ public class ThreadFactoryDelegate implements ExecutorService {
 	private class HeaderCallable<T> implements Callable<T> {
 
 		// 复制当期线程Headers
-		private final Headers header = new LazyHeaders(ThreadFactoryDelegate.this.context.get().get());
+		private final Headers header = new LazyHeaders(ThreadFactoryDelegate.this.context.get());
 
 		private final Callable<T> callable;
 
