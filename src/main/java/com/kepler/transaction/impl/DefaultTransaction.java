@@ -260,7 +260,11 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 		 */
 		public boolean terminate() {
 			// 尝试次数大于上线则终止
-			return this.tries >= DefaultTransaction.DELAY_TIMES;
+			boolean terminate = this.tries >= DefaultTransaction.DELAY_TIMES;
+			if (terminate) {
+				DefaultTransaction.LOGGER.warn("Request: " + this.request.uuid() + " will be terminated ... ");
+			}
+			return terminate;
 		}
 	}
 
