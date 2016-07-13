@@ -38,6 +38,11 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 	private static final int INTERVAL_MAX = PropertiesUtils.get(DefaultTransaction.class.getName().toLowerCase() + ".interval_max", 10);
 
 	/**
+	 * 回滚尝试上限
+	 */
+	private static final int DELAY_TIMES = PropertiesUtils.get(DefaultTransaction.class.getName().toLowerCase() + ".delay_times", Integer.MAX_VALUE);
+
+	/**
 	 * 回滚队列上限
 	 */
 	private static final int DELAY_MAX = PropertiesUtils.get(DefaultTransaction.class.getName().toLowerCase() + ".delay_max", Integer.MAX_VALUE);
@@ -247,6 +252,16 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 		public String uuid() {
 			return this.request.uuid();
 		}
+
+		/**
+		 * 是否终止回滚
+		 * 
+		 * @return
+		 */
+		public boolean terminate() {
+			// 尝试次数大于上线则终止
+			return this.tries >= DefaultTransaction.DELAY_TIMES;
+		}
 	}
 
 	/**
@@ -265,8 +280,8 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 					DelayRollback rollback = DefaultTransaction.this.queue.take();
 					// 减少阈值计数
 					DefaultTransaction.this.threshold.decrementAndGet();
-					// 尝试回滚, 如果失败则计算是否允许加入延迟回滚队列. 如果允许则放入延迟回滚队列
-					if (!rollback.rollback() && DefaultTransaction.this.allowed(rollback.uuid())) {
+					// 尝试回滚, 如果失败并且允许允许继续尝试,则计算是否允许加入延迟回滚队列. 如果允许则放入延迟回滚队列
+					if (!rollback.rollback() && !rollback.terminate() && DefaultTransaction.this.allowed(rollback.uuid())) {
 						// 增加阈值计数
 						DefaultTransaction.this.threshold.incrementAndGet();
 						DefaultTransaction.this.queue.offer(rollback.prepare());
