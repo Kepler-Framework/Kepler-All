@@ -2,10 +2,7 @@ package com.kepler.admin.transfer.impl;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-
 import com.kepler.ack.Ack;
 import com.kepler.admin.transfer.Collector;
 import com.kepler.admin.transfer.Transfer;
@@ -23,11 +20,6 @@ public class DefaultCollector implements Collector, Imported {
 	 * 当前, 切换, 清理
 	 */
 	private final MultiKeyMap[] transfers = new MultiKeyMap[] { new MultiKeyMap(), new MultiKeyMap(), new MultiKeyMap() };
-
-	/**
-	 * 当前分钟
-	 */
-	private final AtomicLong minute = new AtomicLong(this.minute());
 
 	/**
 	 * Start from 1
@@ -60,8 +52,7 @@ public class DefaultCollector implements Collector, Imported {
 
 	@SuppressWarnings("unchecked")
 	public Collection<Transfers> transfers() {
-		// 同分钟内重复使用当前计数器, 否则切换
-		return this.minute() == this.minute.get() ? this.curr().values() : this.exchange().values();
+		return this.exchange().values();
 	}
 
 	/**
@@ -74,10 +65,6 @@ public class DefaultCollector implements Collector, Imported {
 			DefaultTransfers.class.cast(each).clear();
 		}
 		return this;
-	}
-
-	private long minute() {
-		return TimeUnit.MINUTES.convert(System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 	}
 
 	private MultiKeyMap prev() {
@@ -97,7 +84,6 @@ public class DefaultCollector implements Collector, Imported {
 	}
 
 	private MultiKeyMap exchange() {
-		this.minute.set(this.minute());
 		this.indexes.incrementAndGet();
 		return this.clear().prev();
 	}
