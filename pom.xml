@@ -6,6 +6,31 @@
 	<packaging>jar</packaging>
 	<name>kepler</name>
 	<url>http://maven.apache.org</url>
+	
+		<repositories>
+		<repository>
+			<id>releases</id>
+			<name>DHF Central Code Repository</name>
+			<url>http://lang.didichuxing.com/nexus/content/groups/public/</url>
+		</repository>
+		<repository>
+			<id>snapshots</id>
+			<name>DHF snapshots Code Repository</name>
+			<url>http://lang.didichuxing.com/nexus/content/groups/public-snapshots/</url>
+		</repository>
+	</repositories>
+
+	<distributionManagement>
+		<repository>
+			<id>releases</id>
+			<url>http://lang.didichuxing.com/nexus/content/repositories/com.dhf.repository/</url>
+		</repository>
+		<snapshotRepository>
+			<id>snapshots</id>
+			<name>Internal Snapshots</name>
+			<url>http://lang.didichuxing.com/nexus/content/repositories/com.dhf.repositories.snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
 
 	<properties>
 		<maven.project.name>kepler-all</maven.project.name>

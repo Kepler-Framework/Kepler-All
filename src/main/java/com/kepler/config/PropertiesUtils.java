@@ -25,17 +25,8 @@ import org.springframework.util.ResourceUtils;
 import com.kepler.org.apache.commons.lang.StringUtils;
 
 /**
- * @author kim 2015年7月16日
- */
-/**
- * @author kim
+ * @author KimShen
  *
- * 2016年2月13日
- */
-/**
- * @author kim
- *
- * 2016年2月13日
  */
 public class PropertiesUtils {
 
@@ -85,6 +76,8 @@ public class PropertiesUtils {
 		PropertiesUtils.LOGGER.info("Loading dynamic file: " + PropertiesUtils.FILE_DYNAMIC);
 		PropertiesUtils.loading(PropertiesUtils.FILE_DYNAMIC, properties);
 		PropertiesUtils.convert(to, properties);
+		// System Properties覆盖配置文件
+		PropertiesUtils.convert(to, System.getProperties());
 		return to;
 	}
 
@@ -199,14 +192,14 @@ public class PropertiesUtils {
 	}
 
 	/**
-	 * 1, System.getProperty -> 2, 内存快照 -> 3, 默认值
+	 * 1, 内存快照 -> 3, 默认值
 	 * 
 	 * @param key
 	 * @param def
 	 * @return
 	 */
 	public static String get(String key, String def) {
-		return System.getProperty(key, StringUtils.defaultString(PropertiesUtils.PROPERTIES.get(key), def));
+		return StringUtils.defaultString(PropertiesUtils.PROPERTIES.get(key), def);
 	}
 
 	/**
