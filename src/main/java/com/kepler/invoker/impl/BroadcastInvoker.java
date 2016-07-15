@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.util.Assert;
 
 import com.kepler.annotation.Broadcast;
@@ -34,6 +36,8 @@ public class BroadcastInvoker implements Imported, Invoker {
 
 	private static final boolean CANCEL_DEF = PropertiesUtils.get(BroadcastInvoker.CANCEL_KEY, true);
 
+	private static final Log LOGGER = LogFactory.getLog(BroadcastInvoker.class);
+
 	private final MultiKeyMap broadcast = new MultiKeyMap();
 
 	private final ChannelContext context;
@@ -61,13 +65,17 @@ public class BroadcastInvoker implements Imported, Invoker {
 
 	@Override
 	public void subscribe(Service service) throws Exception {
-		for (Method method : Service.clazz(service).getMethods()) {
-			// 注册Broadcast方法
-			Broadcast broadcast = method.getAnnotation(Broadcast.class);
-			if (broadcast != null) {
-				Assert.state(method.getReturnType().equals(void.class), "Method must return void ... ");
-				this.broadcast.put(service, method.getName(), broadcast);
+		try {
+			for (Method method : Service.clazz(service).getMethods()) {
+				// 注册Broadcast方法
+				Broadcast broadcast = method.getAnnotation(Broadcast.class);
+				if (broadcast != null) {
+					Assert.state(method.getReturnType().equals(void.class), "Method must return void ... ");
+					this.broadcast.put(service, method.getName(), broadcast);
+				}
 			}
+		} catch (ClassNotFoundException e) {
+			BroadcastInvoker.LOGGER.info("Class not found: " + service + " ... ");
 		}
 	}
 

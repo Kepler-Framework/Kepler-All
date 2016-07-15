@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.util.Assert;
 
 import com.kepler.annotation.Async;
@@ -25,6 +27,8 @@ import com.kepler.service.Service;
 public class AsyncInvoker implements Imported, Invoker {
 
 	static final boolean ACTIVED = PropertiesUtils.get(AsyncInvoker.class.getName().toLowerCase() + ".actived", false);
+
+	private static final Log LOGGER = LogFactory.getLog(AsyncInvoker.class);
 
 	/**
 	 * 已注册Service, Method
@@ -48,15 +52,19 @@ public class AsyncInvoker implements Imported, Invoker {
 
 	@Override
 	public void subscribe(Service service) throws Exception {
-		Set<String> methods = new HashSet<String>();
-		for (Method method : Service.clazz(service).getMethods()) {
-			// 注册异步方法(@Async && return void)
-			if (method.getAnnotation(Async.class) != null) {
-				Assert.state(method.getReturnType().equals(void.class), "Method must return void ... ");
-				methods.add(method.getName());
+		try {
+			Set<String> methods = new HashSet<String>();
+			for (Method method : Service.clazz(service).getMethods()) {
+				// 注册异步方法(@Async && return void)
+				if (method.getAnnotation(Async.class) != null) {
+					Assert.state(method.getReturnType().equals(void.class), "Method must return void ... ");
+					methods.add(method.getName());
+				}
 			}
+			this.async.put(service, methods);
+		} catch (ClassNotFoundException e) {
+			AsyncInvoker.LOGGER.info("Class not found: " + service + " ... ");
 		}
-		this.async.put(service, methods);
 	}
 
 	@Override

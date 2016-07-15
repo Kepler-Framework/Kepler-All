@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 
 import com.kepler.annotation.QuietMethod;
@@ -23,6 +25,8 @@ public class QuietExceptions implements Quiet, Imported {
 
 	private static final List<Class<? extends Throwable>> EMPTY = Collections.unmodifiableList(new ArrayList<Class<? extends Throwable>>());
 
+	private static final Log LOGGER = LogFactory.getLog(QuietExceptions.class);
+
 	private final Map<Service, QuietMethods> methods = new HashMap<Service, QuietMethods>();
 
 	/**
@@ -37,12 +41,16 @@ public class QuietExceptions implements Quiet, Imported {
 
 	@Override
 	public void subscribe(Service service) throws Exception {
-		QuietMethods methods = new QuietMethods();
-		for (Method each : Service.clazz(service).getMethods()) {
-			// Method Name : Quite List
-			methods.put(each.getName(), this.quiet(AnnotationUtils.findAnnotation(each, QuietMethod.class)));
+		try {
+			QuietMethods methods = new QuietMethods();
+			for (Method each : Service.clazz(service).getMethods()) {
+				// Method Name : Quite List
+				methods.put(each.getName(), this.quiet(AnnotationUtils.findAnnotation(each, QuietMethod.class)));
+			}
+			this.methods.put(service, methods);
+		} catch (ClassNotFoundException e) {
+			QuietExceptions.LOGGER.info("Class not found: " + service + " ... ");
 		}
-		this.methods.put(service, methods);
 	}
 
 	@Override

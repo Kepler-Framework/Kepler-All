@@ -3,6 +3,10 @@ package com.kepler.admin.transfer.impl;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.kepler.ack.Ack;
 import com.kepler.admin.transfer.Collector;
 import com.kepler.admin.transfer.Transfer;
@@ -15,6 +19,8 @@ import com.kepler.service.Service;
  * @author kim 2015年7月22日
  */
 public class DefaultCollector implements Collector, Imported {
+
+	private static final Log LOGGER = LogFactory.getLog(DefaultCollector.class);
 
 	/**
 	 * 当前, 切换, 清理
@@ -35,9 +41,13 @@ public class DefaultCollector implements Collector, Imported {
 	}
 
 	private void methods(Service service, int index) throws Exception {
-		// 获取所有Method并初始化DefaultTransfers
-		for (Method method : Service.clazz(service).getMethods()) {
-			this.transfers[index].put(service, method.getName(), new DefaultTransfers(service, method.getName()));
+		try {
+			// 获取所有Method并初始化DefaultTransfers
+			for (Method method : Service.clazz(service).getMethods()) {
+				this.transfers[index].put(service, method.getName(), new DefaultTransfers(service, method.getName()));
+			}
+		} catch (ClassNotFoundException e) {
+			DefaultCollector.LOGGER.info("Class not found: " + service + " ... ");
 		}
 	}
 

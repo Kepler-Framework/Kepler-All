@@ -7,6 +7,9 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.kepler.KeplerRemoteException;
 import com.kepler.KeplerValidateException;
 import com.kepler.annotation.Compete;
@@ -35,6 +38,8 @@ public class CompeteInvoker implements Imported, Invoker {
 	private static final boolean CANCEL_DEF = PropertiesUtils.get(CompeteInvoker.CANCEL_KEY, true);
 
 	private static final String SPAN = CompeteInvoker.class.getName().toLowerCase() + ".span";
+
+	private static final Log LOGGER = LogFactory.getLog(CompeteInvoker.class);
 
 	private final MultiKeyMap competed = new MultiKeyMap();
 
@@ -67,12 +72,16 @@ public class CompeteInvoker implements Imported, Invoker {
 
 	@Override
 	public void subscribe(Service service) throws Exception {
-		for (Method method : Service.clazz(service).getMethods()) {
-			// 注册Compete方法
-			Compete compete = method.getAnnotation(Compete.class);
-			if (compete != null) {
-				this.competed.put(service, method.getName(), compete);
+		try {
+			for (Method method : Service.clazz(service).getMethods()) {
+				// 注册Compete方法
+				Compete compete = method.getAnnotation(Compete.class);
+				if (compete != null) {
+					this.competed.put(service, method.getName(), compete);
+				}
 			}
+		} catch (ClassNotFoundException e) {
+			CompeteInvoker.LOGGER.info("Class not found: " + service + " ... ");
 		}
 	}
 

@@ -88,14 +88,18 @@ public class ForkJoinInvoker implements Imported, Invoker {
 
 	@Override
 	public void subscribe(Service service) throws Exception {
-		for (Method method : Service.clazz(service).getMethods()) {
-			// 注册Fork方法
-			ForkJoin forkjoin = method.getAnnotation(ForkJoin.class);
-			if (forkjoin != null) {
-				Assert.state(!method.getReturnType().equals(void.class), "Method must not return void ... ");
-				// 构建ForkJoinInstance
-				this.forkers.put(service, method.getName(), new ForkJoinInstance(forkjoin, method.getAnnotation(QuietMethod.class)));
+		try {
+			for (Method method : Service.clazz(service).getMethods()) {
+				// 注册Fork方法
+				ForkJoin forkjoin = method.getAnnotation(ForkJoin.class);
+				if (forkjoin != null) {
+					Assert.state(!method.getReturnType().equals(void.class), "Method must not return void ... ");
+					// 构建ForkJoinInstance
+					this.forkers.put(service, method.getName(), new ForkJoinInstance(forkjoin, method.getAnnotation(QuietMethod.class)));
+				}
 			}
+		} catch (ClassNotFoundException e) {
+			ForkJoinInvoker.LOGGER.info("Class not found: " + service + " ... ");
 		}
 	}
 
