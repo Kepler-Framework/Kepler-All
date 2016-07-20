@@ -2,6 +2,7 @@ package com.kepler.transaction.impl;
 
 import java.util.UUID;
 
+import com.kepler.header.Headers;
 import com.kepler.transaction.Location;
 import com.kepler.transaction.Request;
 
@@ -21,6 +22,8 @@ public class DefaultRequest implements Request {
 	private final Location location;
 
 	private final Object[] args;
+
+	private Headers headers;
 
 	/**
 	 * @param location 回滚入口
@@ -45,6 +48,17 @@ public class DefaultRequest implements Request {
 	@Override
 	public Object[] args() {
 		return this.args;
+	}
+
+	@Override
+	public Headers headers() {
+		return this.headers;
+	}
+
+	@Override
+	public DefaultRequest headers(Headers headers) {
+		this.headers = headers;
+		return this;
 	}
 
 	@Override

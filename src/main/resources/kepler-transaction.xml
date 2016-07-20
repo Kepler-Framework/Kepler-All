@@ -4,11 +4,12 @@
 	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
     http://www.springframework.org/schema/aop 
     http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
-    
-    <import resource="kepler-transaction-persistent.xml"/>
+
+	<import resource="kepler-transaction-persistent.xml" />
 
 	<bean id="kepler.transaction" class="com.kepler.transaction.impl.DefaultTransaction" depends-on="persistent.file" init-method="init" destroy-method="destroy">
 		<constructor-arg ref="kepler.transaction.persistent" />
+		<constructor-arg ref="kepler.header.context" />
 		<constructor-arg ref="kepler.threads" />
 	</bean>
 

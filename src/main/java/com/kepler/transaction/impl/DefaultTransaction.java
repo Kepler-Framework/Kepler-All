@@ -14,6 +14,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 import com.kepler.config.PropertiesUtils;
+import com.kepler.header.HeadersContext;
+import com.kepler.header.impl.LazyHeaders;
 import com.kepler.org.apache.commons.lang.reflect.MethodUtils;
 import com.kepler.transaction.Guid;
 import com.kepler.transaction.Invoker;
@@ -75,6 +77,8 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 
 	private final ThreadPoolExecutor executor;
 
+	private final HeadersContext headers;
+
 	/**
 	 * 用于持久化事务请求
 	 */
@@ -82,10 +86,11 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 
 	private ApplicationContext context;
 
-	public DefaultTransaction(ThreadPoolExecutor executor, Persistent persistent) {
+	public DefaultTransaction(ThreadPoolExecutor executor, HeadersContext headers, Persistent persistent) {
 		super();
 		this.persistent = persistent;
 		this.executor = executor;
+		this.headers = headers;
 	}
 
 	@Override
@@ -113,8 +118,8 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 		try {
 			// 追加Guid
 			Guid.set(request.uuid());
-			// 持久事务
-			this.persistent.persist(request);
+			// 复制Header并持久事务
+			this.persistent.persist(request.headers(new LazyHeaders(this.headers.get())));
 			// 执行事务
 			Object response = invoker.invoke(request.uuid(), request.args());
 			// 释放事务
@@ -224,6 +229,8 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 		 */
 		public boolean rollback() {
 			try {
+				// 重置Headers
+				DefaultTransaction.this.headers.set(this.request.headers());
 				Guid.set(this.request.uuid());
 				Object service = DefaultTransaction.this.context.getBean(this.request.location().clazz());
 				// 如果为Invoker则执行Invoker, 否则执行特定Class
@@ -240,6 +247,8 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 				DefaultTransaction.LOGGER.error("UUID: " + this.request.uuid() + " message: " + e.getMessage(), e);
 				return false;
 			} finally {
+				// 释放Headers
+				DefaultTransaction.this.headers.release();
 				Guid.release();
 			}
 		}

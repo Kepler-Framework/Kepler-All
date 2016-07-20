@@ -2,6 +2,8 @@ package com.kepler.transaction;
 
 import java.io.Serializable;
 
+import com.kepler.header.Headers;
+
 /**
  * 事务请求
  * 
@@ -11,14 +13,14 @@ import java.io.Serializable;
 public interface Request extends Serializable {
 
 	/**
-	 * 事务编号
+	 * 获取事务编号
 	 * 
 	 * @return
 	 */
 	public String uuid();
 
 	/**
-	 * 请求参数
+	 * 获取请求参数
 	 * 
 	 * @return
 	 */
@@ -30,4 +32,19 @@ public interface Request extends Serializable {
 	 * @return
 	 */
 	public Location location();
+
+	/**
+	 * 获取Header上下文
+	 * 
+	 * @return
+	 */
+	public Headers headers();
+
+	/**
+	 * 指定Headers上下文(回调)
+	 * 
+	 * @param headers
+	 * @return
+	 */
+	public Request headers(Headers headers);
 }

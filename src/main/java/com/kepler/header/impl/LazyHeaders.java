@@ -36,6 +36,11 @@ public class LazyHeaders implements Headers {
 
 	}
 
+	/**
+	 * Deep copy
+	 * 
+	 * @param headers
+	 */
 	public LazyHeaders(Headers headers) {
 		// Not Null并且包含Header
 		if (headers != null && headers.get() != null && !headers.get().isEmpty()) {
@@ -45,6 +50,11 @@ public class LazyHeaders implements Headers {
 		}
 	}
 
+	/**
+	 * Delegate
+	 * 
+	 * @param headers
+	 */
 	public LazyHeaders(@JsonProperty("headers") Map<String, String> headers) {
 		// 如果为空则指定为Null(惰性)
 		this.headers = (headers == null || headers.isEmpty()) ? null : headers;
