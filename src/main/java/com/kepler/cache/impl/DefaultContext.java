@@ -8,8 +8,10 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.StringUtils;
 
+import com.kepler.annotation.Cached;
 import com.kepler.cache.Cache;
 import com.kepler.cache.CacheContext;
 import com.kepler.cache.CacheExpired;
@@ -172,15 +174,21 @@ public class DefaultContext implements Imported, CacheContext, CacheExpired {
 		 * 解析配置
 		 * 
 		 * @param config
+		 * @throws Exception 
 		 */
-		private Caches(Service service, String config) {
+		private Caches(Service service, String config) throws Exception {
+			// Pattern [test1,1][test2,2]
 			Matcher matcher = Pattern.compile("(\\[(.*?),(.*?)\\])").matcher(config);
+			Class<?> clazz = Class.forName(service.service());
 			while (matcher.find()) {
 				String method = matcher.group(2);
 				String max = matcher.group(3);
-				DefaultContext.LOGGER.info("Loading cache: [method=" + method + "][max=" + max + "]");
-				// 如果为空则表示为最大值
-				this.caches.put(method, new DefaultCache(service, method, StringUtils.isEmpty(max) ? Long.MAX_VALUE : Long.valueOf(max)));
+				// 仅加载无参并标记Cached的方法
+				if (AnnotationUtils.findAnnotation(clazz.getMethod(method, new Class<?>[] {}), Cached.class) != null) {
+					DefaultContext.LOGGER.info("Prepare cache: [method=" + method + "][max=" + max + "]");
+					// 如果为空则表示为最大值
+					this.caches.put(method, new DefaultCache(service, method, StringUtils.isEmpty(max) ? Long.MAX_VALUE : Long.valueOf(max)));
+				}
 			}
 		}
 
