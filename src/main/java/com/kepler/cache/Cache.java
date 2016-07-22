@@ -29,4 +29,12 @@ public interface Cache {
 	 * @return
 	 */
 	public boolean expired();
+
+	/**
+	 * 重置缓存
+	 * 
+	 * @reurn 是否重置成功
+	 * 
+	 */
+	public boolean invalid();
 }

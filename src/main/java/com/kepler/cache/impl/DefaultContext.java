@@ -12,6 +12,7 @@ import org.springframework.util.StringUtils;
 
 import com.kepler.cache.Cache;
 import com.kepler.cache.CacheContext;
+import com.kepler.cache.CacheExpired;
 import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.service.Imported;
@@ -21,7 +22,7 @@ import com.kepler.service.Service;
  * @author KimShen
  *
  */
-public class DefaultContext implements Imported, CacheContext {
+public class DefaultContext implements Imported, CacheContext, CacheExpired {
 
 	/**
 	 * 配置格式
@@ -52,6 +53,11 @@ public class DefaultContext implements Imported, CacheContext {
 	public void subscribe(Service service) throws Exception {
 		// 预加载Service对应缓存
 		this.caches.put(service, new Caches(service, PropertiesUtils.profile(DefaultContext.METHOD_KEY, this.profile.profile(service), DefaultContext.METHOD_DEF)));
+	}
+
+	@Override
+	public boolean expired(Service service, String method) {
+		return this.caches.get(service).get(method).invalid();
 	}
 
 	@Override
@@ -88,6 +94,11 @@ public class DefaultContext implements Imported, CacheContext {
 			// 强制超时
 			return true;
 		}
+
+		@Override
+		public boolean invalid() {
+			return false;
+		}
 	}
 
 	/**
@@ -112,8 +123,7 @@ public class DefaultContext implements Imported, CacheContext {
 			this.max = max;
 			this.method = method;
 			this.service = service;
-			// 指定为最小值, 强制首次超时
-			this.count.set(Long.MIN_VALUE);
+			this.invalid();
 		}
 
 		@Override
@@ -128,13 +138,20 @@ public class DefaultContext implements Imported, CacheContext {
 			DefaultContext.LOGGER.info("Reset cache for: " + this.service + " [" + this.method + "] (Warning: ignore override method)");
 			// 重置计数
 			this.count.set(this.max);
-			return this.response;
+			return this.response = response;
 		}
 
 		@Override
 		public boolean expired() {
 			// 已用次数小于等于0表示超时
 			return this.count.get() <= 0;
+		}
+
+		@Override
+		public boolean invalid() {
+			// 指定为最小值, 强制下次调用时过期
+			this.count.set(Long.MIN_VALUE);
+			return true;
 		}
 	}
 
