@@ -75,7 +75,7 @@ public class BroadcastInvoker implements Imported, Invoker {
 				}
 			}
 		} catch (ClassNotFoundException e) {
-			BroadcastInvoker.LOGGER.info("Class not found: " + service + " ... ");
+			BroadcastInvoker.LOGGER.info("Class not found: " + service);
 		}
 	}
 

@@ -59,7 +59,11 @@ public class DefaultPromotion implements Exported, Promotion {
 	@Override
 	public void record(Request request, long start) {
 		if (DefaultPromotion.ENABLED) {
-			Guess.class.cast(this.promtions.get(request.service(), request.method())).current(request.service(), System.currentTimeMillis() - start);
+			Guess guess = Guess.class.cast(this.promtions.get(request.service(), request.method()));
+			if (guess != null) {
+				// Generic指定错误方法(或没有指定)则可能Guess为Null
+				guess.current(request.service(), System.currentTimeMillis() - start);
+			}
 		}
 	}
 

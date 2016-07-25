@@ -99,7 +99,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 				}
 			}
 		} catch (ClassNotFoundException e) {
-			ForkJoinInvoker.LOGGER.info("Class not found: " + service + " ... ");
+			ForkJoinInvoker.LOGGER.info("Class not found: " + service);
 		}
 	}
 

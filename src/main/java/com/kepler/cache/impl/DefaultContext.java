@@ -53,8 +53,12 @@ public class DefaultContext implements Imported, CacheContext, CacheExpired {
 
 	@Override
 	public void subscribe(Service service) throws Exception {
-		// 预加载Service对应缓存
-		this.caches.put(service, new Caches(service, PropertiesUtils.profile(DefaultContext.METHOD_KEY, this.profile.profile(service), DefaultContext.METHOD_DEF)));
+		try {
+			// 预加载Service对应缓存
+			this.caches.put(service, new Caches(service, PropertiesUtils.profile(DefaultContext.METHOD_KEY, this.profile.profile(service), DefaultContext.METHOD_DEF)));
+		} catch (ClassNotFoundException e) {
+			DefaultContext.LOGGER.warn("Class not found: " + service.service());
+		}
 	}
 
 	@Override

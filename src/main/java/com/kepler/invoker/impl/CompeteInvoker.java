@@ -81,7 +81,7 @@ public class CompeteInvoker implements Imported, Invoker {
 				}
 			}
 		} catch (ClassNotFoundException e) {
-			CompeteInvoker.LOGGER.info("Class not found: " + service + " ... ");
+			CompeteInvoker.LOGGER.info("Class not found: " + service);
 		}
 	}
 

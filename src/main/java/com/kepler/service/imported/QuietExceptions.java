@@ -49,14 +49,16 @@ public class QuietExceptions implements Quiet, Imported {
 			}
 			this.methods.put(service, methods);
 		} catch (ClassNotFoundException e) {
-			QuietExceptions.LOGGER.info("Class not found: " + service + " ... ");
+			QuietExceptions.LOGGER.info("Class not found: " + service);
 		}
 	}
 
 	@Override
 	public boolean quiet(Request request, Class<? extends Throwable> throwable) {
 		// 当前Throwable是否为指定Service指定Method的静默异常
-		return this.methods.get(request.service()).exceptions(request.method()).contains(throwable);
+		QuietMethods methods = this.methods.get(request.service());
+		// 仅判断非泛型接口
+		return methods != null ? methods.exceptions(request.method()).contains(throwable) : false;
 	}
 
 	private class QuietMethods {
