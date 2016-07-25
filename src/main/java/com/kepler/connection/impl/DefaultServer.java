@@ -328,13 +328,15 @@ public class DefaultServer {
 					// 校验请求参数(如JSR 303)
 					request = DefaultServer.this.validation.valid(request);
 					// 获取服务并执行
-					return DefaultServer.this.response.response(request.ack(), DefaultServer.this.exported.get(request.service()).invoke(request), request.serial());
+					Response response = DefaultServer.this.response.response(request.ack(), DefaultServer.this.exported.get(request.service()).invoke(request), request.serial());
+					// 优化执行线程
+					DefaultServer.this.promotion.record(request, this.running);
+					return response;
 				} catch (Throwable e) {
 					// 业务异常
 					DefaultServer.LOGGER.error("[trace=" + request.get(Trace.TRACE) + "][message=" + e.getMessage() + "]", e);
 					return DefaultServer.this.response.throwable(request.ack(), e, request.serial());
 				} finally {
-					DefaultServer.this.promotion.record(request, this.running);
 					// 释放Header避免同线程的其他业务复用
 					DefaultServer.this.headers.release();
 					// Request执行完毕

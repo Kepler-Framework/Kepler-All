@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
 	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
@@ -16,7 +17,10 @@
 		</constructor-arg>
 	</bean>
 
-	<bean id="kepler.service.exported.context" class="com.kepler.service.exported.DefaultContext" />
+	<bean id="kepler.service.exported.context" class="com.kepler.service.exported.DefaultContext">
+		<constructor-arg ref="kepler.delegate" />
+		<constructor-arg ref="kepler.marker" />
+	</bean>
 
 	<bean id="kepler.service.exproted.abstract" abstract="true" init-method="init">
 		<constructor-arg ref="kepler.config.profile" />
@@ -27,7 +31,7 @@
 	<!-- 
 	<bean class="com.kepler.service.exported.ExportedDelegate" parent="kepler.service.exproted.abstract"> 
 		<constructor-arg index="0" value="Your Service Interface" /> 
-		<constructor-arg index="1" ref="Your Service Instance" />
+		<constructor-arg index="1" ref="Your Service Instance" /> 
 		<constructor-arg index="2" value="Your Service Profile" /> 
 	</bean> 
 	-->

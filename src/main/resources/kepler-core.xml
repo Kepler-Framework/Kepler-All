@@ -20,6 +20,7 @@
 	<import resource="kepler-header.xml" />
 	<import resource="kepler-thread.xml" />
 	<import resource="kepler-serial.xml" />
+	<import resource="kepler-generic.xml" />
 	<import resource="kepler-invoker.xml" />
 	<import resource="kepler-channel.xml" />
 	<import resource="kepler-traffic.xml" />

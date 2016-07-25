@@ -11,6 +11,8 @@ import org.apache.commons.logging.LogFactory;
 import com.kepler.KeplerRemoteException;
 import com.kepler.KeplerValidateException;
 import com.kepler.config.PropertiesUtils;
+import com.kepler.generic.GenericDelegate;
+import com.kepler.generic.GenericMarker;
 import com.kepler.invoker.Invoker;
 import com.kepler.org.apache.commons.lang.reflect.MethodUtils;
 import com.kepler.protocol.Request;
@@ -33,6 +35,15 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 	private final Map<Service, Invoker> invokers = new HashMap<Service, Invoker>();
 
 	private final Map<Service, Object> services = new HashMap<Service, Object>();
+
+	private final GenericDelegate delegate;
+
+	private final GenericMarker marker;
+
+	public DefaultContext(GenericDelegate delegate, GenericMarker marker) {
+		this.delegate = delegate;
+		this.marker = marker;
+	}
 
 	public Invoker get(Service service) {
 		return this.invokers.get(service);
@@ -66,11 +77,24 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 
 		@Override
 		public Object invoke(Request request) throws Throwable {
+			// 如果为泛型消息则使用泛型处理否则使用常规调用
+			return DefaultContext.this.marker.marked(request.headers()) ? DefaultContext.this.delegate.delegate(DefaultContext.this.services.get(request.service()), request.method(), request.args()) : this.invoke4method(request);
+		}
+
+		/**
+		 * 常规调用
+		 * 
+		 * @param request
+		 * @return
+		 * @throws Throwable
+		 */
+		private Object invoke4method(Request request) throws Throwable {
 			// MethodUtils.getMatchingAccessibleMethod(request.service(), request.method(), request.types()) 获取指定Method
 			Method method = MethodUtils.getMatchingAccessibleMethod(Service.clazz(request.service()), request.method(), request.types());
 			try {
 				return this.response(request, this.exists(request, method).invoke(this.service, request.args()));
 			} catch (NoSuchMethodException exception) {
+				// 直接抛出, 提供客户端定位
 				DefaultContext.LOGGER.error(exception.getMessage(), exception);
 				throw exception;
 			} catch (Throwable throwable) {

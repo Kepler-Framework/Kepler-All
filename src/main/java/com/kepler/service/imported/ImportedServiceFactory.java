@@ -36,12 +36,12 @@ public class ImportedServiceFactory<T> implements FactoryBean<T> {
 	private final RequestValidation validation;
 
 	private final HeadersProcessor processor;
+	
+	private final IDGenerators generators;
 
 	private final RequestFactory factory;
 
 	private final HeadersContext header;
-
-	private final IDGenerators generators;
 
 	private final Set<Method> methods;
 
