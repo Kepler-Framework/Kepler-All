@@ -32,32 +32,57 @@ public class DefaultCollector implements Collector, Imported {
 	 */
 	private final AtomicInteger indexes = new AtomicInteger(1);
 
-	@Override
-	public void subscribe(Service service) throws Exception {
+	/**
+	 * 指定服务, 指定方法加载Transfers
+	 * 
+	 * @param service 服务
+	 * @param method 方法名称
+	 */
+	private void methods(Service service, String method) {
 		for (int index = 0; index < this.transfers.length; index++) {
-			// 为3个状态同时初始化
-			this.methods(service, index);
+			// 获取所有Method并初始化DefaultTransfers
+			this.transfers[index].put(service, method, new DefaultTransfers(service, method));
 		}
 	}
 
-	private void methods(Service service, int index) throws Exception {
+	@Override
+	public void subscribe(Service service) throws Exception {
 		try {
 			// 获取所有Method并初始化DefaultTransfers
 			for (Method method : Service.clazz(service).getMethods()) {
-				this.transfers[index].put(service, method.getName(), new DefaultTransfers(service, method.getName()));
+				this.methods(service, method.getName());
 			}
 		} catch (ClassNotFoundException e) {
-			DefaultCollector.LOGGER.info("Class not found: " + service + " ... ");
+			DefaultCollector.LOGGER.info("Class not found: " + service);
+		}
+	}
+
+	/**
+	 * 从ACK定位Transfers
+	 * 
+	 * @param ack
+	 * @return
+	 */
+	private Transfers get(Ack ack) {
+		Transfers transfers = Transfers.class.cast(this.curr().get(ack.request().service(), ack.request().method()));
+		if (transfers == null) {
+			// 如果未加载到Transfers(如Generic)则加载后尝试重新获取
+			this.methods(ack.request().service(), ack.request().method());
+			// 在加载时可以存在周期切换, 需要重新获取
+			return Transfers.class.cast(this.curr().get(ack.request().service(), ack.request().method()));
+		} else {
+			return transfers;
 		}
 	}
 
 	public Transfer peek(Ack ack) {
-		return DefaultTransfers.class.cast(this.curr().get(ack.request().service(), ack.request().method())).get(ack.local(), ack.target());
+		return this.get(ack).get(ack.local(), ack.target());
 	}
 
 	@Override
 	public Transfer collect(Ack ack) {
-		return DefaultTransfers.class.cast(this.curr().get(ack.request().service(), ack.request().method())).put(ack.local(), ack.target(), ack.status(), ack.elapse());
+		// 获取Transfers并判断是否为Generic
+		return this.get(ack).put(ack.local(), ack.target(), ack.status(), ack.elapse());
 	}
 
 	@SuppressWarnings("unchecked")
