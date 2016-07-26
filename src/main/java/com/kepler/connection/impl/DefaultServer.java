@@ -27,6 +27,7 @@ import com.kepler.protocol.Response;
 import com.kepler.protocol.ResponseFactory;
 import com.kepler.serial.Serials;
 import com.kepler.service.ExportedContext;
+import com.kepler.service.Quiet;
 import com.kepler.token.TokenContext;
 import com.kepler.trace.Trace;
 import com.kepler.traffic.Traffic;
@@ -121,7 +122,9 @@ public class DefaultServer {
 
 	private final Trace trace;
 
-	public DefaultServer(Trace trace, Reject reject, Traffic traffic, Serials serials, Counter counter, ServerHost local, Promotion promotion, TokenContext token, ExportedContext exported, ResponseFactory response, HeadersContext headers, ThreadPoolExecutor threads, RequestValidation validation, RequestProcessor processor) {
+	private final Quiet quiet;
+
+	public DefaultServer(Trace trace, Reject reject, Traffic traffic, Serials serials, Counter counter, ServerHost local, Promotion promotion, TokenContext token, ExportedContext exported, ResponseFactory response, HeadersContext headers, ThreadPoolExecutor threads, RequestValidation validation, RequestProcessor processor, Quiet quiet) {
 		super();
 		this.validation = validation;
 		this.processor = processor;
@@ -134,6 +137,7 @@ public class DefaultServer {
 		this.traffic = traffic;
 		this.serials = serials;
 		this.reject = reject;
+		this.quiet = quiet;
 		this.token = token;
 		this.trace = trace;
 		this.local = local;
@@ -333,8 +337,10 @@ public class DefaultServer {
 					DefaultServer.this.promotion.record(request, this.running);
 					return response;
 				} catch (Throwable e) {
-					// 业务异常
-					DefaultServer.LOGGER.error("[trace=" + request.get(Trace.TRACE) + "][message=" + e.getMessage() + "]", e);
+					// 业务异常, 如果非静默异常则提示Error
+					if (!DefaultServer.this.quiet.quiet(request, e.getClass())) {
+						DefaultServer.LOGGER.error("[trace=" + request.get(Trace.TRACE) + "][message=" + e.getMessage() + "]", e);
+					}
 					return DefaultServer.this.response.throwable(request.ack(), e, request.serial());
 				} finally {
 					// 释放Header避免同线程的其他业务复用

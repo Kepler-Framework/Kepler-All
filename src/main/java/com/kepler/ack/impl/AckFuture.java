@@ -3,7 +3,6 @@ package com.kepler.ack.impl;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.Assert;
 
 import com.kepler.KeplerLocalException;
@@ -12,7 +11,6 @@ import com.kepler.KeplerTimeoutException;
 import com.kepler.ack.Ack;
 import com.kepler.ack.Status;
 import com.kepler.admin.transfer.Collector;
-import com.kepler.annotation.QuietThrowable;
 import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.host.Host;
@@ -114,7 +112,7 @@ public class AckFuture implements Future<Object>, Ack {
 	 */
 	private boolean quiet(Class<? extends Throwable> throwable) {
 		// 已注册静默的Service, Method或Exception标记为@QuietThrowable
-		return this.quiet.quiet(this.request, throwable) || AnnotationUtils.findAnnotation(throwable, QuietThrowable.class) != null;
+		return this.quiet.quiet(this.request, throwable);
 	}
 
 	/**

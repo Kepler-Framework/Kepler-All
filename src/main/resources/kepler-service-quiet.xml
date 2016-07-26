@@ -4,7 +4,10 @@
 	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+	
+	<alias name="kepler.service.quiet" alias="kepler.service.imported.quiet"/>
+	<alias name="kepler.service.quiet" alias="kepler.service.exported.quiet"/>
 
-	<bean id="kepler.service.imported.quiet" class="com.kepler.service.imported.QuietExceptions" />
+	<bean id="kepler.service.quiet" class="com.kepler.service.imported.QuietExceptions" />
 
 </beans>
