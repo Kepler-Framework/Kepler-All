@@ -19,7 +19,7 @@ public interface GenericMarker {
 	public Headers mark(Headers headers);
 	
 	/**
-	 * 是否使用泛型
+	 * 是否使用泛型(隐式操作, remove相关Header)
 	 * 
 	 * @param headers
 	 * @return

@@ -2,6 +2,8 @@ package com.kepler.generic;
 
 import java.io.Serializable;
 
+import com.kepler.KeplerGenericException;
+
 /**
  * 代理参数
  * 
@@ -11,17 +13,9 @@ import java.io.Serializable;
 public interface GenericArg extends Serializable {
 
 	/**
-	 * 需要转换的参数类型
-	 * 
-	 * @return
-	 * @throws Exception 转换失败
-	 */
-	public Class<?> clazz() throws Exception;
-	
-	/**
-	 * 转换前的参数
+	 * 获取实际类型
 	 * 
 	 * @return
 	 */
-	public Object arg();
+	public Object arg() throws KeplerGenericException;
 }

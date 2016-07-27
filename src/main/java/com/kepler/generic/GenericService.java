@@ -15,9 +15,9 @@ public interface GenericService {
 	 * 
 	 * @param service 泛型服务
 	 * @param method 指定方法
-	 * @param args 代理参数集合
+	 * @param args 参数代理集合(GenericArg或内置类型)
 	 * @return 执行结果
 	 * @throws Throwable
 	 */
-	public Object invoke(Service service, String method, GenericArg... args) throws Throwable;
+	public Object invoke(Service service, String method, Object... args) throws Throwable;
 }

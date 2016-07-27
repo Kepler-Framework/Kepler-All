@@ -79,21 +79,23 @@ public class DefaultService implements GenericService {
 	}
 
 	/**
-	 * 参数占位符, 创建等同于参数数量的Class
+	 * 计算请求Class类型
 	 * 
 	 * @param args
 	 * @return
 	 */
-	private Class<?>[] clazz(GenericArg... args) {
+	private Class<?>[] clazz(Object... args) {
 		Class<?>[] clazz = new Class[args.length];
 		for (int index = 0; index < clazz.length; index++) {
-			clazz[index] = GenericArg.class;
+			Object arg = args[index];
+			// 如果为GenericArg则使用
+			clazz[index] = arg.getClass().isAssignableFrom(GenericArg.class) ? GenericArg.class : arg.getClass();
 		}
 		return clazz;
 	}
 
 	@Override
-	public Object invoke(Service service, String method, GenericArg... args) throws Throwable {
+	public Object invoke(Service service, String method, Object... args) throws Throwable {
 		// 尝试Import服务(如果未注册)
 		this.imported(service);
 		// PropertiesUtils.profile(ImportedServiceFactory.this.profile.profile(service), SerialID.Serial.SERIAL_KEY, SerialID.Serial.SERIAL_VAL)), 获取与Service相关的序列化策略, 并将String转换为对应Byte
