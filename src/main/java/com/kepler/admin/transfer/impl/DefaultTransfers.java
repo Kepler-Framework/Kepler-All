@@ -86,7 +86,7 @@ public class DefaultTransfers implements Transfers {
 	private void remove(Transfer each) {
 		Transfer removed = Transfer.class.cast(this.transfers.removeMultiKey(each.local(), each.target()));
 		if (removed != null) {
-			DefaultTransfers.LOGGER.info("Transfer: (" + removed.local() + ") to (" + removed.target() + ") removed ... (" + this + ")");
+			DefaultTransfers.LOGGER.debug("Transfer: (" + removed.local() + ") to (" + removed.target() + ") removed ... (" + this + ")");
 		}
 	}
 
@@ -153,7 +153,7 @@ public class DefaultTransfers implements Transfers {
 			super();
 			this.local = local;
 			this.target = target;
-			DefaultTransfers.LOGGER.warn("WriteableTransfer (" + DefaultTransfers.this.uuid + ") created: " + local + " / " + target + ") for (" + DefaultTransfers.this.service() + " / " + DefaultTransfers.this.version() + ")");
+			DefaultTransfers.LOGGER.debug("WriteableTransfer (" + DefaultTransfers.this.uuid + ") created: " + local + " / " + target + ") for (" + DefaultTransfers.this.service() + " / " + DefaultTransfers.this.version() + ")");
 		}
 
 		@Override
