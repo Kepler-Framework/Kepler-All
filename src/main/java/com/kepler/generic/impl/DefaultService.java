@@ -100,7 +100,7 @@ public class DefaultService implements GenericService {
 		this.imported(service);
 		// PropertiesUtils.profile(ImportedServiceFactory.this.profile.profile(service), SerialID.Serial.SERIAL_KEY, SerialID.Serial.SERIAL_VAL)), 获取与Service相关的序列化策略, 并将String转换为对应Byte
 		byte serial = SerialID.DYAMIC ? this.serials.output(PropertiesUtils.profile(this.profile.profile(service), SerialID.SERIAL_KEY, SerialID.SERIAL_VAL)) : this.serials.output(SerialID.SERIAL_VAL);
-		// 获取Header并标记为泛型
+		// 获取Header并标记为泛型(隐式开启Header)
 		Headers headers = this.marker.mark(this.processor.process(service, this.header.get()));
 		// 强制同步调用
 		return this.invoker.invoke(this.factory.request(headers, service, method, false, args, this.clazz(args), this.generators.get(service, method).generate(), serial));

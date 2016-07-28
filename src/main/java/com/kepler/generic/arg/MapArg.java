@@ -28,6 +28,11 @@ public class MapArg implements GenericArg {
 		this.args = args;
 	}
 
+	public MapArg put(Object key, Object value) {
+		this.args.put(key, value);
+		return this;
+	}
+
 	@Override
 	public Object arg() throws KeplerGenericException {
 		Map<Object, Object> expect = new HashMap<Object, Object>(this.args.size());
