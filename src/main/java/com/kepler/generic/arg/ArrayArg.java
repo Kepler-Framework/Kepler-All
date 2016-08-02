@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.kepler.KeplerGenericException;
 import com.kepler.generic.GenericArg;
+import com.kepler.generic.GenericArgs;
 
 /**
  * 数组转换
@@ -13,7 +14,7 @@ import com.kepler.generic.GenericArg;
  * @author KimShen
  *
  */
-public class ArrayArg implements GenericArg {
+public class ArrayArg implements GenericArg, GenericArgs {
 
 	private static final long serialVersionUID = 1L;
 
@@ -31,7 +32,7 @@ public class ArrayArg implements GenericArg {
 	 * 
 	 * @param arg
 	 */
-	public ArrayArg add(ObjectArg arg) {
+	public ArrayArg put(ObjectArg arg) {
 		this.args.add(arg);
 		return this;
 	}

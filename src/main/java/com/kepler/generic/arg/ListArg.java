@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.kepler.KeplerGenericException;
 import com.kepler.generic.GenericArg;
+import com.kepler.generic.GenericArgs;
 
 /**
  * List转换
@@ -12,20 +13,17 @@ import com.kepler.generic.GenericArg;
  * @author KimShen
  *
  */
-public class ListArg implements GenericArg {
+public class ListArg extends ArrayList<ObjectArg> implements GenericArg, GenericArgs {
 
 	private static final long serialVersionUID = 1L;
 
-	private final List<ObjectArg> args;
-
 	public ListArg() {
 		super();
-		this.args = new ArrayList<ObjectArg>();
 	}
 
 	public ListArg(List<ObjectArg> args) {
 		super();
-		this.args = args;
+		super.addAll(args);
 	}
 
 	/**
@@ -33,16 +31,16 @@ public class ListArg implements GenericArg {
 	 * 
 	 * @param arg
 	 */
-	public ListArg add(ObjectArg arg) {
-		this.args.add(arg);
+	public ListArg put(ObjectArg arg) {
+		super.add(arg);
 		return this;
 	}
 
 	@Override
 	public Object arg() throws KeplerGenericException {
-		List<Object> expect = new ArrayList<Object>(this.args.size());
+		List<Object> expect = new ArrayList<Object>(super.size());
 		// 转为为真实类型
-		for (ObjectArg each : this.args) {
+		for (ObjectArg each : this) {
 			expect.add(each.arg());
 		}
 		return expect;

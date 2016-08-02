@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.kepler.KeplerGenericException;
 import com.kepler.generic.GenericArg;
+import com.kepler.generic.GenericArgs;
 
 /**
  * Set转换
@@ -12,20 +13,17 @@ import com.kepler.generic.GenericArg;
  * @author KimShen
  *
  */
-public class SetArg implements GenericArg {
+public class SetArg extends HashSet<ObjectArg> implements GenericArg, GenericArgs {
 
 	private static final long serialVersionUID = 1L;
 
-	private final Set<ObjectArg> args;
-
 	public SetArg() {
 		super();
-		this.args = new HashSet<ObjectArg>();
 	}
 
 	public SetArg(Set<ObjectArg> args) {
 		super();
-		this.args = args;
+		super.addAll(args);
 	}
 
 	/**
@@ -33,16 +31,16 @@ public class SetArg implements GenericArg {
 	 * 
 	 * @param arg
 	 */
-	public SetArg add(ObjectArg arg) {
-		this.args.add(arg);
+	public SetArg put(ObjectArg arg) {
+		super.add(arg);
 		return this;
 	}
 
 	@Override
 	public Object arg() throws KeplerGenericException {
-		Set<Object> expect = new HashSet<Object>(this.args.size());
+		Set<Object> expect = new HashSet<Object>(super.size());
 		// 转为为真实类型
-		for (ObjectArg each : this.args) {
+		for (ObjectArg each : this) {
 			expect.add(each.arg());
 		}
 		return expect;
