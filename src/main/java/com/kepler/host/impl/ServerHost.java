@@ -2,6 +2,8 @@ package com.kepler.host.impl;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
@@ -40,19 +42,24 @@ public class ServerHost implements Serializable, Host {
 	private static final int INTERVAL = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".interval", 500);
 
 	/**
-	 * 是否使用固定端口
-	 */
-	private static final boolean STABLE = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".stable", false);
-
-	/**
 	 * 是否校验网卡类型
 	 */
 	private static final boolean CHECK = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".check", true);
 
 	/**
+	 * 是否使用固定端口
+	 */
+	private static final boolean STABLE = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".stable", false);
+
+	/**
 	 * 网卡名称模式
 	 */
 	private static final String PATTERN = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".pattern", ".*");
+
+	/**
+	 * IP选择策略
+	 */
+	private static final Policy POLICY = Policy.valueOf(PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".policy", "V4"));
 
 	/**
 	 * 服务唯一ID
@@ -83,7 +90,8 @@ public class ServerHost implements Serializable, Host {
 				Enumeration<InetAddress> addresses = intr.getInetAddresses();
 				while (addresses.hasMoreElements()) {
 					InetAddress address = addresses.nextElement();
-					if (!ServerHost.CHECK || (address.isSiteLocalAddress() && !address.isLoopbackAddress())) {
+					ServerHost.LOGGER.info("ServerHost check mode: " + (ServerHost.CHECK ? "[check]" : "[uncheck]"));
+					if (ServerHost.POLICY.allowed(address) && (!ServerHost.CHECK || (address.isSiteLocalAddress() && !address.isLoopbackAddress()))) {
 						return address.getHostAddress();
 					}
 				}
@@ -181,6 +189,33 @@ public class ServerHost implements Serializable, Host {
 
 	public String toString() {
 		return this.local.toString();
+	}
+
+	/**
+	 * IP策略
+	 * 
+	 * @author KimShen
+	 *
+	 */
+	private enum Policy {
+
+		// IPv4 IPv6, 所有
+		V4(Inet4Address.class), V6(Inet6Address.class), ALL(null);
+
+		private final Class<? extends InetAddress> inet;
+
+		private Policy(Class<? extends InetAddress> inet) {
+			this.inet = inet;
+		}
+
+		public boolean allowed(InetAddress inet) {
+			// 如果不指定(ALL)直接通过, 否则计算兼容性
+			boolean allowed = (this.inet == null ? true : this.inet.isAssignableFrom(inet.getClass()));
+			if (!allowed) {
+				ServerHost.LOGGER.warn("IP: " + inet + " will be rejected for policy [" + this + "]");
+			}
+			return allowed;
+		}
 	}
 
 	public static class Builder {
