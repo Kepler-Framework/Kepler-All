@@ -4,6 +4,8 @@
 	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+	
+	<import resource="kepler-generic-convert.xml"/>
 
 	<alias name="kepler.delegate" alias="kepler.marker" />
 

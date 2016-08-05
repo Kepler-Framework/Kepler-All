@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+    http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<bean id="kepler.generic.convert.finder" class="com.kepler.generic.convert.impl.DefaultFinder" />
+
+	<bean class="com.kepler.generic.convert.internal.DateConvert" />
+
+	<bean class="com.kepler.generic.convert.internal.FileConvert" />
+
+	<bean class="com.kepler.generic.convert.wrap.ArrayConvert" />
+
+	<bean class="com.kepler.generic.convert.wrap.ListConvert" />
+
+	<bean class="com.kepler.generic.convert.wrap.EnumConvert" />
+
+	<bean class="com.kepler.generic.convert.wrap.SetConvert" />
+
+	<bean class="com.kepler.generic.convert.wrap.ArgConvert" />
+
+	<bean class="com.kepler.generic.convert.primary.BooleanConvert" />
+
+	<bean class="com.kepler.generic.convert.primary.DoubleConvert" />
+
+	<bean class="com.kepler.generic.convert.primary.FloatConvert" />
+
+	<bean class="com.kepler.generic.convert.primary.ShortConvert" />
+
+	<bean class="com.kepler.generic.convert.primary.LongConvert" />
+
+	<bean class="com.kepler.generic.convert.primary.ByteConvert" />
+
+	<bean class="com.kepler.generic.convert.primary.IntConvert" />
+
+	<bean class="com.kepler.generic.convert.pack.BooleanConvert" />
+
+	<bean class="com.kepler.generic.convert.pack.DoubleConvert" />
+
+	<bean class="com.kepler.generic.convert.pack.FloatConvert" />
+
+	<bean class="com.kepler.generic.convert.pack.ShortConvert" />
+
+	<bean class="com.kepler.generic.convert.pack.LongConvert" />
+
+	<bean class="com.kepler.generic.convert.pack.ByteConvert" />
+
+	<bean class="com.kepler.generic.convert.pack.IntConvert" />
+
+</beans>
