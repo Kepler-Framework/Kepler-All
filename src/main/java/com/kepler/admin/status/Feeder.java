@@ -11,5 +11,9 @@ import com.kepler.host.Host;
 @Service(version = "0.0.1")
 public interface Feeder {
 
+	/**
+	 * @param local 主机
+	 * @param status 状态集合
+	 */
 	public void feed(Host local, Map<String, Object> status);
 }
