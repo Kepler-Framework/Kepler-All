@@ -48,5 +48,11 @@
 	<bean class="com.kepler.generic.convert.pack.ByteConvert" />
 
 	<bean class="com.kepler.generic.convert.pack.IntConvert" />
+	
+	<bean class="com.kepler.generic.convert.pack.SetConvert" />
+	
+	<bean class="com.kepler.generic.convert.pack.ListConvert" />
+	
+	<bean class="com.kepler.generic.convert.pack.ArrayConvert" />
 
 </beans>
