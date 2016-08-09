@@ -337,11 +337,12 @@ public class DefaultServer {
 					DefaultServer.this.promotion.record(request, this.running);
 					return response;
 				} catch (Throwable e) {
-					// 业务异常, 如果非静默异常则提示Error
+					// 业务异常, 如果非静默异常使用Error,否则使用Warn
+					String message = "[trace=" + request.get(Trace.TRACE) + "][message=" + e.getMessage() + "]";
 					if (!DefaultServer.this.quiet.quiet(request, e.getClass())) {
-						DefaultServer.LOGGER.error("[trace=" + request.get(Trace.TRACE) + "][message=" + e.getMessage() + "]", e);
+						DefaultServer.LOGGER.error(message, e);
 					} else {
-						DefaultServer.LOGGER.warn("[trace=" + request.get(Trace.TRACE) + "][message=" + e.getMessage() + "]", e);
+						DefaultServer.LOGGER.warn(message, e);
 					}
 					return DefaultServer.this.response.throwable(request.ack(), e, request.serial());
 				} finally {
