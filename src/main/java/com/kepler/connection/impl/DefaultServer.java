@@ -340,6 +340,8 @@ public class DefaultServer {
 					// 业务异常, 如果非静默异常则提示Error
 					if (!DefaultServer.this.quiet.quiet(request, e.getClass())) {
 						DefaultServer.LOGGER.error("[trace=" + request.get(Trace.TRACE) + "][message=" + e.getMessage() + "]", e);
+					} else {
+						DefaultServer.LOGGER.warn("[trace=" + request.get(Trace.TRACE) + "][message=" + e.getMessage() + "]", e);
 					}
 					return DefaultServer.this.response.throwable(request.ack(), e, request.serial());
 				} finally {
