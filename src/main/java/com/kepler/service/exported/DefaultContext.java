@@ -98,7 +98,6 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 				DefaultContext.LOGGER.error(exception.getMessage(), exception);
 				throw exception;
 			} catch (Throwable throwable) {
-				DefaultContext.LOGGER.error(throwable.getMessage(), throwable);
 				throw this.throwable(method, this.cause(throwable));
 			}
 		}
