@@ -453,8 +453,8 @@ public class ZkContext implements Demotion, Imported, Exported, ConfigSync, Appl
 					this.watch(path, child);
 				}
 			} catch (NoNodeException e) {
-				// 节点不存在仅提示Debug
-				ZkContext.LOGGER.debug(e.getMessage(), e);
+				// 节点不存在提示INFO
+				ZkContext.LOGGER.info(e.getMessage(), e);
 			} catch (Throwable e) {
 				ZkContext.LOGGER.error(e.getMessage(), e);
 			}
@@ -473,7 +473,6 @@ public class ZkContext implements Demotion, Imported, Exported, ConfigSync, Appl
 				ZkContext.LOGGER.info(e.getMessage(), e);
 			}
 		}
-
 	}
 
 	private class PathWatcher implements Watcher {
@@ -521,11 +520,13 @@ public class ZkContext implements Demotion, Imported, Exported, ConfigSync, Appl
 
 		@Override
 		public void process(WatchedEvent event) {
+			ZkContext.LOGGER.info("Receive event: " + event);
 			switch (event.getType()) {
 			case NodeChildrenChanged:
 				this.add(event);
 				return;
 			default:
+				ZkContext.LOGGER.warn("Can not process event: " + event);
 				return;
 			}
 		}
@@ -547,6 +548,7 @@ public class ZkContext implements Demotion, Imported, Exported, ConfigSync, Appl
 		@Override
 		public void process(WatchedEvent event) {
 			try {
+				ZkContext.LOGGER.info("Receive event: " + event);
 				switch (event.getType()) {
 				case NodeDataChanged:
 					ZkContext.this.listener.change(this.data, (this.data = ZkContext.this.serials.def4input().input(ZkContext.this.zoo.getData(event.getPath(), this, null), ServiceInstance.class)));
@@ -555,6 +557,7 @@ public class ZkContext implements Demotion, Imported, Exported, ConfigSync, Appl
 					ZkContext.this.listener.delete(this.data);
 					return;
 				default:
+					ZkContext.LOGGER.warn("Can not process event: " + event);
 					return;
 				}
 			} catch (Throwable e) {
@@ -596,6 +599,7 @@ public class ZkContext implements Demotion, Imported, Exported, ConfigSync, Appl
 		@Override
 		public void process(WatchedEvent event) {
 			try {
+				ZkContext.LOGGER.info("Receive event: " + event);
 				switch (event.getType()) {
 				case NodeDataChanged:
 					this.get(event).set();
@@ -604,6 +608,7 @@ public class ZkContext implements Demotion, Imported, Exported, ConfigSync, Appl
 					ZkContext.LOGGER.warn("Config: " + this.path + " will be deleted ... ");
 					return;
 				default:
+					ZkContext.LOGGER.warn("ConfigWatcher can not process event: " + event);
 					return;
 				}
 			} catch (Throwable e) {
