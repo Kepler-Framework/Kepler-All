@@ -36,7 +36,7 @@ public class KeplerGenericException extends KeplerLocalException {
 				if (propertyDescriptor.getReadMethod() == null)
 					continue;
 				String fieldName = propertyDescriptor.getName();
-				fields.put(fieldName, propertyDescriptor.getReadMethod().invoke(err));
+				getFields().put(fieldName, propertyDescriptor.getReadMethod().invoke(err));
 			}
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
@@ -60,5 +60,13 @@ public class KeplerGenericException extends KeplerLocalException {
 
 	public void setThrowableClass(List<String> throwableClass) {
 		this.throwableClass = throwableClass;
+	}
+
+	public Map<String, Object> getFields() {
+		return fields;
+	}
+
+	public void setFields(Map<String, Object> fields) {
+		this.fields = fields;
 	}
 }
