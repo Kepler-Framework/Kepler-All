@@ -3,6 +3,7 @@ package com.kepler;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,12 +32,16 @@ public class KeplerGenericException extends KeplerLocalException {
 	
 	private void initFields(Throwable err) {
 		try {
+			this.fields = new HashMap<>();
 			PropertyDescriptor[] propertyDescriptors = Introspector.getBeanInfo(err.getClass()).getPropertyDescriptors();
 			for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
 				if (propertyDescriptor.getReadMethod() == null)
 					continue;
 				String fieldName = propertyDescriptor.getName();
-				getFields().put(fieldName, propertyDescriptor.getReadMethod().invoke(err));
+				if ("class".equals(fieldName)) {
+					continue;
+				}
+				this.fields.put(fieldName, propertyDescriptor.getReadMethod().invoke(err));
 			}
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
@@ -45,7 +50,7 @@ public class KeplerGenericException extends KeplerLocalException {
 
 	private void initThrowableClass(Class<?> e) {
 		throwableClass.add(e.getName());
-		if (e.getClass().getSuperclass() != null) {
+		if (e.getSuperclass() != null) {
 			initThrowableClass(e.getSuperclass());
 		}
 	}
