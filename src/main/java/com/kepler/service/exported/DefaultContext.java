@@ -11,6 +11,7 @@ import org.apache.commons.logging.LogFactory;
 import com.kepler.KeplerRemoteException;
 import com.kepler.KeplerValidateException;
 import com.kepler.config.PropertiesUtils;
+import com.kepler.generic.GenericArgs;
 import com.kepler.generic.GenericDelegate;
 import com.kepler.generic.GenericMarker;
 import com.kepler.invoker.Invoker;
@@ -78,7 +79,7 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 		@Override
 		public Object invoke(Request request) throws Throwable {
 			// 如果为泛型消息则使用泛型处理否则使用常规调用
-			return DefaultContext.this.marker.marked(request.headers()) ? DefaultContext.this.delegate.delegate(DefaultContext.this.services.get(request.service()), request.method(), request.args()) : this.invoke4method(request);
+			return DefaultContext.this.marker.marked(request.headers()) ? DefaultContext.this.delegate.delegate(DefaultContext.this.services.get(request.service()), request.method(), GenericArgs.class.cast(request.args()[0])) : this.invoke4method(request);
 		}
 
 		/**

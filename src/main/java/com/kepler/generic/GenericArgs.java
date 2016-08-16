@@ -1,12 +1,28 @@
 package com.kepler.generic;
 
-import com.kepler.generic.arg.ObjectArg;
+import java.io.Serializable;
 
 /**
+ * 泛化参数包装
+ * 
  * @author KimShen
  *
  */
-public interface GenericArgs {
+public interface GenericArgs extends Serializable {
 
-	public GenericArgs put(ObjectArg arg);
+	/**
+	 * 获取实际Class
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public Class<?>[] classes() throws Exception;
+
+	/**
+	 * 获取实际参数
+	 * 
+	 * @return
+	 */
+	public Object[] args();
+
 }

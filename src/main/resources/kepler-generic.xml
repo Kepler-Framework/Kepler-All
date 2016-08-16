@@ -4,8 +4,9 @@
 	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
-	
-	<import resource="kepler-generic-convert.xml"/>
+
+	<import resource="kepler-generic-convert.xml" />
+	<import resource="kepler-generic-analyser.xml" />
 
 	<alias name="kepler.delegate" alias="kepler.marker" />
 
@@ -15,12 +16,13 @@
 		<constructor-arg ref="kepler.invoker" />
 		<constructor-arg ref="kepler.serials" />
 		<constructor-arg ref="kepler.header.context" />
-		<constructor-arg ref="kepler.config.profile" />
 		<constructor-arg ref="kepler.service.imported" />
 		<constructor-arg ref="kepler.protocol.request" />
 		<constructor-arg ref="kepler.header.processor" />
 	</bean>
 
-	<bean id="kepler.delegate" class="com.kepler.generic.impl.DefaultDelegate" />
+	<bean id="kepler.delegate" class="com.kepler.generic.impl.DefaultDelegate">
+		<constructor-arg ref="kepler.generic.analyse.analyser" />
+	</bean>
 
 </beans>

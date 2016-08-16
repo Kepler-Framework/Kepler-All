@@ -3,7 +3,7 @@ package com.kepler.generic;
 import com.kepler.service.Service;
 
 /**
- * 泛型调用代理
+ * 泛化调用代理
  * 
  * @author KimShen
  *
@@ -11,13 +11,22 @@ import com.kepler.service.Service;
 public interface GenericService {
 
 	/**
-	 * 代理泛型
+	 * 加载服务
 	 * 
-	 * @param service 泛型服务
+	 * @param service
+	 * @throws Exception
+	 */
+	public void imported(Service service) throws Exception;
+
+	/**
+	 * 代理泛化
+	 * 
+	 * @param service 泛化服务
 	 * @param method 指定方法
-	 * @param args 参数代理集合(GenericArg或内置类型)
+	 * @param classes 参数类型
+	 * @param args 参数代理集合
 	 * @return 执行结果
 	 * @throws Throwable
 	 */
-	public Object invoke(Service service, String method, Object... args) throws Throwable;
+	public Object invoke(Service service, String method, String[] classes, Object... args) throws Throwable;
 }

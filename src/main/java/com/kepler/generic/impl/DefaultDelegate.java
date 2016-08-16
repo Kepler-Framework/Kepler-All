@@ -1,8 +1,13 @@
 package com.kepler.generic.impl;
 
-import com.kepler.generic.GenericArg;
+import java.lang.reflect.Method;
+
+import com.kepler.KeplerGenericException;
+import com.kepler.generic.GenericArgs;
 import com.kepler.generic.GenericDelegate;
 import com.kepler.generic.GenericMarker;
+import com.kepler.generic.analyse.Fields;
+import com.kepler.generic.analyse.FieldsAnalyser;
 import com.kepler.header.Headers;
 import com.kepler.org.apache.commons.lang.StringUtils;
 import com.kepler.org.apache.commons.lang.reflect.MethodUtils;
@@ -18,7 +23,16 @@ public class DefaultDelegate implements GenericMarker, GenericDelegate {
 	 */
 	private static final String DELEGATE_KEY = DefaultDelegate.class.getName().toLowerCase() + ".delegate";
 
+	private static final Object[] EMPTY = new Object[] { null };
+
 	private static final String DELEGATE_VAL = "";
+
+	private final FieldsAnalyser analyser;
+
+	public DefaultDelegate(FieldsAnalyser analyser) {
+		super();
+		this.analyser = analyser;
+	}
 
 	@Override
 	public boolean marked(Headers headers) {
@@ -39,38 +53,55 @@ public class DefaultDelegate implements GenericMarker, GenericDelegate {
 	}
 
 	@Override
-	public Object delegate(Object service, String method, Object... args) throws Throwable {
+	public Object delegate(Object service, String method, GenericArgs args) throws Throwable {
+		// 根据参数匹配的真实方法
+		Method method_actual = this.method(service.getClass(), method, args.classes());
+		// Guard case, 唯一参数且为Null
+		if (args.args() == null) {
+			return method_actual.invoke(service, DefaultDelegate.EMPTY);
+		}
+		// 实际参数
+		Object[] args_actual = new Object[args.args().length];
+		// Method对应Fields集合
+		Fields[] fields_all = this.fields(method_actual);
+		for (int index = 0; index < fields_all.length; index++) {
+			Fields fields = fields_all[index];
+			// 如果为Null则使用Null,否则尝试解析
+			args_actual[index] = args.args()[index] == null ? null : fields.actual(args.args()[index]);
+		}
 		// 代理执行
-		return MethodUtils.invokeMethod(service, method, new Args(args).args());
+		return method_actual.invoke(service, args_actual);
 	}
 
 	/**
-	 * GenericArg转换为实际参数
+	 * 获取Method, 如果不存在则抛出异常
 	 * 
-	 * @author KimShen
-	 *
+	 * @param service
+	 * @param method
+	 * @param classes
+	 * @return
+	 * @throws Exception
 	 */
-	private class Args {
-
-		private final Object[] args;
-
-		private Args(Object... args) throws Exception {
-			// 标齐长度
-			this.args = new Object[args.length];
-			for (int index = 0; index < args.length; index++) {
-				Object value = args[index];
-				// 如果为代理参数则转换否则直接赋值
-				this.args[index] = GenericArg.class.isAssignableFrom(value.getClass()) ? GenericArg.class.cast(value).arg() : value;
-			}
+	private Method method(Class<?> service, String method, Class<?>[] classes) throws Exception {
+		Method method_actual = MethodUtils.getAccessibleMethod(service, method, classes);
+		if (method_actual == null) {
+			throw new NoSuchMethodException(method);
 		}
+		return method_actual;
+	}
 
-		/**
-		 * 获取实际参数
-		 * 
-		 * @return
-		 */
-		public Object[] args() {
-			return this.args;
+	/**
+	 * 获取Fields, 如果不存在则抛出异常
+	 * 
+	 * @param method
+	 * @return
+	 * @throws Exception
+	 */
+	private Fields[] fields(Method method) throws Exception {
+		Fields[] fields = this.analyser.get(method);
+		if (fields == null) {
+			throw new KeplerGenericException("No such analyser for: " + method + ", please set @Generic");
 		}
+		return fields;
 	}
 }

@@ -5,54 +5,36 @@
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-	<bean id="kepler.generic.convert.finder" class="com.kepler.generic.convert.impl.DefaultFinder" />
+	<bean id="kepler.generic.convert.selector" class="com.kepler.generic.convert.impl.DefaultSelector" />
 
-	<bean class="com.kepler.generic.convert.internal.DateConvert" />
+	<bean class="com.kepler.generic.convert.impl.BooleanConvertor" />
 
-	<bean class="com.kepler.generic.convert.internal.FileConvert" />
+	<bean class="com.kepler.generic.convert.impl.DoubleConvertor" />
 
-	<bean class="com.kepler.generic.convert.wrap.ArrayConvert" />
+	<bean class="com.kepler.generic.convert.impl.FloatConvertor" />
 
-	<bean class="com.kepler.generic.convert.wrap.ListConvert" />
+	<bean class="com.kepler.generic.convert.impl.ShortConvertor" />
 
-	<bean class="com.kepler.generic.convert.wrap.EnumConvert" />
+	<bean class="com.kepler.generic.convert.impl.LongConvertor" />
 
-	<bean class="com.kepler.generic.convert.wrap.SetConvert" />
+	<bean class="com.kepler.generic.convert.impl.ByteConvertor" />
 
-	<bean class="com.kepler.generic.convert.wrap.ArgConvert" />
+	<bean class="com.kepler.generic.convert.impl.IntConvertor" />
 
-	<bean class="com.kepler.generic.convert.primary.BooleanConvert" />
+	<bean class="com.kepler.generic.convert.impl.DateConvertor" />
 
-	<bean class="com.kepler.generic.convert.primary.DoubleConvert" />
+	<bean class="com.kepler.generic.convert.impl.FileConvertor" />
 
-	<bean class="com.kepler.generic.convert.primary.FloatConvert" />
+	<bean class="com.kepler.generic.convert.impl.ArrayConvertor" />
 
-	<bean class="com.kepler.generic.convert.primary.ShortConvert" />
+	<bean class="com.kepler.generic.convert.impl.EnumConvertor" />
 
-	<bean class="com.kepler.generic.convert.primary.LongConvert" />
+	<bean class="com.kepler.generic.convert.impl.ListConvertor" />
 
-	<bean class="com.kepler.generic.convert.primary.ByteConvert" />
+	<bean class="com.kepler.generic.convert.impl.MapConvertor" />
 
-	<bean class="com.kepler.generic.convert.primary.IntConvert" />
+	<bean class="com.kepler.generic.convert.impl.SetConvertor" />
 
-	<bean class="com.kepler.generic.convert.pack.BooleanConvert" />
-
-	<bean class="com.kepler.generic.convert.pack.DoubleConvert" />
-
-	<bean class="com.kepler.generic.convert.pack.FloatConvert" />
-
-	<bean class="com.kepler.generic.convert.pack.ShortConvert" />
-
-	<bean class="com.kepler.generic.convert.pack.LongConvert" />
-
-	<bean class="com.kepler.generic.convert.pack.ByteConvert" />
-
-	<bean class="com.kepler.generic.convert.pack.IntConvert" />
-	
-	<bean class="com.kepler.generic.convert.pack.SetConvert" />
-	
-	<bean class="com.kepler.generic.convert.pack.ListConvert" />
-	
-	<bean class="com.kepler.generic.convert.pack.ArrayConvert" />
+	<bean class="com.kepler.generic.convert.impl.ObjectConvertor" />
 
 </beans>

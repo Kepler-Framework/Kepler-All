@@ -12,6 +12,7 @@
 			<list>
 				<ref bean="kepler.service.exported.quiet" />
 				<ref bean="kepler.service.exported.context" />
+				<ref bean="kepler.service.exported.generic" />
 				<ref bean="kepler.service.exported.promotion" />
 				<ref bean="kepler.service.exported.zookeeper" />
 			</list>
