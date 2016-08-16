@@ -1,5 +1,6 @@
 package com.kepler.generic.impl;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import com.kepler.KeplerGenericException;
@@ -53,24 +54,31 @@ public class DefaultDelegate implements GenericMarker, GenericDelegate {
 	}
 
 	@Override
-	public Object delegate(Object service, String method, GenericArgs args) throws Throwable {
-		// 根据参数匹配的真实方法
-		Method method_actual = this.method(service.getClass(), method, args.classes());
-		// Guard case, 唯一参数且为Null
-		if (args.args() == null) {
-			return method_actual.invoke(service, DefaultDelegate.EMPTY);
+	public Object delegate(Object service, String method, GenericArgs args) throws KeplerGenericException {
+		try {
+			// 根据参数匹配的真实方法
+			Method method_actual = this.method(service.getClass(), method, args.classes());
+			// Guard case, 唯一参数且为Null
+			if (args.args() == null) {
+				return method_actual.invoke(service, DefaultDelegate.EMPTY);
+			}
+			// 实际参数
+			Object[] args_actual = new Object[args.args().length];
+			// Method对应Fields集合
+			Fields[] fields_all = this.fields(method_actual);
+			for (int index = 0; index < fields_all.length; index++) {
+				Fields fields = fields_all[index];
+				// 如果为Null则使用Null,否则尝试解析
+				args_actual[index] = args.args()[index] == null ? null : fields.actual(args.args()[index]);
+			}
+			// 代理执行
+			return method_actual.invoke(service, args_actual);
+		} catch (InvocationTargetException e) {
+			// 处理Method实际错误
+			throw new KeplerGenericException(e.getTargetException());
+		} catch (Throwable e) {
+			throw new KeplerGenericException(e);
 		}
-		// 实际参数
-		Object[] args_actual = new Object[args.args().length];
-		// Method对应Fields集合
-		Fields[] fields_all = this.fields(method_actual);
-		for (int index = 0; index < fields_all.length; index++) {
-			Fields fields = fields_all[index];
-			// 如果为Null则使用Null,否则尝试解析
-			args_actual[index] = args.args()[index] == null ? null : fields.actual(args.args()[index]);
-		}
-		// 代理执行
-		return method_actual.invoke(service, args_actual);
 	}
 
 	/**

@@ -1,5 +1,7 @@
 package com.kepler.generic;
 
+import com.kepler.KeplerGenericException;
+
 /**
  * 泛型执行代理
  * 
@@ -17,5 +19,5 @@ public interface GenericDelegate {
 	 * @return 执行结果
 	 * @throws Throwable
 	 */
-	public Object delegate(Object service, String method, GenericArgs args) throws Throwable;
+	public Object delegate(Object service, String method, GenericArgs args) throws KeplerGenericException;
 }
