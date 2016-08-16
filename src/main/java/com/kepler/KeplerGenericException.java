@@ -1,17 +1,64 @@
 package com.kepler;
 
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * @author kim 2015年8月28日
  */
 public class KeplerGenericException extends KeplerLocalException {
 
 	private static final long serialVersionUID = 1L;
+	
+	private static final Log LOGGER = LogFactory.getLog(KeplerLocalException.class);
 
-	public KeplerGenericException(Throwable e) {
-		super(e);
+	private List<String> throwableClass;
+	
+	private Map<String, Object> fields;
+	
+	public KeplerGenericException(Throwable err) {
+		super(err);
+		throwableClass = new ArrayList<>();
+		initThrowableClass(err.getClass());
+		initFields(err);
 	}
 	
+	private void initFields(Throwable err) {
+		try {
+			PropertyDescriptor[] propertyDescriptors = Introspector.getBeanInfo(err.getClass()).getPropertyDescriptors();
+			for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
+				if (propertyDescriptor.getReadMethod() == null)
+					continue;
+				String fieldName = propertyDescriptor.getName();
+				fields.put(fieldName, propertyDescriptor.getReadMethod().invoke(err));
+			}
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+		}
+	}
+
+	private void initThrowableClass(Class<?> e) {
+		throwableClass.add(e.getName());
+		if (e.getClass().getSuperclass() != null) {
+			initThrowableClass(e.getSuperclass());
+		}
+	}
+
 	public KeplerGenericException(String reason) {
 		super(reason);
+	}
+
+	public List<String> getThrowableClass() {
+		return throwableClass;
+	}
+
+	public void setThrowableClass(List<String> throwableClass) {
+		this.throwableClass = throwableClass;
 	}
 }

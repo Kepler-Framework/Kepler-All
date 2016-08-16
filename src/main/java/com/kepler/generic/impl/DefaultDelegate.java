@@ -1,5 +1,8 @@
 package com.kepler.generic.impl;
 
+import java.lang.reflect.InvocationTargetException;
+
+import com.kepler.KeplerGenericException;
 import com.kepler.generic.GenericArg;
 import com.kepler.generic.GenericDelegate;
 import com.kepler.generic.GenericMarker;
@@ -39,9 +42,15 @@ public class DefaultDelegate implements GenericMarker, GenericDelegate {
 	}
 
 	@Override
-	public Object delegate(Object service, String method, Object... args) throws Throwable {
+	public Object delegate(Object service, String method, Object... args) throws KeplerGenericException {
 		// 代理执行
-		return MethodUtils.invokeMethod(service, method, new Args(args).args());
+		try {
+			return MethodUtils.invokeMethod(service, method, new Args(args).args());
+		} catch (InvocationTargetException e) {
+			throw new KeplerGenericException(e.getTargetException());
+		} catch (Throwable e) {
+			throw new KeplerGenericException(e);
+		}
 	}
 
 	/**
