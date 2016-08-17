@@ -14,6 +14,8 @@ import com.kepler.generic.impl.DefaultMarker;
 import com.kepler.generic.reflect.GenericArgs;
 import com.kepler.generic.reflect.analyse.Fields;
 import com.kepler.generic.reflect.analyse.FieldsAnalyser;
+import com.kepler.org.apache.commons.collections.keyvalue.MultiKey;
+import com.kepler.org.apache.commons.collections.map.MultiKeyMap;
 import com.kepler.org.apache.commons.lang.reflect.MethodUtils;
 import com.kepler.protocol.Request;
 
@@ -24,6 +26,11 @@ import com.kepler.protocol.Request;
 public class DefaultDelegate extends DefaultMarker implements GenericMarker, GenericInvoker, GenericDelegate {
 
 	private static final boolean ACTIVED = PropertiesUtils.get(DefaultDelegate.class.getName().toLowerCase() + ".actived", false);
+
+	/**
+	 * 是否缓存推导方法
+	 */
+	private static final boolean CACHED = PropertiesUtils.get(DefaultDelegate.class.getName().toLowerCase() + ".cached", true);
 
 	/**
 	 * Header Key, 用于服务端判定
@@ -37,6 +44,11 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 	private final GenericResponseFactory factory;
 
 	private final FieldsAnalyser analyser;
+
+	/**
+	 * 缓存推导方法
+	 */
+	private volatile MultiKeyMap cache = new MultiKeyMap();
 
 	public DefaultDelegate(GenericResponseFactory factory, FieldsAnalyser analyser) {
 		super();
@@ -74,7 +86,7 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 	private GenericResponse delegate(Object service, String method, GenericArgs args) throws KeplerGenericException {
 		try {
 			// 根据参数匹配的真实方法
-			Method method_actual = this.method(service.getClass(), method, args.classes());
+			Method method_actual = this.method(service.getClass(), method, args);
 			// Guard case, 唯一参数且为Null
 			if (args.args() == null) {
 				return this.factory.response(method_actual.invoke(service, DefaultDelegate.EMPTY));
@@ -108,12 +120,101 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 	 * @return
 	 * @throws Exception
 	 */
-	private Method method(Class<?> service, String method, Class<?>[] classes) throws Exception {
-		Method method_actual = MethodUtils.getAccessibleMethod(service, method, classes);
+	private Method method(Class<?> service, String method, GenericArgs args) throws Exception {
+		// 获取推导方法
+		Method method_guess = this.method4guess(service, method, args);
+		// 如果无推导则尝试获取实际方法
+		Method method_actual = method_guess != null ? method_guess : MethodUtils.getAccessibleMethod(service, method, args.classes());
 		if (method_actual == null) {
 			throw new NoSuchMethodException(method);
 		}
 		return method_actual;
+	}
+
+	/**
+	 * 方法推导
+	 * 
+	 * @param service
+	 * @param method
+	 * @param args
+	 * @return
+	 */
+	private Method method4guess(Class<?> service, String method, GenericArgs args) throws Exception {
+		// 判断是否需要推导
+		if (args.guess()) {
+			// Guard case, 如果存在缓存则返回
+			Method cached = this.method4cached(service, method, args.args().length);
+			if (cached != null) {
+				return cached;
+			}
+			// 否则尝试获取方法并放入缓存
+			return this.method2cached(service, method, args.args().length);
+		}
+		// 无需推导
+		return null;
+	}
+
+	/**
+	 * 从缓存获取Mehtod
+	 * 
+	 * @param service
+	 * @param method
+	 * @param args
+	 * @return
+	 */
+	private Method method4cached(Class<?> service, String method, int length) {
+		// 开启缓存则尝试获取
+		if (DefaultDelegate.CACHED) {
+			return Method.class.cast(this.cache.get(service, method, length));
+		}
+		return null;
+	}
+
+	/**
+	 * 获取Method放入缓存
+	 * 
+	 * @param service
+	 * @param method
+	 * @param length
+	 * @return
+	 */
+	private Method method2cached(Class<?> service, String method, int length) throws Exception {
+		// 尝试遍历方法
+		for (Method each : service.getMethods()) {
+			// 名称相等并且参数类型相等则判定相同
+			if (each.getName().equals(method) && each.getParameterTypes().length == length) {
+				return DefaultDelegate.CACHED ? this.replace4cached(service, method, length, each) : each;
+			}
+		}
+		throw new NoSuchMethodException("No such method: " + method + " for class: " + service + "[args=" + length + "]");
+	}
+
+	/**
+	 * 替换缓存
+	 * 
+	 * @param service
+	 * @param method
+	 * @param length
+	 * @param actual
+	 * @return
+	 */
+	private Method replace4cached(Class<?> service, String method, int length, Method actual) {
+		synchronized (actual) {
+			// 同步检查
+			if (this.cache.containsKey(service, method, length)) {
+				return actual;
+			}
+			MultiKeyMap cached = new MultiKeyMap();
+			// 复制
+			for (Object key : this.cache.keySet()) {
+				MultiKey key_ = MultiKey.class.cast(key);
+				cached.put(key_.getKey(0), key_.getKey(1), key_.getKey(2), this.cache.get(key));
+			}
+			// 放入新缓存并替换
+			cached.put(service, method, length, method);
+			this.cache = cached;
+		}
+		return actual;
 	}
 
 	/**

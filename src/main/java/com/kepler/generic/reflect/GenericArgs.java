@@ -17,12 +17,19 @@ public interface GenericArgs extends Serializable {
 	 * @throws Exception
 	 */
 	public Class<?>[] classes() throws Exception;
-
+	
 	/**
 	 * 获取实际参数
 	 * 
 	 * @return
 	 */
 	public Object[] args();
+	
+	/**
+	 * 是否需要猜测参数
+	 * 
+	 * @return
+	 */
+	public boolean guess();
 
 }

@@ -18,6 +18,8 @@ public class DelegateArgs implements GenericArgs {
 	 */
 	private static final Map<String, Class<?>> PRIMITIVE = new HashMap<String, Class<?>>();
 
+	private static final Object[] EMPTY_OBJECT = new Object[0];
+
 	private static final long serialVersionUID = 1L;
 
 	static {
@@ -49,6 +51,11 @@ public class DelegateArgs implements GenericArgs {
 	}
 
 	public Object[] args() {
-		return this.args;
+		return this.args == null ? DelegateArgs.EMPTY_OBJECT : this.args;
+	}
+
+	public boolean guess() {
+		// 参数类型不存在并且参数数量不等于0
+		return this.classes == null && this.args.length != 0;
 	}
 }
