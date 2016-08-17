@@ -1,0 +1,54 @@
+package com.kepler.generic.reflect.impl;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import com.kepler.generic.reflect.GenericArgs;
+
+/**
+ * 参数代理
+ * 
+ * @author KimShen
+ *
+ */
+public class DelegateArgs implements GenericArgs {
+
+	/**
+	 * 原生类型映射
+	 */
+	private static final Map<String, Class<?>> PRIMITIVE = new HashMap<String, Class<?>>();
+
+	private static final long serialVersionUID = 1L;
+
+	static {
+		DelegateArgs.PRIMITIVE.put(int.class.getName(), int.class);
+		DelegateArgs.PRIMITIVE.put(long.class.getName(), long.class);
+		DelegateArgs.PRIMITIVE.put(byte.class.getName(), byte.class);
+		DelegateArgs.PRIMITIVE.put(float.class.getName(), float.class);
+		DelegateArgs.PRIMITIVE.put(short.class.getName(), short.class);
+		DelegateArgs.PRIMITIVE.put(double.class.getName(), double.class);
+		DelegateArgs.PRIMITIVE.put(boolean.class.getName(), boolean.class);
+	}
+
+	private final String[] classes;
+
+	private final Object[] args;
+
+	public DelegateArgs(String[] classes, Object... args) {
+		super();
+		this.classes = classes;
+		this.args = args;
+	}
+
+	public Class<?>[] classes() throws Exception {
+		Class<?>[] classes = new Class<?>[this.classes.length];
+		for (int index = 0; index < this.classes.length; index++) {
+			classes[index] = DelegateArgs.PRIMITIVE.containsKey(this.classes[index]) ? DelegateArgs.PRIMITIVE.get(this.classes[index]) : Class.forName(this.classes[index]);
+		}
+		return classes;
+	}
+
+	public Object[] args() {
+		return this.args;
+	}
+}

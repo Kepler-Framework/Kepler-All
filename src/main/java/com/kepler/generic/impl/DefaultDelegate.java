@@ -1,85 +1,59 @@
 package com.kepler.generic.impl;
 
-import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.kepler.KeplerGenericException;
-import com.kepler.generic.GenericArg;
 import com.kepler.generic.GenericDelegate;
-import com.kepler.generic.GenericMarker;
-import com.kepler.header.Headers;
-import com.kepler.org.apache.commons.lang.StringUtils;
-import com.kepler.org.apache.commons.lang.reflect.MethodUtils;
+import com.kepler.generic.GenericInvoker;
+import com.kepler.generic.GenericResponse;
+import com.kepler.generic.GenericResponseFactory;
+import com.kepler.protocol.Request;
 
 /**
  * @author KimShen
  *
  */
-public class DefaultDelegate implements GenericMarker, GenericDelegate {
+public class DefaultDelegate implements GenericDelegate {
 
-	/**
-	 * Header Key, 用于服务端判定
-	 */
-	private static final String DELEGATE_KEY = DefaultDelegate.class.getName().toLowerCase() + ".delegate";
+	private static final Log LOGGER = LogFactory.getLog(DefaultDelegate.class);
 
-	private static final String DELEGATE_VAL = "";
+	private final List<GenericInvoker> invokers = new ArrayList<GenericInvoker>();
 
-	@Override
-	public boolean marked(Headers headers) {
-		try {
-			// 从Header中获取并对比
-			return headers != null && StringUtils.equals(headers.get(DefaultDelegate.DELEGATE_KEY), DefaultDelegate.DELEGATE_VAL);
-		} finally {
-			if (headers != null) {
-				// 清空Header防止调用链错误
-				headers.put(DefaultDelegate.DELEGATE_KEY, null);
+	private final GenericResponseFactory factory;
+
+	private final boolean empty;
+
+	public DefaultDelegate(GenericResponseFactory factory, List<GenericInvoker> invokers) {
+		// 仅加载激活的代理
+		for (GenericInvoker each : invokers) {
+			if (each.actived()) {
+				this.invokers.add(each);
 			}
 		}
-	}
-
-	@Override
-	public Headers mark(Headers headers) {
-		return headers.put(DefaultDelegate.DELEGATE_KEY, DefaultDelegate.DELEGATE_VAL);
-	}
-
-	@Override
-	public Object delegate(Object service, String method, Object... args) throws KeplerGenericException {
-		// 代理执行
-		try {
-			return MethodUtils.invokeMethod(service, method, new Args(args).args());
-		} catch (InvocationTargetException e) {
-			throw new KeplerGenericException(e.getTargetException());
-		} catch (Throwable e) {
-			throw new KeplerGenericException(e);
+		if (this.invokers.isEmpty()) {
+			DefaultDelegate.LOGGER.info("Generic delegate was closed");
 		}
+		this.empty = this.invokers.isEmpty();
+		this.factory = factory;
 	}
 
-	/**
-	 * GenericArg转换为实际参数
-	 * 
-	 * @author KimShen
-	 *
-	 */
-	private class Args {
-
-		private final Object[] args;
-
-		private Args(Object... args) throws Exception {
-			// 标齐长度
-			this.args = new Object[args.length];
-			for (int index = 0; index < args.length; index++) {
-				Object value = args[index];
-				// 如果为代理参数则转换否则直接赋值
-				this.args[index] = GenericArg.class.isAssignableFrom(value.getClass()) ? GenericArg.class.cast(value).arg() : value;
+	@Override
+	public GenericResponse delegate(Object service, String method, Request request) throws KeplerGenericException {
+		// 未开启泛化立即返回
+		if (this.empty) {
+			return this.factory.unvalid();
+		}
+		for (GenericInvoker invoker : this.invokers) {
+			// 如果Header标记支持则调用
+			if (invoker.marker().marked(request.headers())) {
+				return invoker.delegate().delegate(service, method, request);
 			}
 		}
-
-		/**
-		 * 获取实际参数
-		 * 
-		 * @return
-		 */
-		public Object[] args() {
-			return this.args;
-		}
+		// 非泛化请求
+		return this.factory.unvalid();
 	}
 }

@@ -12,7 +12,7 @@ import com.kepler.KeplerRemoteException;
 import com.kepler.KeplerValidateException;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.generic.GenericDelegate;
-import com.kepler.generic.GenericMarker;
+import com.kepler.generic.GenericResponse;
 import com.kepler.invoker.Invoker;
 import com.kepler.org.apache.commons.lang.reflect.MethodUtils;
 import com.kepler.protocol.Request;
@@ -38,11 +38,8 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 
 	private final GenericDelegate delegate;
 
-	private final GenericMarker marker;
-
-	public DefaultContext(GenericDelegate delegate, GenericMarker marker) {
+	public DefaultContext(GenericDelegate delegate) {
 		this.delegate = delegate;
-		this.marker = marker;
 	}
 
 	public Invoker get(Service service) {
@@ -77,8 +74,10 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 
 		@Override
 		public Object invoke(Request request) throws Throwable {
-			// 如果为泛型消息则使用泛型处理否则使用常规调用
-			return DefaultContext.this.marker.marked(request.headers()) ? DefaultContext.this.delegate.delegate(DefaultContext.this.services.get(request.service()), request.method(), request.args()) : this.invoke4method(request);
+			// 尝试解析泛化请求
+			GenericResponse generic = DefaultContext.this.delegate.delegate(DefaultContext.this.services.get(request.service()), request.method(), request);
+			// 如果为泛型请求则使用泛型处理否则使用常规调用
+			return generic.valid() ? generic.response() : this.invoke4method(request);
 		}
 
 		/**
@@ -98,6 +97,7 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 				DefaultContext.LOGGER.error(exception.getMessage(), exception);
 				throw exception;
 			} catch (Throwable throwable) {
+				DefaultContext.LOGGER.error(throwable.getMessage(), throwable);
 				throw this.throwable(method, this.cause(throwable));
 			}
 		}

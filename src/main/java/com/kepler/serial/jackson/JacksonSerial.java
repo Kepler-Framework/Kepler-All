@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -64,6 +65,10 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 	private static final String NAME = "jackson";
 
 	private static final byte SERIAL = 1;
+
+	public JacksonSerial() {
+		JacksonSerial.MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+	}
 
 	@Override
 	public byte serial() {

@@ -1,21 +1,22 @@
 package com.kepler.generic;
 
+import com.kepler.KeplerGenericException;
+import com.kepler.protocol.Request;
+
 /**
- * 泛型执行代理
- * 
  * @author KimShen
  *
  */
 public interface GenericDelegate {
 
 	/**
-	 * 代理调用
+	 * 泛化调用
 	 * 
-	 * @param service 指定服务
-	 * @param method 指定方法
-	 * @param args 参数代理集合(GenericArg或内置类型)
-	 * @return 执行结果
-	 * @throws Throwable
+	 * @param service
+	 * @param method
+	 * @param request
+	 * @return
+	 * @throws KeplerGenericException
 	 */
-	public Object delegate(Object service, String method, Object... args) throws Throwable;
+	public GenericResponse delegate(Object service, String method, Request request) throws KeplerGenericException;
 }
