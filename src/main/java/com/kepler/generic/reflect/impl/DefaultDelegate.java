@@ -44,8 +44,6 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 
 	private static final String DELEGATE_VAL = "generic_reflect";
 
-	private static final Object[] EMPTY = new Object[] { null };
-
 	private final GenericResponseFactory factory;
 
 	private final FieldsAnalyser analyser;
@@ -92,17 +90,13 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 		try {
 			// 根据参数匹配的真实方法
 			Method method_actual = this.method(service.getClass(), method, args);
-			// Guard case, 唯一参数且为空
-			if (args.args().length == 0) {
-				return this.factory.response(method_actual.invoke(service, DefaultDelegate.EMPTY));
-			}
 			// 实际参数
 			Object[] args_actual = new Object[args.args().length];
 			// Method对应Fields集合
 			Fields[] fields_all = this.fields(method_actual);
 			for (int index = 0; index < fields_all.length; index++) {
 				Fields fields = fields_all[index];
-				// 如果为Null则使用Null,否则尝试解析
+				// 如果参数列表为Null或当前值为Null则使用Null,否则尝试解析
 				args_actual[index] = args.args()[index] == null ? null : fields.actual(args.args()[index]);
 			}
 			// 代理执行

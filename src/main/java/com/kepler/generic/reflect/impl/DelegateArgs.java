@@ -18,6 +18,8 @@ public class DelegateArgs implements GenericArgs {
 	 */
 	private static final Map<String, Class<?>> PRIMITIVE = new HashMap<String, Class<?>>();
 
+	private static final Class<?>[] EMPTY_CLASS = new Class<?>[0];
+
 	private static final Object[] EMPTY_OBJECT = new Object[0];
 
 	private static final long serialVersionUID = 1L;
@@ -43,6 +45,10 @@ public class DelegateArgs implements GenericArgs {
 	}
 
 	public Class<?>[] classes() throws Exception {
+		// Guard case
+		if (this.classes == null) {
+			return DelegateArgs.EMPTY_CLASS;
+		}
 		Class<?>[] classes = new Class<?>[this.classes.length];
 		for (int index = 0; index < this.classes.length; index++) {
 			classes[index] = DelegateArgs.PRIMITIVE.containsKey(this.classes[index]) ? DelegateArgs.PRIMITIVE.get(this.classes[index]) : Class.forName(this.classes[index]);

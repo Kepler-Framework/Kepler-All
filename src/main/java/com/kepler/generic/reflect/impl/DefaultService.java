@@ -30,6 +30,8 @@ public class DefaultService extends DefaultImported implements GenericService {
 	 */
 	private final Class<?>[] classes = new Class<?>[] { DelegateArgs.class };
 
+	private final Object[] empty = new Object[] { null };
+
 	public DefaultService(HeadersProcessor processor, IDGenerators generators, RequestFactory factory, HeadersContext header, GenericMarker marker, Imported imported, Serials serials, Invoker invoker) {
 		super(processor, generators, factory, header, marker, imported, serials, invoker);
 	}
@@ -45,6 +47,6 @@ public class DefaultService extends DefaultImported implements GenericService {
 		// 获取Header并标记为泛型(隐式开启Header)
 		Headers headers = super.marker.mark(super.processor.process(service, super.header.get()));
 		// 强制同步调用
-		return super.invoker.invoke(super.factory.request(headers, service, method, false, new Object[] { new DelegateArgs(classes, args) }, this.classes, super.generators.get(service, method).generate(), serial));
+		return super.invoker.invoke(super.factory.request(headers, service, method, false, new Object[] { new DelegateArgs(classes, args != null ? args : this.empty) }, this.classes, super.generators.get(service, method).generate(), serial));
 	}
 }
