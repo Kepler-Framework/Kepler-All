@@ -3,6 +3,9 @@ package com.kepler.generic.reflect.impl;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.kepler.KeplerGenericException;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.generic.GenericDelegate;
@@ -36,6 +39,8 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 	 * Header Key, 用于服务端判定
 	 */
 	private static final String DELEGATE_KEY = DefaultDelegate.class.getName().toLowerCase() + ".delegate";
+
+	private static final Log LOGGER = LogFactory.getLog(DefaultDelegate.class);
 
 	private static final String DELEGATE_VAL = "generic_reflect";
 
@@ -87,8 +92,8 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 		try {
 			// 根据参数匹配的真实方法
 			Method method_actual = this.method(service.getClass(), method, args);
-			// Guard case, 唯一参数且为Null
-			if (args.args() == null) {
+			// Guard case, 唯一参数且为空
+			if (args.args().length == 0) {
 				return this.factory.response(method_actual.invoke(service, DefaultDelegate.EMPTY));
 			}
 			// 实际参数
@@ -204,6 +209,7 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 			if (this.cache.containsKey(service, method, length)) {
 				return actual;
 			}
+			DefaultDelegate.LOGGER.info("Refresh method cache: [service" + service + "][method=" + method + "][length=" + length + "][actual=" + actual + "]");
 			MultiKeyMap cached = new MultiKeyMap();
 			// 复制
 			for (Object key : this.cache.keySet()) {
@@ -211,7 +217,7 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 				cached.put(key_.getKey(0), key_.getKey(1), key_.getKey(2), this.cache.get(key));
 			}
 			// 放入新缓存并替换
-			cached.put(service, method, length, method);
+			cached.put(service, method, length, actual);
 			this.cache = cached;
 		}
 		return actual;
