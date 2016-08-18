@@ -18,10 +18,12 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.StringUtils;
 
 import com.kepler.KeplerLocalException;
 import com.kepler.admin.status.Status;
+import com.kepler.annotation.Internal;
 import com.kepler.config.Config;
 import com.kepler.config.ConfigSync;
 import com.kepler.config.Profile;
@@ -211,7 +213,7 @@ public class ZkContext implements Demotion, Imported, Exported, ConfigSync, Appl
 			return;
 		}
 		// 订阅服务并启动Watcher监听
-		this.watcher.watch(this.road.road(ZkContext.ROOT, service.service(), service.versionAndCatalog()));
+		this.watcher.watch(service, this.road.road(ZkContext.ROOT, service.service(), service.versionAndCatalog()));
 		// 加入本地服务依赖列表
 		this.snapshot.subscribe(service);
 		this.dependency(service);
@@ -446,17 +448,35 @@ public class ZkContext implements Demotion, Imported, Exported, ConfigSync, Appl
 
 	private class ZkWatcher {
 
-		public void watch(String path) throws Exception {
+		public void watch(Service service, String path) throws Exception {
 			try {
 				// 获取所有Children Path,并监听路径变化
 				for (String child : new PathWatcher(path).snapshot()) {
 					this.watch(path, child);
 				}
 			} catch (NoNodeException e) {
-				// 节点不存在提示INFO
-				ZkContext.LOGGER.info(e.getMessage(), e);
+				this.failedWhenInternal(service, e);
 			} catch (Throwable e) {
 				ZkContext.LOGGER.error(e.getMessage(), e);
+			}
+		}
+
+		/**
+		 * Internal 服务节点处理
+		 * 
+		 * @param service
+		 * @param exception
+		 */
+		private void failedWhenInternal(Service service, NoNodeException exception) {
+			try {
+				// 标记为Internal的服务仅提示
+				if (AnnotationUtils.findAnnotation(Class.forName(service.service()), Internal.class) != null) {
+					ZkContext.LOGGER.info("Instance can not be found for internal service: " + service);
+				} else {
+					ZkContext.LOGGER.info(exception.getMessage(), exception);
+				}
+			} catch (ClassNotFoundException e1) {
+				ZkContext.LOGGER.info("Class not found: " + service);
 			}
 		}
 

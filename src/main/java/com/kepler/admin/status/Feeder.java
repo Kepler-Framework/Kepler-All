@@ -2,6 +2,7 @@ package com.kepler.admin.status;
 
 import java.util.Map;
 
+import com.kepler.annotation.Internal;
 import com.kepler.annotation.Service;
 import com.kepler.host.Host;
 
@@ -9,6 +10,7 @@ import com.kepler.host.Host;
  * @author kim 2015年8月8日
  */
 @Service(version = "0.0.1")
+@Internal
 public interface Feeder {
 
 	/**
