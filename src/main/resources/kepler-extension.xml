@@ -10,6 +10,7 @@
 			<util:list>
 				<ref bean="kepler.id" />
 				<ref bean="kepler.mock.context" />
+				<ref bean="kepler.mock.context.chain" />
 				<ref bean="kepler.trace.traces" />
 				<ref bean="kepler.config.aware" />
 				<ref bean="kepler.invoker.forks" />

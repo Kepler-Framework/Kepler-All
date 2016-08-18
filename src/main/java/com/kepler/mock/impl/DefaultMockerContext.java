@@ -12,6 +12,7 @@ import com.kepler.config.PropertiesUtils;
 import com.kepler.extension.Extension;
 import com.kepler.mock.Mocker;
 import com.kepler.mock.MockerContext;
+import com.kepler.mock.ServiceMocker;
 import com.kepler.service.Service;
 
 /**
@@ -60,13 +61,18 @@ public class DefaultMockerContext implements Extension, MockerContext {
 
 	@Override
 	public DefaultMockerContext install(Object instance) {
-		Mocker mocker = Mocker.class.cast(instance);
+		ServiceMocker mocker = ServiceMocker.class.cast(instance);
 		this.mockers.put(mocker.support().getName(), mocker);
 		return this;
 	}
 
 	@Override
 	public Class<?> interested() {
-		return Mocker.class;
+		return ServiceMocker.class;
+	}
+
+	@Override
+	public int getOrder() {
+		return Integer.MAX_VALUE;
 	}
 }

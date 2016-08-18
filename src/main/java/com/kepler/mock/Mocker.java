@@ -9,10 +9,4 @@ public interface Mocker {
 
 	public Object mock(Request request);
 
-	/**
-	 * Mock支持的Service
-	 * 
-	 * @return
-	 */
-	public Class<?> support();
 }
