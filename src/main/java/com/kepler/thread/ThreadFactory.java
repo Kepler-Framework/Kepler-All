@@ -17,8 +17,7 @@ public class ThreadFactory implements FactoryBean<ThreadPoolExecutor> {
 
 	private static final Log LOGGER = LogFactory.getLog(ThreadFactory.class);
 
-	// 最小8个线程
-	private static final int THREAD_CORE = Math.min(PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".core", Runtime.getRuntime().availableProcessors() * 2), 8);
+	private static final int THREAD_CORE = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".core", Math.max(Runtime.getRuntime().availableProcessors() * 2, 8));
 
 	private static final int THREAD_MAX = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".max", ThreadFactory.THREAD_CORE * 2);
 
@@ -57,6 +56,9 @@ public class ThreadFactory implements FactoryBean<ThreadPoolExecutor> {
 	 * For Spring
 	 */
 	public void init() {
+		ThreadFactory.LOGGER.info("Thread max: " + ThreadFactory.THREAD_MAX);
+		ThreadFactory.LOGGER.info("Thread core: " + ThreadFactory.THREAD_CORE);
+		ThreadFactory.LOGGER.info("Thread queue: " + ThreadFactory.THREAD_QUEUE);
 		this.threads = new ThreadPoolExecutor(ThreadFactory.THREAD_CORE, ThreadFactory.THREAD_MAX, ThreadFactory.THREAD_KEEPALIVE, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(ThreadFactory.THREAD_QUEUE), new ThreadPoolExecutor.CallerRunsPolicy());
 	}
 

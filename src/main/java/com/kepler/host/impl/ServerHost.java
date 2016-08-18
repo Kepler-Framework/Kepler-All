@@ -92,6 +92,7 @@ public class ServerHost implements Serializable, Host {
 					InetAddress address = addresses.nextElement();
 					ServerHost.LOGGER.info("ServerHost check mode: " + (ServerHost.CHECK ? "[check]" : "[uncheck]"));
 					if (ServerHost.POLICY.allowed(address) && (!ServerHost.CHECK || (address.isSiteLocalAddress() && !address.isLoopbackAddress() && !address.isLinkLocalAddress()))) {
+						ServerHost.LOGGER.info("ServerHost using adress: " + address);
 						return address.getHostAddress();
 					}
 				}
