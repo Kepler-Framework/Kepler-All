@@ -5,11 +5,14 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import com.kepler.KeplerRoutingException;
 import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
-import com.kepler.extension.Extension;
 import com.kepler.mock.Mocker;
 import com.kepler.mock.MockerContext;
 import com.kepler.mock.ServiceMocker;
@@ -18,7 +21,7 @@ import com.kepler.service.Service;
 /**
  * @author kim 2016年1月13日
  */
-public class DefaultMockerContext implements Extension, MockerContext {
+public class DefaultMockerContext implements ApplicationContextAware, InitializingBean, MockerContext {
 
 	private static final String MOCK_KEY = DefaultMockerContext.class.getName().toLowerCase() + ".mock";
 
@@ -34,6 +37,8 @@ public class DefaultMockerContext implements Extension, MockerContext {
 	private final Profile profile;
 
 	private boolean mock = DefaultMockerContext.MOCK_DEF;
+	
+	private ApplicationContext applicationContext;
 
 	public DefaultMockerContext(Profile profile) {
 		super();
@@ -60,19 +65,21 @@ public class DefaultMockerContext implements Extension, MockerContext {
 	}
 
 	@Override
-	public DefaultMockerContext install(Object instance) {
-		ServiceMocker mocker = ServiceMocker.class.cast(instance);
-		this.mockers.put(mocker.support().getName(), mocker);
-		return this;
-	}
-
-	@Override
-	public Class<?> interested() {
-		return ServiceMocker.class;
-	}
-
-	@Override
 	public int getOrder() {
 		return Integer.MAX_VALUE;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		Map<String, ServiceMocker> mockers = this.applicationContext.getBeansOfType(ServiceMocker.class);
+		for(ServiceMocker mocker : mockers.values()) {
+			this.mockers.put(mocker.support().getName(), mocker);
+		}
+		
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
 	}
 }

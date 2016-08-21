@@ -1,8 +1,8 @@
 package com.kepler.mock.impl;
 
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import com.kepler.extension.Extension;
 import com.kepler.mock.Mocker;
@@ -16,19 +16,13 @@ import com.kepler.service.Service;
  * @date 2016年8月17日
  */
 public class ChainedMockerContext implements Extension, MockerContext {
-
-	private List<MockerContext> mockerContexts;
+	
+	private SortedSet<MockerContext> mockerContexts = new TreeSet<>(new DefaultComparator());
 
 	@Override
 	public Extension install(Object instance) {
 		MockerContext mockerContext = MockerContext.class.cast(instance);
 		this.mockerContexts.add(mockerContext);
-		Collections.sort(this.mockerContexts, new Comparator<MockerContext>() {
-			@Override
-			public int compare(MockerContext o1, MockerContext o2) {
-				return o1.getOrder() - o2.getOrder();
-			}
-		});
 		return this;
 	}
 
@@ -52,5 +46,14 @@ public class ChainedMockerContext implements Extension, MockerContext {
 		}
 		return null;
 	}
+	
+	private class DefaultComparator implements Comparator<MockerContext> {
 
+		@Override
+		public int compare(MockerContext o1, MockerContext o2) {
+			return o1.getOrder() - o2.getOrder();
+		}
+		
+	}
+	
 }
