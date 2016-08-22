@@ -80,7 +80,7 @@ public class CompeteInvoker implements Imported, Invoker {
 					this.competed.put(service, method.getName(), compete);
 				}
 			}
-		} catch (ClassNotFoundException e) {
+		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			CompeteInvoker.LOGGER.info("Class not found: " + service);
 		}
 	}

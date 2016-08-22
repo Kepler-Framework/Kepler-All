@@ -56,7 +56,7 @@ public class DefaultContext implements Imported, CacheContext, CacheExpired {
 		try {
 			// 预加载Service对应缓存
 			this.caches.put(service, new Caches(service, PropertiesUtils.profile(DefaultContext.METHOD_KEY, this.profile.profile(service), DefaultContext.METHOD_DEF)));
-		} catch (ClassNotFoundException e) {
+		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			DefaultContext.LOGGER.warn("Class not found: " + service.service());
 		}
 	}

@@ -52,7 +52,7 @@ public class DefaultCollector implements Collector, Imported {
 			for (Method method : Service.clazz(service).getMethods()) {
 				this.methods(service, method.getName());
 			}
-		} catch (ClassNotFoundException e) {
+		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			DefaultCollector.LOGGER.info("Class not found: " + service);
 		}
 	}

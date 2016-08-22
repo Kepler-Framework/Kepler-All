@@ -60,7 +60,7 @@ public class QuietExceptions implements Quiet, Imported, Exported {
 				// Method Name : Quite List
 				methods.put(each.getName(), this.quiet(AnnotationUtils.findAnnotation(each, QuietMethod.class)));
 			}
-		} catch (ClassNotFoundException e) {
+		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			QuietExceptions.LOGGER.info("Class not found: " + service);
 		}
 	}

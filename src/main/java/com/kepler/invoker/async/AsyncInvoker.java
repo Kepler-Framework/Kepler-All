@@ -62,7 +62,7 @@ public class AsyncInvoker implements Imported, Invoker {
 				}
 			}
 			this.async.put(service, methods);
-		} catch (ClassNotFoundException e) {
+		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			AsyncInvoker.LOGGER.info("Class not found: " + service);
 		}
 	}

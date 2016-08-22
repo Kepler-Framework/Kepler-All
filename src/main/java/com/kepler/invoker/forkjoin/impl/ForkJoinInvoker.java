@@ -98,7 +98,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 					this.forkers.put(service, method.getName(), new ForkJoinInstance(forkjoin, method.getAnnotation(QuietMethod.class)));
 				}
 			}
-		} catch (ClassNotFoundException e) {
+		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			ForkJoinInvoker.LOGGER.info("Class not found: " + service);
 		}
 	}

@@ -74,7 +74,7 @@ public class BroadcastInvoker implements Imported, Invoker {
 					this.broadcast.put(service, method.getName(), broadcast);
 				}
 			}
-		} catch (ClassNotFoundException e) {
+		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			BroadcastInvoker.LOGGER.info("Class not found: " + service);
 		}
 	}
