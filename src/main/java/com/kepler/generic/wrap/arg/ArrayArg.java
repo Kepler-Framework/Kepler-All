@@ -48,7 +48,7 @@ public class ArrayArg implements GenericArg, GenericArgs {
 			return expect;
 		} catch (Exception e) {
 			// 如果不为KeplerGenericException则抛出
-			throw e.getClass().isAssignableFrom(KeplerGenericException.class) ? KeplerGenericException.class.cast(e) : new KeplerGenericException(e);
+			throw KeplerGenericException.class.isAssignableFrom(e.getClass()) ? KeplerGenericException.class.cast(e) : new KeplerGenericException(e);
 		}
 	}
 }
