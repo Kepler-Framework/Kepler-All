@@ -41,7 +41,7 @@ public class DefaultService extends DefaultImported implements GenericService {
 		for (int index = 0; index < clazz.length; index++) {
 			Object arg = args[index];
 			// 如果为GenericArg则使用
-			clazz[index] = arg.getClass().isAssignableFrom(GenericArg.class) ? GenericArg.class : arg.getClass();
+			clazz[index] = GenericArg.class.isAssignableFrom(arg.getClass()) ? GenericArg.class : arg.getClass();
 		}
 		return clazz;
 	}
