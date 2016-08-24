@@ -55,7 +55,7 @@
 
 	<bean id="kepler.invoker.actual" class="com.kepler.invoker.impl.ActualInvoker">
 		<constructor-arg ref="kepler.router" />
-		<constructor-arg ref="kepler.mock.context" />
+		<constructor-arg ref="kepler.mock.context.chain" />
 		<constructor-arg ref="kepler.channel.context" />
 	</bean>
 

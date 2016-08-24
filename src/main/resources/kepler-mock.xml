@@ -8,6 +8,8 @@
 	<bean id="kepler.mock.context" class="com.kepler.mock.impl.DefaultMockerContext">
 		<constructor-arg ref="kepler.config.profile" />
 	</bean>
+	
+	<bean id="kepler.mock.context.chain" class="com.kepler.mock.impl.ChainedMockerContext" />
 
 	<bean class="com.kepler.mock.impl.DefaultMockerContextConfig">
 		<constructor-arg ref="kepler.mock.context" />
