@@ -81,6 +81,7 @@ public class ServerHost implements Serializable, Host {
 	}
 
 	private String ip() throws Exception {
+		ServerHost.LOGGER.info("ServerHost check mode: " + (ServerHost.CHECK ? "[check]" : "[uncheck]"));
 		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
 		while (interfaces.hasMoreElements()) {
 			NetworkInterface intr = interfaces.nextElement();
@@ -90,7 +91,6 @@ public class ServerHost implements Serializable, Host {
 				Enumeration<InetAddress> addresses = intr.getInetAddresses();
 				while (addresses.hasMoreElements()) {
 					InetAddress address = addresses.nextElement();
-					ServerHost.LOGGER.info("ServerHost check mode: " + (ServerHost.CHECK ? "[check]" : "[uncheck]"));
 					if (ServerHost.POLICY.allowed(address) && (!ServerHost.CHECK || (address.isSiteLocalAddress() && !address.isLoopbackAddress() && !address.isLinkLocalAddress()))) {
 						ServerHost.LOGGER.info("ServerHost using adress: " + address);
 						return address.getHostAddress();

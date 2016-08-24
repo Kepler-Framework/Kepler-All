@@ -1,5 +1,6 @@
 package com.kepler.ack.impl;
 
+import java.util.Arrays;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -101,7 +102,7 @@ public class AckFuture implements Future<Object>, Ack {
 	 * @return
 	 */
 	private String message4request(String reason) {
-		return "ACK: " + this.request.ack() + " (" + this.request.service() + ") to " + this.target.address() + " " + reason + " after: " + this.elapse();
+		return "ACK(" + Arrays.toString(this.request.ack()) + " for " + this.request.service() + " to " + this.target.address() + " " + reason + " after: " + this.elapse();
 	}
 
 	/**
