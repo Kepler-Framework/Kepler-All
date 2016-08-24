@@ -5,14 +5,16 @@
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
+	<alias name="kepler.mock.context.chain" alias="kepler.mock.context"/>
+
 	<bean id="kepler.mock.context.chain" class="com.kepler.mock.impl.ChainedMockerContext" />
 
-	<bean id="kepler.mock.context" class="com.kepler.mock.impl.DefaultMockerContext">
+	<bean id="kepler.mock.context.default" class="com.kepler.mock.impl.DefaultMockerContext">
 		<constructor-arg ref="kepler.config.profile" />
 	</bean>
 
 	<bean class="com.kepler.mock.impl.DefaultMockerContextConfig">
-		<constructor-arg ref="kepler.mock.context" />
+		<constructor-arg ref="kepler.mock.context.default" />
 	</bean>
 
 </beans>
