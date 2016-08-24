@@ -9,7 +9,6 @@
 		<constructor-arg>
 			<util:list>
 				<ref bean="kepler.id" />
-				<ref bean="kepler.mock.context.chain" />
 				<ref bean="kepler.trace.traces" />
 				<ref bean="kepler.config.aware" />
 				<ref bean="kepler.invoker.forks" />
@@ -21,6 +20,7 @@
 				<ref bean="kepler.serials.outputs" />
 				<ref bean="kepler.router.routings" />
 				<ref bean="kepler.header.processor" />
+				<ref bean="kepler.mock.context.chain" />
 				<ref bean="kepler.transaction.persistent" />
 				<ref bean="kepler.generic.convert.selector" />
 				<ref bean="kepler.protocol.processor" />

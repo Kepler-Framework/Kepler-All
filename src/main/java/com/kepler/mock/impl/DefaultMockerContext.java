@@ -26,7 +26,7 @@ public class DefaultMockerContext implements ApplicationContextAware, Initializi
 	private static final String MOCK_KEY = DefaultMockerContext.class.getName().toLowerCase() + ".mock";
 
 	/**
-	 * 是否开启Mock
+	 * 是否默认开启Mock
 	 */
 	private static final boolean MOCK_DEF = PropertiesUtils.get(DefaultMockerContext.MOCK_KEY, false);
 
@@ -37,7 +37,7 @@ public class DefaultMockerContext implements ApplicationContextAware, Initializi
 	private final Profile profile;
 
 	private boolean mock = DefaultMockerContext.MOCK_DEF;
-	
+
 	private ApplicationContext applicationContext;
 
 	public DefaultMockerContext(Profile profile) {
@@ -45,6 +45,9 @@ public class DefaultMockerContext implements ApplicationContextAware, Initializi
 		this.profile = profile;
 	}
 
+	/**
+	 * 是否默认开启Mock
+	 */
 	public void mock(boolean mock) {
 		this.mock = mock;
 	}
@@ -72,10 +75,9 @@ public class DefaultMockerContext implements ApplicationContextAware, Initializi
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		Map<String, ServiceMocker> mockers = this.applicationContext.getBeansOfType(ServiceMocker.class);
-		for(ServiceMocker mocker : mockers.values()) {
+		for (ServiceMocker mocker : mockers.values()) {
 			this.mockers.put(mocker.support().getName(), mocker);
 		}
-		
 	}
 
 	@Override

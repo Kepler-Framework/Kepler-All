@@ -1,6 +1,5 @@
 package com.kepler.mock;
 
-
 /**
  * @author kim 2016年1月13日
  */
