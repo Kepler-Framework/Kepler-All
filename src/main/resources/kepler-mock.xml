@@ -5,6 +5,8 @@
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
+	<bean id="kepler.mock.context.chain" class="com.kepler.mock.impl.ChainedMockerContext" />
+
 	<bean id="kepler.mock.context" class="com.kepler.mock.impl.DefaultMockerContext">
 		<constructor-arg ref="kepler.config.profile" />
 	</bean>

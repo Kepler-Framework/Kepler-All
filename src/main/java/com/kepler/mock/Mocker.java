@@ -8,11 +8,4 @@ import com.kepler.protocol.Request;
 public interface Mocker {
 
 	public Object mock(Request request);
-
-	/**
-	 * Mock支持的Service
-	 * 
-	 * @return
-	 */
-	public Class<?> support();
 }
