@@ -57,8 +57,26 @@ public class PropertiesUtils {
 
 	private static final Log LOGGER = LogFactory.getLog(PropertiesUtils.class);
 
+	/**
+	 * 标记位, 是否已初始
+	 */
+	private static boolean INITED = false;
+
+	/**
+	 * 初始化配置, 被动
+	 */
 	static {
-		PropertiesUtils.init(PropertiesUtils.PROPERTIES);
+		PropertiesUtils.init();
+	}
+
+	/**
+	 * 初始化配置, 主动
+	 */
+	public static void init() {
+		if (!PropertiesUtils.INITED) {
+			PropertiesUtils.init(PropertiesUtils.PROPERTIES);
+			PropertiesUtils.INITED = true;
+		}
 	}
 
 	/**
@@ -92,7 +110,7 @@ public class PropertiesUtils {
 			String value = from.getProperty(key);
 			// Warning: trim
 			to.put(key.trim().toLowerCase(), value.trim());
-			PropertiesUtils.LOGGER.debug("Loading property key=" + key + " ,value=" + value);
+			PropertiesUtils.LOGGER.debug("Loading property key = " + key + " , value = " + value);
 		}
 	}
 
