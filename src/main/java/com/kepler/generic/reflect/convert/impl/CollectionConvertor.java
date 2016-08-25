@@ -15,7 +15,7 @@ abstract class CollectionConvertor extends ComplexConvertor {
 
 	@Override
 	public Object convert(Object source, Class<?> expect, Class<?>[] extension, FieldsAnalyser analyser) throws Exception {
-		Getter getter = super.getter(source, extension[0]);
+		Getter getter = super.getter(source);
 		// Guard case1, 空集合并且集合类型兼容
 		if (getter.empty() && expect.isAssignableFrom(source.getClass())) {
 			return source;

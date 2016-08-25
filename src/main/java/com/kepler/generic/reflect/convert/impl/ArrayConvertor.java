@@ -19,7 +19,7 @@ public class ArrayConvertor extends ComplexConvertor {
 		if (source.getClass().equals(expect)) {
 			return source;
 		}
-		return this.convert(analyser, extension, super.getter(source, extension[0]));
+		return this.convert(analyser, extension, super.getter(source));
 	}
 
 	private Object convert(FieldsAnalyser analyser, Class<?>[] extension, Getter source) throws Exception {

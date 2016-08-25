@@ -74,7 +74,7 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 	private final FieldsFilter filter;
 
 	public DefaultAnalyser(ConvertorSelector selector, FieldsFilter filter) {
-		super(); 
+		super();
 		this.selector = selector;
 		this.filter = filter;
 	}
@@ -197,7 +197,7 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 			List<Class<?>> extension = new ArrayList<Class<?>>();
 			ParameterizedType param = ParameterizedType.class.cast(generic);
 			for (Type each : param.getActualTypeArguments()) {
-				extension.add(Class.class.cast(each));
+				extension.add((each instanceof Class) ? Class.class.cast(each) : Object.class);
 			}
 			return extension.toArray(new Class[] {});
 		}

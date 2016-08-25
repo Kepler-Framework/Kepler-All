@@ -21,7 +21,7 @@ abstract class ComplexConvertor implements Convertor {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	protected Getter getter(Object source, Class<?> extension) {
+	protected Getter getter(Object source) {
 		return Collection.class.isAssignableFrom(source.getClass()) ? new CollectionGetter(Collection.class.cast(source)) : new ArrayGetter(source);
 	}
 
