@@ -21,7 +21,8 @@ public class DateConvertor implements Convertor {
 
 	@Override
 	public Object convert(Object source, Class<?> expect, Class<?>[] extension, FieldsAnalyser analyser) throws Exception {
-		return new SimpleDateFormat(DateConvertor.FORMAT).parse(source.toString());
+		// 如果Source为Long则使用new Date(long), 否则使用字符串格式化
+		return (source.getClass() == Long.class || source.getClass() == long.class) ? new Date(Long.class.cast(source)) : new SimpleDateFormat(DateConvertor.FORMAT).parse(source.toString());
 	}
 
 	@Override
