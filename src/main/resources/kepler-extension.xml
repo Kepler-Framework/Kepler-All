@@ -22,7 +22,6 @@
 				<ref bean="kepler.router.routings" />
 				<ref bean="kepler.header.processor" />
 				<ref bean="kepler.transaction.persistent" />
-				<ref bean="kepler.generic.convert.selector" />
 				<ref bean="kepler.protocol.processor" />
 				<ref bean="kepler.protocol.validation4client" />
 				<ref bean="kepler.protocol.validation4service" />

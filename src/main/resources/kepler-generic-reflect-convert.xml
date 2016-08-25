@@ -5,36 +5,26 @@
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-	<bean id="kepler.generic.convert.selector" class="com.kepler.generic.reflect.convert.impl.DefaultSelector" />
-
-	<bean class="com.kepler.generic.reflect.convert.impl.BooleanConvertor" />
-
-	<bean class="com.kepler.generic.reflect.convert.impl.DoubleConvertor" />
-
-	<bean class="com.kepler.generic.reflect.convert.impl.FloatConvertor" />
-
-	<bean class="com.kepler.generic.reflect.convert.impl.ShortConvertor" />
-
-	<bean class="com.kepler.generic.reflect.convert.impl.LongConvertor" />
-
-	<bean class="com.kepler.generic.reflect.convert.impl.ByteConvertor" />
-
-	<bean class="com.kepler.generic.reflect.convert.impl.IntConvertor" />
-
-	<bean class="com.kepler.generic.reflect.convert.impl.DateConvertor" />
-
-	<bean class="com.kepler.generic.reflect.convert.impl.FileConvertor" />
-
-	<bean class="com.kepler.generic.reflect.convert.impl.ArrayConvertor" />
-
-	<bean class="com.kepler.generic.reflect.convert.impl.EnumConvertor" />
-
-	<bean class="com.kepler.generic.reflect.convert.impl.ListConvertor" />
-
-	<bean class="com.kepler.generic.reflect.convert.impl.MapConvertor" />
-
-	<bean class="com.kepler.generic.reflect.convert.impl.SetConvertor" />
-
-	<bean class="com.kepler.generic.reflect.convert.impl.ObjectConvertor" />
+	<bean id="kepler.generic.convert.selector" class="com.kepler.generic.reflect.convert.impl.DefaultSelector">
+		<constructor-arg>
+			<util:list>
+				<bean class="com.kepler.generic.reflect.convert.impl.BooleanConvertor" />
+				<bean class="com.kepler.generic.reflect.convert.impl.DoubleConvertor" />
+				<bean class="com.kepler.generic.reflect.convert.impl.ObjectConvertor" />
+				<bean class="com.kepler.generic.reflect.convert.impl.FloatConvertor" />
+				<bean class="com.kepler.generic.reflect.convert.impl.ShortConvertor" />
+				<bean class="com.kepler.generic.reflect.convert.impl.LongConvertor" />
+				<bean class="com.kepler.generic.reflect.convert.impl.ByteConvertor" />
+				<bean class="com.kepler.generic.reflect.convert.impl.IntConvertor" />
+				<bean class="com.kepler.generic.reflect.convert.impl.DateConvertor" />
+				<bean class="com.kepler.generic.reflect.convert.impl.FileConvertor" />
+				<bean class="com.kepler.generic.reflect.convert.impl.ArrayConvertor" />
+				<bean class="com.kepler.generic.reflect.convert.impl.EnumConvertor" />
+				<bean class="com.kepler.generic.reflect.convert.impl.ListConvertor" />
+				<bean class="com.kepler.generic.reflect.convert.impl.MapConvertor" />
+				<bean class="com.kepler.generic.reflect.convert.impl.SetConvertor" />
+			</util:list>
+		</constructor-arg>
+	</bean>
 
 </beans>

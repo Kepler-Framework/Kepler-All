@@ -1,6 +1,5 @@
 package com.kepler.generic.reflect.convert.impl;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -8,7 +7,6 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.kepler.extension.Extension;
 import com.kepler.generic.reflect.analyse.FieldsAnalyser;
 import com.kepler.generic.reflect.convert.Convertor;
 import com.kepler.generic.reflect.convert.ConvertorPriority;
@@ -18,18 +16,21 @@ import com.kepler.generic.reflect.convert.ConvertorSelector;
  * @author KimShen
  *
  */
-public class DefaultSelector implements Extension, ConvertorSelector {
+public class DefaultSelector implements ConvertorSelector {
 
 	private static final Log LOGGER = LogFactory.getLog(DefaultSelector.class);
-
-	private final Comparator<Convertor> comparator = new ConvertorComparator();
-
-	private final List<Convertor> converts = new ArrayList<Convertor>();
 
 	/**
 	 * 用于无法找到任何转换器, 比如String
 	 */
 	private final Convertor nothing = new NothingConvertor();
+
+	private final List<Convertor> converts;
+
+	public DefaultSelector(List<Convertor> converts) {
+		super();
+		Collections.sort((this.converts = converts), new ConvertorComparator());
+	}
 
 	@Override
 	public Convertor select(Class<?> clazz) {
@@ -39,19 +40,6 @@ public class DefaultSelector implements Extension, ConvertorSelector {
 			}
 		}
 		return this.nothing;
-	}
-
-	@Override
-	public DefaultSelector install(Object instance) {
-		this.converts.add(Convertor.class.cast(instance));
-		// 每次加载后立即排序
-		Collections.sort(this.converts, this.comparator);
-		return this;
-	}
-
-	@Override
-	public Class<?> interested() {
-		return Convertor.class;
 	}
 
 	private class ConvertorComparator implements Comparator<Convertor> {
