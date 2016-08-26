@@ -33,6 +33,10 @@ import com.kepler.service.Service;
  * @author KimShen
  *
  */
+/**
+ * @author KimShen
+ *
+ */
 public class DefaultAnalyser implements Exported, FieldsAnalyser {
 
 	/**
@@ -81,20 +85,63 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 
 	@Override
 	public void exported(Service service, Object instance) throws Exception {
-		// 处理接口标记Generic的方法
-		for (Method method_interface : Arrays.asList(Class.forName(service.service()).getMethods())) {
-			// 获取对应实现类的Method
-			Method method_service = MethodUtils.getAccessibleMethod(instance.getClass(), method_interface.getName(), method_interface.getParameterTypes());
-			// 开启泛化, 并且开启自动分析或标记Generic则分析属性
-			if (DefaultAnalyser.ENABLED && (DefaultAnalyser.AUTOMATIC || AnnotationUtils.findAnnotation(method_service, Generic.class) != null)) {
-				Fields[] fields = new Fields[method_service.getParameterTypes().length];
-				for (int index = 0; index < method_service.getParameterTypes().length; index++) {
-					List<Class<?>> annotation_param = this.extension4param(method_service.getParameterAnnotations()[index]);
+		if (DefaultAnalyser.ENABLED) {
+			// 分析接口
+			this.analyse4interface(service, instance);
+			// 分析实现类
+			this.analyse4instance(instance);
+		}
+	}
+
+	/**
+	 * 分析接口
+	 * 
+	 * @param service
+	 * @param instance
+	 * @throws ClassNotFoundException
+	 */
+	private void analyse4interface(Service service, Object instance) throws Exception {
+		for (Method method_interface : Class.forName(service.service()).getMethods()) {
+			// 通过接口反向查找实现类对应方法并尝试自动分析
+			this.analyse(MethodUtils.getAccessibleMethod(instance.getClass(), method_interface.getName(), method_interface.getParameterTypes()), DefaultAnalyser.AUTOMATIC);
+		}
+	}
+
+	/**
+	 * 分析实现类
+	 * 
+	 * @param instance
+	 * @throws Exception
+	 */
+	private void analyse4instance(Object instance) throws Exception {
+		for (Method method : instance.getClass().getMethods()) {
+			// 关闭自动分析
+			this.analyse(method, false);
+		}
+	}
+
+	/**
+	 * 分析方法
+	 * 
+	 * @param method
+	 * @param generic 泛化标记
+	 */
+	private void analyse(Method method, boolean automatic) {
+		// 1, 存在方法 
+		// 2, 尚未分析 
+		// 3, 如果没有标记Generic则由是否允许自动分析判断是否继续, 如果标记了Generic则仅当True时继续
+		if (method != null && !this.methods.containsKey(method)) {
+			Generic generic = AnnotationUtils.findAnnotation(method, Generic.class);
+			if (generic == null ? automatic : generic.value()) {
+				Fields[] fields = new Fields[method.getParameterTypes().length];
+				for (int index = 0; index < method.getParameterTypes().length; index++) {
+					List<Class<?>> annotation_param = this.extension4param(method.getParameterAnnotations()[index]);
 					// 分析参数, 并传递扩展信息(优先采用Annotation)
-					fields[index] = this.set(method_service.getParameterTypes()[index], !annotation_param.isEmpty() ? annotation_param.toArray(new Class<?>[] {}) : this.extension(method_service.getParameterTypes()[index], method_service.getGenericParameterTypes()[index]));
+					fields[index] = this.set(method.getParameterTypes()[index], !annotation_param.isEmpty() ? annotation_param.toArray(new Class<?>[] {}) : this.extension(method.getParameterTypes()[index], method.getGenericParameterTypes()[index]));
 				}
 				// 放入Method缓存
-				this.methods.put(method_service, fields);
+				this.methods.put(method, fields);
+				DefaultAnalyser.LOGGER.info("Analyse method: " + method + " completed");
 			}
 		}
 	}

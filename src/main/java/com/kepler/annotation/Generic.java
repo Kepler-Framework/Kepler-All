@@ -15,4 +15,5 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface Generic {
 
+	public boolean value() default true;
 }
