@@ -564,8 +564,18 @@ public class HessianSerial implements SerialOutput, SerialInput {
 		}
 
 		private Response read4response(HessianInput input) throws Exception {
+			// 读取ACK
 			byte[] ack = input.readBytes();
-			return input.readBoolean() ? HessianSerial.this.response.response(ack, input.readObject(), HessianSerial.SERIAL) : HessianSerial.this.response.throwable(ack, Throwable.class.cast(input.readObject()), HessianSerial.SERIAL);
+			if (input.readBoolean()) {
+				// 正常返回
+				return HessianSerial.this.response.response(ack, input.readObject(), HessianSerial.SERIAL);
+			} else {
+				// 读取异常
+				Object throwable = input.readObject();
+				// 尝试解析异常, 如果为Throwable类型则直接抛出, 包装为类型错误
+				Throwable actual = Throwable.class.isAssignableFrom(throwable.getClass()) ? Throwable.class.cast(throwable) : new ClassNotFoundException("Class not found when service throw exception, " + throwable.toString());
+				return HessianSerial.this.response.throwable(ack, actual, HessianSerial.SERIAL);
+			}
 		}
 	}
 
