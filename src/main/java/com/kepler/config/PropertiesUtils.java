@@ -186,7 +186,14 @@ public class PropertiesUtils {
 		}
 	}
 
-	private static void store(Map<String, String> config, String... files) {
+	/**
+	 * 磁盘存储当前配置
+	 * 
+	 * @param files
+	 */
+	private static void store(String... files) {
+		// 获取内存快照(防止Merge迭代时修改导致的并发冲突)
+		Map<String, String> memory = PropertiesUtils.memory();
 		for (int index = 0; index < files.length; index++) {
 			String current = files[index];
 			// 排序Properties
@@ -194,7 +201,7 @@ public class PropertiesUtils {
 			// 从磁盘加载历史配置
 			PropertiesUtils.loading(current, properties);
 			// 历史配置合并当前配置, 最后的文件(index == files.length - 1)采用MergeAll
-			PropertiesUtils.merge(config, properties, index == files.length - 1);
+			PropertiesUtils.merge(memory, properties, index == files.length - 1);
 			try (OutputStream output = new FileOutputStream(new File(ResourceUtils.getURL(current).getFile()))) {
 				// 物理存储
 				properties.store(output, null);
@@ -316,23 +323,17 @@ public class PropertiesUtils {
 	}
 
 	/**
-	 * 获取当前配置(此方法将重新加载配置文件)
-	 * @return
-	 */
-	public static Map<String, String> properties() {
-		return PropertiesUtils.init(new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER));
-	}
-
-	/**
 	 * 更新配置
 	 * 
 	 * @param properties
 	 */
 	public static void properties(Map<String, String> properties) {
-		// 同步内存(非事务, 不回滚)
+		// 合并(后覆盖前)
 		PropertiesUtils.PROPERTIES.putAll(new FormatedMap(properties));
+		// 备份
 		PropertiesUtils.backup(PropertiesUtils.FILE_CONFIG, PropertiesUtils.FILE_VERSION, PropertiesUtils.FILE_DYNAMIC);
-		PropertiesUtils.store(PropertiesUtils.memory(), PropertiesUtils.FILE_CONFIG, PropertiesUtils.FILE_VERSION, PropertiesUtils.FILE_DYNAMIC);
+		// 持久化
+		PropertiesUtils.store(PropertiesUtils.FILE_CONFIG, PropertiesUtils.FILE_VERSION, PropertiesUtils.FILE_DYNAMIC);
 	}
 
 	/**

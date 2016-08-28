@@ -1,6 +1,5 @@
 package com.kepler.service.imported;
 
-import com.kepler.config.PropertiesUtils;
 import com.kepler.connection.Connect;
 import com.kepler.host.HostsContext;
 import com.kepler.service.ImportedListener;
@@ -13,13 +12,11 @@ import com.kepler.service.ServiceInstance;
  */
 public class DefaultImportedListener implements ImportedListener {
 
-	private static final boolean REPAIR = PropertiesUtils.get(DefaultImportedListener.class.getName().toLowerCase() + ".repair", true);
+	private final InstanceBlocker blocker;
 
 	private final HostsContext context;
 
 	private final Connect connect;
-	
-	private final InstanceBlocker blocker;
 
 	public DefaultImportedListener(HostsContext context, Connect connect, InstanceBlocker blocker) {
 		super();
@@ -30,7 +27,8 @@ public class DefaultImportedListener implements ImportedListener {
 
 	@Override
 	public void add(ServiceInstance instance) throws Exception {
-		if(this.blocker.blocked(instance)) {
+		// 仅加载非黑名单节点
+		if (this.blocker.blocked(instance)) {
 			return;
 		}
 		this.context.getOrCreate(new Service(instance.service(), instance.version(), instance.catalog())).wait(instance.host());
@@ -44,18 +42,10 @@ public class DefaultImportedListener implements ImportedListener {
 
 	@Override
 	public void change(ServiceInstance current, ServiceInstance newInstance) throws Exception {
-		if(this.blocker.blocked(newInstance)) {
-			this.delete(current);
+		// 仅修改非黑名单节点
+		if (this.blocker.blocked(current)) {
 			return;
 		}
 		this.context.getOrCreate(new Service(current.service(), current.version(), current.catalog())).replace(current.host(), newInstance.host());
-		this.repair(newInstance);
-	}
-
-	private void repair(ServiceInstance newInstance) throws Exception {
-		// 故障恢复 (If necessory)
-		if (DefaultImportedListener.REPAIR) {
-			this.connect.connect(newInstance.host());
-		}
 	}
 }

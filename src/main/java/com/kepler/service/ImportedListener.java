@@ -11,5 +11,10 @@ public interface ImportedListener {
 
 	public void delete(ServiceInstance instance) throws Exception;
 
+	/**
+	 * @param current
+	 * @param newInstance
+	 * @throws Exception
+	 */
 	public void change(ServiceInstance current, ServiceInstance newInstance) throws Exception;
 }

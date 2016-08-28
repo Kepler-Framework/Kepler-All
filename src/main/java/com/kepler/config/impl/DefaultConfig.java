@@ -129,7 +129,8 @@ public class DefaultConfig implements Config, BeanPostProcessor {
 	@Override
 	public void config(Map<String, String> configs) {
 		this.config4compare(configs);
-		Map<String, String> current = PropertiesUtils.properties();
+		// 获取内存快照
+		Map<String, String> current = PropertiesUtils.memory();
 		// 内存同步及持久化
 		PropertiesUtils.properties(configs);
 		// 全局通知

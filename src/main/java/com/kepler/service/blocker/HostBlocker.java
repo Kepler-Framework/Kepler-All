@@ -26,7 +26,7 @@ public class HostBlocker implements InstanceBlocker {
 	@Override
 	public boolean blocked(ServiceInstance instance) {
 		if (HostBlocker.BLOCKED_IP.matches(".*\\[" + instance.host().host() + "\\].*")) {
-			HostBlocker.LOGGER.warn("Block the server host[" + instance.host().host() + "] from been connected");
+			HostBlocker.LOGGER.warn("Block the server host [" + instance.host().host() + "] from been connected");
 			return true;
 		}
 		return false;
