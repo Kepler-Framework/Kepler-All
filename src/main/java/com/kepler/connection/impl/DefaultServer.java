@@ -1,13 +1,11 @@
 package com.kepler.connection.impl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.util.StringUtils;
 
 import com.kepler.KeplerException;
 import com.kepler.config.PropertiesUtils;
@@ -70,12 +68,6 @@ public class DefaultServer {
 
 	private static final short IDLE_WRITE = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".idle_write", Short.MAX_VALUE);
 
-	/**
-	 * 静默IP列表
-	 */
-	private static final String MUTE_IP = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".mute_ip", "");
-
-	private static final String IP_SEPARATOR = ",";
 	/**
 	 * 黏包最大长度
 	 */
@@ -213,9 +205,7 @@ public class DefaultServer {
 		public void channelActive(ChannelHandlerContext ctx) throws Exception {
 			this.local = ctx.channel().localAddress().toString();
 			this.target = ctx.channel().remoteAddress().toString();
-			if (!this.isMuteIp(this.target)) {
-				DefaultServer.LOGGER.info("Connect active (" + this.local + " to " + this.target + ") ...");
-			}
+			DefaultServer.LOGGER.info("Connect active (" + this.local + " to " + this.target + ") ...");
 			ctx.fireChannelActive();
 		}
 
@@ -223,9 +213,7 @@ public class DefaultServer {
 		 * @see com.kepler.host.ServerHost扫描端口时会触发对本地服务端口嗅探
 		 */
 		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-			if (!this.isMuteIp(this.target)) {
-				DefaultServer.LOGGER.info("Connect inactive (" + this.local + " to " + this.target + ") ...");
-			}
+			DefaultServer.LOGGER.info("Connect inactive (" + this.local + " to " + this.target + ") ...");
 			ctx.fireChannelInactive();
 		}
 
@@ -234,15 +222,6 @@ public class DefaultServer {
 			this.exceptionPrint(cause);
 			// 关闭通道, 并启动Inactive
 			ctx.close().addListener(ExceptionListener.TRACE);
-		}
-
-		private boolean isMuteIp(String address) {
-			if (StringUtils.isEmpty(DefaultServer.MUTE_IP) || StringUtils.isEmpty(address)) {
-				return false;
-			} else {
-				String host = address.substring(address.indexOf("/") + 1, address.indexOf(":"));
-				return Arrays.asList(DefaultServer.MUTE_IP.split(DefaultServer.IP_SEPARATOR)).contains(host);
-			}
 		}
 
 		/**
@@ -298,6 +277,12 @@ public class DefaultServer {
 				this.request = request;
 			}
 
+			/**
+			 * 初始化Request
+			 * 
+			 * @param request
+			 * @return
+			 */
 			private Reply init(Request request) {
 				// Request计数
 				DefaultServer.this.counter.incr();
@@ -310,7 +295,7 @@ public class DefaultServer {
 
 			@Override
 			public void run() {
-				// Request After Process
+				// Request After Process (Processor处理后的Request可能为Wrap, 不能使用this.request进行传递)
 				Request request = DefaultServer.this.processor.process(this.request);
 				// 使用处理后Request
 				Response response = this.init(request).response(request);
@@ -325,7 +310,7 @@ public class DefaultServer {
 
 			private Response response(Request request) {
 				try {
-					// 校验是否Reject
+					// 校验是否Reject(TODO: 是否提升至IO线程进行判断)
 					request = DefaultServer.this.reject.reject(request, this.ctx.channel().remoteAddress());
 					// 校验请求合法性
 					request = DefaultServer.this.token.valid(request);
