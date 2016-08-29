@@ -1,5 +1,6 @@
 package com.kepler.cache.impl;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -8,10 +9,8 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.StringUtils;
 
-import com.kepler.annotation.Cached;
 import com.kepler.cache.Cache;
 import com.kepler.cache.CacheContext;
 import com.kepler.cache.CacheExpired;
@@ -187,11 +186,17 @@ public class DefaultContext implements Imported, CacheContext, CacheExpired {
 			while (matcher.find()) {
 				String method = matcher.group(2);
 				String max = matcher.group(3);
-				// 仅加载无参并标记Cached的方法
-				if (AnnotationUtils.findAnnotation(clazz.getMethod(method, new Class<?>[] {}), Cached.class) != null) {
-					DefaultContext.LOGGER.info("Prepare cache: [method=" + method + "][max=" + max + "]");
-					// 如果为空则表示为最大值
-					this.caches.put(method, new DefaultCache(service, method, StringUtils.isEmpty(max) ? Long.MAX_VALUE : Long.valueOf(max)));
+				try {
+					Method actual = clazz.getMethod(method, new Class<?>[] {});
+					if (!actual.getReturnType().equals(void.class)) {
+						DefaultContext.LOGGER.info("Prepare cache: [method=" + method + "][max=" + max + "]");
+						// 如果为空则表示为最大值
+						this.caches.put(method, new DefaultCache(service, method, StringUtils.isEmpty(max) ? Long.MAX_VALUE : Long.valueOf(max)));
+					} else {
+						DefaultContext.LOGGER.warn("Method " + method + " can not return void");
+					}
+				} catch (NoSuchMethodException e) {
+					DefaultContext.LOGGER.warn("Service " + service + " can not found method: public * " + method + "()");
 				}
 			}
 		}
