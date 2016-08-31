@@ -47,13 +47,29 @@ public class TraceContext {
 	 * 
 	 * @return
 	 */
-	public static String trace() {
+	public static String create() {
 		// 开启Trace并开启Header
 		if (Headers.ENABLED && Trace.ENABLED_DEF) {
 			Headers headers = ThreadHeaders.HEADERS.get();
 			String trace = headers.get(Trace.TRACE);
 			// 如果Trace不存在则创建Trace
 			return StringUtils.isEmpty(trace) ? TraceContext.generate(headers) : trace;
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * 释放上下文相关Trace
+	 * 
+	 * @return
+	 */
+	public static String release() {
+		if (Headers.ENABLED && Trace.ENABLED_DEF) {
+			Headers headers = ThreadHeaders.HEADERS.get();
+			String trace = headers.get(Trace.TRACE);
+			headers.put(Trace.TRACE, null);
+			return trace;
 		} else {
 			return null;
 		}

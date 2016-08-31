@@ -143,7 +143,7 @@ public class ThreadFactoryDelegate implements ExecutorService {
 				// 恢复Headers
 				ThreadFactoryDelegate.this.context.set(this.header);
 				// 开启Trace
-				TraceContext.trace();
+				TraceContext.create();
 				// 代理执行
 				this.runnable.run();
 			} finally {
@@ -171,7 +171,7 @@ public class ThreadFactoryDelegate implements ExecutorService {
 				// 恢复Headers
 				ThreadFactoryDelegate.this.context.set(this.header);
 				// 开启Trace
-				TraceContext.trace();
+				TraceContext.create();
 				// 代理执行
 				return this.callable.call();
 			} finally {
