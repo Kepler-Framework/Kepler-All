@@ -18,6 +18,7 @@ import org.apache.commons.logging.LogFactory;
 import com.kepler.header.Headers;
 import com.kepler.header.HeadersContext;
 import com.kepler.header.impl.LazyHeaders;
+import com.kepler.header.impl.TraceContext;
 
 /**
  * 线程池代理, 用于在多线程间传递Headers
@@ -141,6 +142,8 @@ public class ThreadFactoryDelegate implements ExecutorService {
 			try {
 				// 恢复Headers
 				ThreadFactoryDelegate.this.context.set(this.header);
+				// 开启Trace
+				TraceContext.trace();
 				// 代理执行
 				this.runnable.run();
 			} finally {
@@ -167,6 +170,8 @@ public class ThreadFactoryDelegate implements ExecutorService {
 			try {
 				// 恢复Headers
 				ThreadFactoryDelegate.this.context.set(this.header);
+				// 开启Trace
+				TraceContext.trace();
 				// 代理执行
 				return this.callable.call();
 			} finally {

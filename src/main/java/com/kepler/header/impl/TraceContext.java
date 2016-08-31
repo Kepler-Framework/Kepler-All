@@ -48,7 +48,8 @@ public class TraceContext {
 	 * @return
 	 */
 	public static String trace() {
-		if (Headers.ENABLED) {
+		// 开启Trace并开启Header
+		if (Headers.ENABLED && Trace.ENABLED_DEF) {
 			Headers headers = ThreadHeaders.HEADERS.get();
 			String trace = headers.get(Trace.TRACE);
 			// 如果Trace不存在则创建Trace
