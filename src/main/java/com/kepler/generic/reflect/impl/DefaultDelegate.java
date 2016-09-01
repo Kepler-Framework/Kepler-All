@@ -54,7 +54,6 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 	private volatile MultiKeyMap cache = new MultiKeyMap();
 
 	public DefaultDelegate(GenericResponseFactory factory, FieldsAnalyser analyser) {
-		super();
 		this.analyser = analyser;
 		this.factory = factory;
 	}

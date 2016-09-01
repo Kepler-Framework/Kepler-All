@@ -35,6 +35,8 @@ public interface Headers extends Serializable {
 	public Collection<String> keys();
 	
 	public Headers reset();
+	
+	public Headers delete(String key);
 
 	public int length();
 }

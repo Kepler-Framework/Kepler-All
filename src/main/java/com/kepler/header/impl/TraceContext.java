@@ -51,7 +51,8 @@ public class TraceContext {
 		// 开启Trace并开启Header
 		if (Headers.ENABLED && Trace.ENABLED_DEF) {
 			Headers headers = ThreadHeaders.HEADERS.get();
-			String trace = headers.get(Trace.TRACE);
+			// 从Trace获取, 不存在则从Trace conver获取
+			String trace = headers.get(Trace.TRACE, headers.get(Trace.TRACE_COVER));
 			// 如果Trace不存在则创建Trace
 			return StringUtils.isEmpty(trace) ? TraceContext.generate(headers) : trace;
 		} else {
@@ -68,7 +69,7 @@ public class TraceContext {
 		if (Headers.ENABLED && Trace.ENABLED_DEF) {
 			Headers headers = ThreadHeaders.HEADERS.get();
 			String trace = headers.get(Trace.TRACE);
-			headers.put(Trace.TRACE, null);
+			headers.delete(Trace.TRACE_COVER);
 			return trace;
 		} else {
 			return null;
@@ -84,7 +85,7 @@ public class TraceContext {
 	private static String generate(Headers headers) {
 		// 使用UUID创建Trace
 		String trace = UUID.randomUUID().toString();
-		headers.put(Trace.TRACE, TraceContext.log4jmdc(trace));
+		headers.put(Trace.TRACE_COVER, TraceContext.log4jmdc(trace));
 		return trace;
 	}
 

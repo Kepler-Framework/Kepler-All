@@ -67,11 +67,11 @@ public class TraceProcessor implements HeadersProcessor {
 	}
 
 	private void reset(Headers headers) {
-		headers.put(Trace.TRACE, null);
-		headers.put(Trace.TRACE_COVER, null);
-		headers.put(Trace.SPAN, null);
-		headers.put(Trace.SPAN_PARENT, null);
-		headers.put(Trace.START_TIME, null);
+		headers.delete(Trace.TRACE);
+		headers.delete(Trace.TRACE_COVER);
+		headers.delete(Trace.SPAN);
+		headers.delete(Trace.SPAN_PARENT);
+		headers.delete(Trace.START_TIME);
 	}
 
 	private String bytesToString(byte[] bytes) {

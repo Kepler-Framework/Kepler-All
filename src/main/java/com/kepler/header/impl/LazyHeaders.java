@@ -110,6 +110,14 @@ public class LazyHeaders implements Headers {
 		return this;
 	}
 
+	public Headers delete(String key) {
+		// 已存在则删除
+		if (this.headers != null) {
+			this.headers.remove(key);
+		}
+		return this;
+	}
+
 	public int length() {
 		return this.headers == null ? 0 : this.headers.size();
 	}

@@ -32,7 +32,6 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 	private final GenericResponseFactory factory;
 
 	public DefaultDelegate(GenericResponseFactory factory) {
-		super();
 		this.factory = factory;
 	}
 
