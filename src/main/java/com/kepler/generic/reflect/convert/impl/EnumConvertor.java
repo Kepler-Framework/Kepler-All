@@ -1,7 +1,6 @@
 package com.kepler.generic.reflect.convert.impl;
 
 import com.kepler.generic.reflect.analyse.FieldsAnalyser;
-import com.kepler.generic.reflect.convert.Convertor;
 import com.kepler.generic.reflect.convert.ConvertorPriority;
 import com.kepler.org.apache.commons.lang.reflect.MethodUtils;
 
@@ -9,10 +8,10 @@ import com.kepler.org.apache.commons.lang.reflect.MethodUtils;
  * @author KimShen
  *
  */
-public class EnumConvertor implements Convertor {
+public class EnumConvertor extends SimpleConvertor {
 
 	@Override
-	public Object convert(Object source, Class<?> expect, Class<?>[] extension, FieldsAnalyser analyser) throws Exception {
+	public Object doConvert(Object source, Class<?> expect, Class<?>[] extension, FieldsAnalyser analyser) throws Exception {
 		return MethodUtils.invokeStaticMethod(expect, "valueOf", source.toString());
 	}
 

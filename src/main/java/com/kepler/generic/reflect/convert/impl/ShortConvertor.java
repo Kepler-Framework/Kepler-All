@@ -1,17 +1,16 @@
 package com.kepler.generic.reflect.convert.impl;
 
 import com.kepler.generic.reflect.analyse.FieldsAnalyser;
-import com.kepler.generic.reflect.convert.Convertor;
 import com.kepler.generic.reflect.convert.ConvertorPriority;
 
 /**
  * @author KimShen
  *
  */
-public class ShortConvertor implements Convertor {
+public class ShortConvertor extends SimpleConvertor {
 
 	@Override
-	public Object convert(Object source, Class<?> expect, Class<?>[] extension, FieldsAnalyser analyser) throws Exception {
+	public Object doConvert(Object source, Class<?> expect, Class<?>[] extension, FieldsAnalyser analyser) throws Exception {
 		Short s = Short.valueOf(source.toString());
 		return Short.class.equals(expect) ? s : s.shortValue();
 	}
