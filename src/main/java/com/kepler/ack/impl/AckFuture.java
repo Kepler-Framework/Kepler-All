@@ -1,11 +1,5 @@
 package com.kepler.ack.impl;
 
-import java.util.Arrays;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-
-import org.springframework.util.Assert;
-
 import com.kepler.KeplerLocalException;
 import com.kepler.KeplerRemoteException;
 import com.kepler.KeplerTimeoutException;
@@ -18,6 +12,11 @@ import com.kepler.host.Host;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.Response;
 import com.kepler.service.Quiet;
+import org.springframework.util.Assert;
+
+import java.util.Arrays;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Warning: 监视器使用this避免创建无用对象(协商)
@@ -26,7 +25,7 @@ import com.kepler.service.Quiet;
  */
 public class AckFuture implements Future<Object>, Ack {
 
-	private static final String TIMEOUT_KEY = AckFuture.class.getName().toLowerCase() + ".timeout";
+	public static final String TIMEOUT_KEY = AckFuture.class.getName().toLowerCase() + ".timeout";
 
 	/**
 	 * 默认最大超时

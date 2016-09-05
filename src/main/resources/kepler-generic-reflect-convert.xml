@@ -9,6 +9,7 @@
 		<constructor-arg>
 			<util:list>
 				<bean class="com.kepler.generic.reflect.convert.impl.BooleanConvertor" />
+				<bean class="com.kepler.generic.reflect.convert.impl.StringConvertor" />
 				<bean class="com.kepler.generic.reflect.convert.impl.DoubleConvertor" />
 				<bean class="com.kepler.generic.reflect.convert.impl.ObjectConvertor" />
 				<bean class="com.kepler.generic.reflect.convert.impl.FloatConvertor" />

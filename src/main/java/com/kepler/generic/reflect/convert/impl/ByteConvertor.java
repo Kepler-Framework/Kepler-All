@@ -1,16 +1,16 @@
 package com.kepler.generic.reflect.convert.impl;
 
 import com.kepler.generic.reflect.analyse.FieldsAnalyser;
-import com.kepler.generic.reflect.convert.Convertor;
 import com.kepler.generic.reflect.convert.ConvertorPriority;
 
 /**
  * @author KimShen
  *
  */
-public class ByteConvertor implements Convertor {
+public class ByteConvertor extends SimpleConvertor {
 
-	public Object convert(Object source, Class<?> expect, Class<?>[] extension, FieldsAnalyser analyser) throws Exception {
+	@Override
+	public Object doConvert(Object source, Class<?> expect, Class<?>[] extension, FieldsAnalyser analyser) throws Exception {
 		Byte b = Byte.valueOf(source.toString());
 		return Byte.class.equals(expect) ? b : b.byteValue();
 	}
