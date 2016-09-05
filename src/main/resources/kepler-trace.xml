@@ -7,6 +7,8 @@
 
 	<alias name="kepler.trace.traces" alias="kepler.trace" />
 
-	<bean id="kepler.trace.traces" class="com.kepler.trace.Traces" />
+	<bean id="kepler.trace.traces" class="com.kepler.trace.impl.Traces" />
+
+	<bean id="kepler.trace.collector" class="com.kepler.trace.impl.DefaultCollector" />
 
 </beans>

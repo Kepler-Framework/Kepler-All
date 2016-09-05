@@ -247,8 +247,8 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 				DefaultTransaction.LOGGER.error("UUID: " + this.request.uuid() + " message: " + e.getMessage(), e);
 				return false;
 			} finally {
-				// 释放Headers
-				DefaultTransaction.this.headers.release();
+				// 重置Headers
+				DefaultTransaction.this.headers.reset();
 				Guid.release();
 			}
 		}

@@ -43,37 +43,17 @@ public class TraceContext {
 	}
 
 	/**
-	 * 获取上下文相关Trace, 如果不存在则创建. 如果未开启Header则返回Null
+	 * 尝试从上下文获取Headers
 	 * 
 	 * @return
 	 */
-	public static String create() {
-		// 开启Trace并开启Header
-		if (Headers.ENABLED && Trace.ENABLED_DEF) {
-			Headers headers = ThreadHeaders.HEADERS.get();
-			// 从Trace获取, 不存在则从Trace conver获取
-			String trace = headers.get(Trace.TRACE, headers.get(Trace.TRACE_COVER));
-			// 如果Trace不存在则创建Trace
-			return StringUtils.isEmpty(trace) ? TraceContext.generate(headers) : trace;
-		} else {
-			return null;
+	private static Headers headers() {
+		// 如果作为服务并且上游系统未开启Header则Header可能为Null
+		Headers headers = ThreadHeaders.HEADERS.get();
+		if (headers == null) {
+			ThreadHeaders.HEADERS.set(headers = new LazyHeaders());
 		}
-	}
-
-	/**
-	 * 释放上下文相关Trace
-	 * 
-	 * @return
-	 */
-	public static String release() {
-		if (Headers.ENABLED && Trace.ENABLED_DEF) {
-			Headers headers = ThreadHeaders.HEADERS.get();
-			String trace = headers.get(Trace.TRACE);
-			headers.delete(Trace.TRACE_COVER);
-			return trace;
-		} else {
-			return null;
-		}
+		return headers;
 	}
 
 	/**
@@ -82,11 +62,35 @@ public class TraceContext {
 	 * @param headers 当前上下文
 	 * @return 创建后的Trace
 	 */
-	private static String generate(Headers headers) {
+	private static String trace(Headers headers) {
 		// 使用UUID创建Trace
 		String trace = UUID.randomUUID().toString();
 		headers.put(Trace.TRACE_COVER, TraceContext.log4jmdc(trace));
 		return trace;
+	}
+
+	/**
+	 * 获取上下文相关Trace, 如果不存在则创建.
+	 * 
+	 * @return
+	 */
+	public static String get() {
+		Headers headers = TraceContext.headers();
+		// TODO, 获取Trace, 0.0.8去除TRACE_COVER
+		String trace = headers.get(Trace.TRACE_COVER);
+		return StringUtils.isEmpty(trace) ? TraceContext.trace(headers) : trace;
+	}
+
+	/**
+	 * 释放上下文相关Trace(将导致之后的调用Trace中断)
+	 * 
+	 * @return
+	 */
+	public static void release() {
+		Headers headers = ThreadHeaders.HEADERS.get();
+		if (headers != null) {
+			headers.delete(Trace.TRACE_COVER);
+		}
 	}
 
 	/**

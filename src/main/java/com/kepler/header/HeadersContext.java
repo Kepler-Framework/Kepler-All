@@ -15,11 +15,4 @@ public interface HeadersContext {
 	 * @return
 	 */
 	public Headers reset();
-
-	/**
-	 * 返回并释放Headers
-	 * 
-	 * @return
-	 */
-	public Headers release();
 }

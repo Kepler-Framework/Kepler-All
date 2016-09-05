@@ -31,12 +31,4 @@ public class ThreadHeaders implements HeadersContext {
 	public Headers reset() {
 		return ThreadHeaders.HEADERS.get().reset();
 	}
-
-	public Headers release() {
-		// 仅Headers.enabled=true时触发Realease, 此时必须存在Headers
-		Headers headers = ThreadHeaders.HEADERS.get();
-		ThreadHeaders.HEADERS.set(null);
-		ThreadHeaders.HEADERS.remove();
-		return headers;
-	}
 }

@@ -2,6 +2,7 @@ package com.kepler.connection.impl;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.kepler.admin.status.impl.StatusTask;
 import com.kepler.connection.Counter;
 
 /**
@@ -15,12 +16,17 @@ public class DefaultCounter implements Counter {
 
 	@Override
 	public void incr() {
-		this.counter.incrementAndGet();
+		// 开启统计时收集
+		if (StatusTask.ENABLED) {
+			this.counter.incrementAndGet();
+		}
 	}
 
 	@Override
 	public void decr() {
-		this.counter.decrementAndGet();
+		if (StatusTask.ENABLED) {
+			this.counter.decrementAndGet();
+		}
 	}
 
 	@Override

@@ -152,6 +152,7 @@ public class DefaultServer {
 		this.inits.add(new ExportedHandler());
 		// 服务配置(绑定端口,SO_REUSEADDR=true)
 		this.bootstrap.group(new NioEventLoopGroup(DefaultServer.EVENTLOOP_PARENT), new NioEventLoopGroup(DefaultServer.EVENTLOOP_CHILD)).channelFactory(DefaultServer.FACTORY).childHandler(this.inits.factory()).option(ChannelOption.SO_REUSEADDR, true).bind(DefaultServer.BINDING, this.local.port()).sync();
+		DefaultServer.LOGGER.info("Server " + this.local + " started ... ");
 	}
 
 	/**
@@ -331,8 +332,8 @@ public class DefaultServer {
 					}
 					return DefaultServer.this.response.throwable(request.ack(), e, request.serial());
 				} finally {
-					// 释放Header避免同线程的其他业务复用
-					DefaultServer.this.headers.release();
+					// 重置Header避免同线程的其他业务复用
+					DefaultServer.this.headers.reset();
 					// Request执行完毕
 					DefaultServer.this.counter.decr();
 				}

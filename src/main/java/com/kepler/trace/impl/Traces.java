@@ -1,4 +1,4 @@
-package com.kepler.trace;
+package com.kepler.trace.impl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +9,7 @@ import org.apache.commons.logging.LogFactory;
 import com.kepler.extension.Extension;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.Response;
+import com.kepler.trace.Trace;
 
 /**
  * @author kim 2015年12月24日
