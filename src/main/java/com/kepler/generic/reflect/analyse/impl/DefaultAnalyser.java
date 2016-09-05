@@ -504,8 +504,12 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 			 * @throws Exception
 			 */
 			public void invoke(Object ob, Object value) throws Exception {
-				// 转换后写入
-				MethodUtils.invokeMethod(ob, this.setter, DefaultAnalyser.this.assignable(value, this.clazz) ? value : this.convertor.convert(value, this.clazz, this.extension, DefaultAnalyser.this));
+				Object actual = DefaultAnalyser.this.assignable(value, this.clazz) ? value : this.convertor.convert(value, this.clazz, this.extension, DefaultAnalyser.this);
+				// Set only not null
+				if (actual != null) {
+					// 转换后写入
+					MethodUtils.invokeMethod(ob, this.setter, actual);
+				}
 			}
 
 			public String toString() {

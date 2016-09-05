@@ -5,7 +5,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.kepler.admin.status.impl.StatusTask;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.header.impl.TraceContext;
-import com.kepler.service.Service;
+import com.kepler.protocol.Request;
+import com.kepler.service.Quiet;
 import com.kepler.trace.TraceCause;
 import com.kepler.trace.TraceCollector;
 
@@ -20,14 +21,17 @@ public class DefaultCollector implements TraceCollector {
 
 	private final AtomicInteger index = new AtomicInteger();
 
+	private final Quiet quiet;
+
 	/**
 	 * 周期性缓存池 
 	 */
 	private TraceCause[] traces;
 
-	public DefaultCollector() {
+	public DefaultCollector(Quiet quiet) {
 		super();
 		this.reset();
+		this.quiet = quiet;
 	}
 
 	/**
@@ -45,9 +49,10 @@ public class DefaultCollector implements TraceCollector {
 	}
 
 	@Override
-	public void put(Service service, String method) {
-		if (StatusTask.ENABLED) {
-			this.traces[this.index.incrementAndGet() & DefaultCollector.MAX] = new DefaultCause(service, method, TraceContext.get());
+	public void put(Request request, Throwable throwable) {
+		// 收集非静默异常
+		if (StatusTask.ENABLED && this.quiet.quiet(request, throwable.getClass())) {
+			this.traces[this.index.incrementAndGet() & DefaultCollector.MAX] = new DefaultCause(request.service(), request.method(), TraceContext.get());
 		}
 	}
 }

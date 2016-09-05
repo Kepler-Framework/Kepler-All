@@ -9,6 +9,8 @@
 
 	<bean id="kepler.trace.traces" class="com.kepler.trace.impl.Traces" />
 
-	<bean id="kepler.trace.collector" class="com.kepler.trace.impl.DefaultCollector" />
+	<bean id="kepler.trace.collector" class="com.kepler.trace.impl.DefaultCollector">
+		<constructor-arg ref="kepler.service.quiet" />
+	</bean>
 
 </beans>

@@ -1,6 +1,6 @@
 package com.kepler.trace;
 
-import com.kepler.service.Service;
+import com.kepler.protocol.Request;
 
 /**
  * @author KimShen
@@ -9,10 +9,9 @@ import com.kepler.service.Service;
 public interface TraceCollector {
 
 	/**
-	 * @param service 服务
-	 * @param method  方法
+	 * @param request 
 	 */
-	public void put(Service service, String method);
+	public void put(Request request, Throwable throwable);
 
 	/**
 	 * 获取并重置

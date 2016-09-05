@@ -92,7 +92,7 @@ public class ActualInvoker implements Invoker {
 			Mocker mocker = this.mocker.get(request.service());
 			return mocker != null ? mocker.mock(request) : this.retry(request, timestamp, exception);
 		} catch (Throwable throwable) {
-			this.trace.put(request.service(), request.method());
+			this.trace.put(request, throwable);
 			throw throwable;
 		}
 	}

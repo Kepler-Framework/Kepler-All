@@ -87,6 +87,7 @@ public class TraceContext {
 	 * @return
 	 */
 	public static void release() {
+		// 如果从服务端传递的Header并且未开启则可能为Null
 		Headers headers = ThreadHeaders.HEADERS.get();
 		if (headers != null) {
 			headers.delete(Trace.TRACE_COVER);
