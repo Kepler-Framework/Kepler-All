@@ -6,7 +6,7 @@ import com.kepler.protocol.Request;
  * @author KimShen
  *
  */
-public interface TraceCollector {
+public interface TraceCauses {
 
 	/**
 	 * @param request 

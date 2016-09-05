@@ -14,7 +14,7 @@ import com.kepler.mock.Mocker;
 import com.kepler.mock.MockerContext;
 import com.kepler.protocol.Request;
 import com.kepler.router.Router;
-import com.kepler.trace.TraceCollector;
+import com.kepler.trace.TraceCauses;
 
 /**
  * @author kim 2015年7月8日
@@ -36,7 +36,7 @@ public class ActualInvoker implements Invoker {
 
 	private final ChannelContext channels;
 
-	private final TraceCollector trace;
+	private final TraceCauses trace;
 
 	private final MockerContext mocker;
 
@@ -46,7 +46,7 @@ public class ActualInvoker implements Invoker {
 
 	private int timeout = ActualInvoker.TIMEOUT;
 
-	public ActualInvoker(ChannelContext channels, TraceCollector trace, MockerContext mocker, Router router) {
+	public ActualInvoker(ChannelContext channels, TraceCauses trace, MockerContext mocker, Router router) {
 		super();
 		this.channels = channels;
 		this.router = router;

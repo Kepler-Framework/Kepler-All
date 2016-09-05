@@ -7,7 +7,7 @@ import java.util.Map;
 import com.kepler.admin.status.Status;
 import com.kepler.header.impl.TraceContext;
 import com.kepler.trace.TraceCause;
-import com.kepler.trace.TraceCollector;
+import com.kepler.trace.TraceCauses;
 
 /**
  * @author KimShen
@@ -17,19 +17,19 @@ public class Status4Trace implements Status {
 
 	private final Map<String, Object> traces = new HashMap<String, Object>();
 
-	private final TraceCollector collector;
+	private final TraceCauses causes;
 
-	public Status4Trace(TraceCollector collector) {
+	public Status4Trace(TraceCauses causes) {
 		super();
-		this.collector = collector;
-		this.traces.put("traces", new TraceCauses());
+		this.causes = causes;
+		this.traces.put("traces", new TraceCausesAsMap());
 	}
 
 	@Override
 	public Map<String, Object> get() {
 		// 获取并重置
-		TraceCauses causes = TraceCauses.class.cast(this.traces.get("traces")).clean();
-		for (TraceCause cause : this.collector.get()) {
+		TraceCausesAsMap causes = TraceCausesAsMap.class.cast(this.traces.get("traces")).clean();
+		for (TraceCause cause : this.causes.get()) {
 			if (cause != null) {
 				causes.add(cause);
 			}
@@ -37,7 +37,7 @@ public class Status4Trace implements Status {
 		return this.traces;
 	}
 
-	private class TraceCauses extends ArrayList<Map<String, String>> {
+	private class TraceCausesAsMap extends ArrayList<Map<String, String>> {
 
 		private static final long serialVersionUID = 1L;
 
@@ -53,7 +53,7 @@ public class Status4Trace implements Status {
 			super.add(trace);
 		}
 
-		public TraceCauses clean() {
+		public TraceCausesAsMap clean() {
 			super.clear();
 			return this;
 		}

@@ -8,16 +8,16 @@ import com.kepler.header.impl.TraceContext;
 import com.kepler.protocol.Request;
 import com.kepler.service.Quiet;
 import com.kepler.trace.TraceCause;
-import com.kepler.trace.TraceCollector;
+import com.kepler.trace.TraceCauses;
 
 /**
  * @author KimShen
  *
  */
-public class DefaultCollector implements TraceCollector {
+public class DefaultCauses implements TraceCauses {
 
 	// Trace数量记录, 最多15条, 默认5条
-	private static final int MAX = Math.max(Integer.valueOf(PropertiesUtils.get(DefaultCollector.class.getName().toLowerCase() + ".max", "5")), 15);
+	private static final int MAX = Math.max(Integer.valueOf(PropertiesUtils.get(DefaultCauses.class.getName().toLowerCase() + ".max", "5")), 15);
 
 	private final AtomicInteger index = new AtomicInteger();
 
@@ -28,7 +28,7 @@ public class DefaultCollector implements TraceCollector {
 	 */
 	private TraceCause[] traces;
 
-	public DefaultCollector(Quiet quiet) {
+	public DefaultCauses(Quiet quiet) {
 		super();
 		this.reset();
 		this.quiet = quiet;
@@ -38,7 +38,7 @@ public class DefaultCollector implements TraceCollector {
 	 * 重置
 	 */
 	private void reset() {
-		this.traces = new TraceCause[DefaultCollector.MAX];
+		this.traces = new TraceCause[DefaultCauses.MAX + 1];
 	}
 
 	@Override
@@ -51,8 +51,8 @@ public class DefaultCollector implements TraceCollector {
 	@Override
 	public void put(Request request, Throwable throwable) {
 		// 收集非静默异常
-		if (StatusTask.ENABLED && this.quiet.quiet(request, throwable.getClass())) {
-			this.traces[this.index.incrementAndGet() & DefaultCollector.MAX] = new DefaultCause(request.service(), request.method(), TraceContext.get());
+		if (StatusTask.ENABLED && !this.quiet.quiet(request, throwable.getClass())) {
+			this.traces[this.index.incrementAndGet() & DefaultCauses.MAX] = new DefaultCause(request.service(), request.method(), TraceContext.get());
 		}
 	}
 }

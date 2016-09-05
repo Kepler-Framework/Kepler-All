@@ -61,7 +61,7 @@
 	</bean>
 
 	<bean id="kepler.admin.status.dynamic.trace" class="com.kepler.admin.status.impl.Status4Trace">
-		<constructor-arg ref="kepler.trace.collector" />
+		<constructor-arg ref="kepler.trace.causes" />
 	</bean>
 
 	<bean id="kepler.admin.status.static.framework" class="com.kepler.admin.status.impl.Status4Kepler" init-method="init" />
