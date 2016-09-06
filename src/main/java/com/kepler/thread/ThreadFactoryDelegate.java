@@ -147,8 +147,8 @@ public class ThreadFactoryDelegate implements ExecutorService {
 				// 代理执行
 				this.runnable.run();
 			} finally {
-				// 重置Headers
-				ThreadFactoryDelegate.this.context.reset();
+				// 删除Headers
+				ThreadFactoryDelegate.this.context.release();
 			}
 		}
 	}
@@ -175,8 +175,8 @@ public class ThreadFactoryDelegate implements ExecutorService {
 				// 代理执行
 				return this.callable.call();
 			} finally {
-				// 重置Headers
-				ThreadFactoryDelegate.this.context.reset();
+				// 删除Headers
+				ThreadFactoryDelegate.this.context.release();
 			}
 		}
 	}

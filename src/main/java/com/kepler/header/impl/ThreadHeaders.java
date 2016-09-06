@@ -28,12 +28,9 @@ public class ThreadHeaders implements HeadersContext {
 		return headers;
 	}
 
-	public Headers reset() {
-		// 如果从服务端传递Header并且未开启则可能为Null
+	public Headers release() {
 		Headers headers = ThreadHeaders.HEADERS.get();
-		if (headers != null) {
-			headers.reset();
-		}
+		ThreadHeaders.HEADERS.remove();
 		return headers;
 	}
 }

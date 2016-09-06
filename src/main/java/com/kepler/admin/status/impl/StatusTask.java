@@ -16,9 +16,9 @@ public class StatusTask extends PeriodTask {
 	public static final boolean ENABLED = PropertiesUtils.get(StatusTask.class.getName().toLowerCase() + ".enabled", false);
 
 	/**
-	 * 默认60秒, 最小45秒
+	 * 默认45秒, 最小30秒
 	 */
-	private static final int PERIOD = Math.max(45000, PropertiesUtils.get(StatusTask.class.getName().toLowerCase() + ".period", 60000));
+	private static final int PERIOD = Math.max(30000, PropertiesUtils.get(StatusTask.class.getName().toLowerCase() + ".period", 45000));
 
 	private final Status status;
 
