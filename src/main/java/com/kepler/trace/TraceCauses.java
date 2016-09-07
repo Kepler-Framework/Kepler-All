@@ -1,5 +1,7 @@
 package com.kepler.trace;
 
+import java.util.List;
+
 import com.kepler.protocol.Request;
 
 /**
@@ -18,5 +20,5 @@ public interface TraceCauses {
 	 * 
 	 * @return
 	 */
-	public TraceCause[] get();
+	public List<TraceCause> get();
 }

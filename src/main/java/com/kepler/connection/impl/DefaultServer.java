@@ -332,8 +332,8 @@ public class DefaultServer {
 					}
 					return DefaultServer.this.response.throwable(request.ack(), e, request.serial());
 				} finally {
-					// 重置Header避免同线程的其他业务复用
-					DefaultServer.this.headers.reset();
+					// 删除Header避免同线程的其他业务复用
+					DefaultServer.this.headers.release();
 					// Request执行完毕
 					DefaultServer.this.counter.decr();
 				}

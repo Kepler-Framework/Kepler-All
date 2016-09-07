@@ -10,9 +10,9 @@ public interface HeadersContext {
 	public Headers set(Headers headers);
 
 	/**
-	 * 重置当前Headers
+	 * 删除当前Headers
 	 * 
 	 * @return
 	 */
-	public Headers reset();
+	public Headers release();
 }
