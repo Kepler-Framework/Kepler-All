@@ -90,8 +90,10 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 
 	private static final Log LOGGER = LogFactory.getLog(ZkContext.class);
 
+	private final Delay delay = new Delay();
+	
 	private final ZkWatcher watcher = new ZkWatcher();
-
+	
 	private final Snapshot snapshot = new Snapshot();
 
 	private final Exports exports = new Exports();
@@ -109,7 +111,7 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	private final Status status;
 
 	private final Config config;
-
+	
 	private final ZkClient zoo;
 
 	public ZkContext(ImportedListener listener, ServerHost local, Serials serials, Profile profile, Config config, Status status, ZkClient zoo) {
@@ -250,6 +252,10 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 
 	@Override
 	public void exported(Service service, Object instance) throws Exception {
+		delay.exported(service, instance);
+	}
+	
+	public void doExported(Service service, Object instance) throws Exception {
 		// 是否发布远程服务
 		if (!PropertiesUtils.profile(this.profile.profile(service), ZkContext.EXPORT_KEY, ZkContext.EXPORT_VAL)) {
 			ZkContext.LOGGER.warn("Disabled export service: " + service + " ... ");
@@ -268,6 +274,7 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		try {
 			// 启动完毕后发布Status/Config节点
+			delay.reach();
 			this.status();
 			this.config();
 		} catch (Throwable throwable) {
@@ -801,6 +808,52 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 
 		public List<E> deleted() {
 			return this.elementDeleted;
+		}
+	}
+
+	/**
+	 * 服务端口启动成功后, 再发布服务
+	 */
+	private class Delay {
+
+		private List<Pair<Service, Object>> services = new ArrayList<>();
+		private boolean start = false;
+
+		public synchronized void exported(Service service, Object instance) throws Exception {
+			if (start) {
+				ZkContext.this.doExported(service, instance);
+			} else {
+				services.add(new Pair<Service, Object>(service, instance));
+			}
+		}
+
+		public synchronized void reach() throws Exception {
+			if (!start) {
+				for (Pair<Service, Object> pair : services) {
+					ZkContext.this.doExported(pair.key(), pair.val());
+				}
+				start = true;
+				services = null;
+			}
+		}
+
+	}
+
+	private static class Pair<K, V> {
+		private K key;
+		private V val;
+
+		public Pair(K key, V val) {
+			this.key = key;
+			this.val = val;
+		}
+
+		public K key() {
+			return key;
+		}
+
+		public V val() {
+			return val;
 		}
 	}
 }
