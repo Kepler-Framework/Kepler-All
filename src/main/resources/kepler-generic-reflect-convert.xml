@@ -24,6 +24,8 @@
 				<bean class="com.kepler.generic.reflect.convert.impl.ListConvertor" />
 				<bean class="com.kepler.generic.reflect.convert.impl.MapConvertor" />
 				<bean class="com.kepler.generic.reflect.convert.impl.SetConvertor" />
+				<bean class="com.kepler.generic.reflect.convert.impl.BigIntegerConvertor" />
+				<bean class="com.kepler.generic.reflect.convert.impl.BigDecimalConvertor" />
 			</util:list>
 		</constructor-arg>
 	</bean>
