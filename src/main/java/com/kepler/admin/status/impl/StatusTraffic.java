@@ -9,13 +9,13 @@ import com.kepler.traffic.Traffic;
 /**
  * @author kim 2016年1月7日
  */
-public class Status4Traffic implements Status {
+public class StatusTraffic implements Status {
 
 	private final Map<String, Object> status = new HashMap<String, Object>();
 
 	private final Traffic traffic;
 
-	public Status4Traffic(Traffic traffic) {
+	public StatusTraffic(Traffic traffic) {
 		super();
 		this.traffic = traffic;
 	}

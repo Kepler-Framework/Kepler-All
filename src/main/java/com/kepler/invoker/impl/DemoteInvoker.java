@@ -7,6 +7,7 @@ import com.kepler.invoker.Invoker;
 import com.kepler.mock.Mocker;
 import com.kepler.mock.MockerContext;
 import com.kepler.protocol.Request;
+import com.kepler.quality.Quality;
 
 /**
  * @author kim
@@ -26,11 +27,14 @@ public class DemoteInvoker implements Invoker {
 
 	private final MockerContext mocker;
 
+	private final Quality quality;
+
 	private final Profile profile;
 
-	public DemoteInvoker(MockerContext mocker, Profile profile) {
+	public DemoteInvoker(MockerContext mocker, Quality quality, Profile profile) {
 		super();
 		this.mocker = mocker;
+		this.quality = quality;
 		this.profile = profile;
 	}
 
@@ -48,6 +52,8 @@ public class DemoteInvoker implements Invoker {
 	private Object demote(Request request) {
 		Mocker mocker = this.mocker.get(request.service());
 		if (mocker != null) {
+			// 记录降级
+			this.quality.demoting();
 			return mocker.mock(request);
 		}
 		throw new KeplerLocalException("Can not found mock service for Service: " + request.service());

@@ -27,7 +27,7 @@ public interface Transfer extends Serializable {
 	 * @return
 	 */
 	public long total();
-
+	
 	/**
 	 * 超时数量
 	 * 

@@ -61,6 +61,7 @@
 	</bean>
 
 	<bean id="kepler.invoker.demote" class="com.kepler.invoker.impl.DemoteInvoker">
+		<constructor-arg ref="kepler.quality" />
 		<constructor-arg ref="kepler.mock.context" />
 		<constructor-arg ref="kepler.config.profile" />
 	</bean>

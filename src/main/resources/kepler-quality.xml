@@ -4,6 +4,6 @@
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-	<bean id="kepler.connection.counter" class="com.kepler.connection.impl.DefaultCounter" />
+	<bean id="kepler.quality" class="com.kepler.quality.impl.DefaultQuality" />
 
 </beans>

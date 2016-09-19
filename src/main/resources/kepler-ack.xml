@@ -6,6 +6,7 @@
 
 	<bean id="kepler.ack.timeout" class="com.kepler.ack.impl.AckTimeOutImpl">
 		<constructor-arg ref="kepler.config.profile" />
+		<constructor-arg ref="kepler.quality" />
 	</bean>
 
 </beans>

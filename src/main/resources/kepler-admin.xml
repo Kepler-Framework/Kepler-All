@@ -16,6 +16,7 @@
 			<util:list>
 				<ref bean="kepler.admin.task.trace" />
 				<ref bean="kepler.admin.task.status" />
+				<ref bean="kepler.admin.task.refresh" />
 				<ref bean="kepler.admin.task.transfer" />
 			</util:list>
 		</constructor-arg>

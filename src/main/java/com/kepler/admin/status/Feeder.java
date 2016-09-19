@@ -13,9 +13,13 @@ import com.kepler.host.Host;
 @Internal
 public interface Feeder {
 
+	@Deprecated
+	public void feed(Host local, Map<String, Object> status);
+
 	/**
+	 * @param timestmap 传送时间
 	 * @param local 主机
 	 * @param status 状态集合
 	 */
-	public void feed(Host local, Map<String, Object> status);
+	public void feed(long timestamp, Host local, Map<String, Point> status);
 }

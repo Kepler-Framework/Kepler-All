@@ -188,7 +188,10 @@ public class DefaultTransfers implements Transfers {
 		}
 
 		public WriteableTransfer rtt(long rtt) {
-			this.rtt.addAndGet(rtt);
+			// 如果RTT或Waiting=0不调用计数器减少锁并发
+			if (rtt != 0) {
+				this.rtt.addAndGet(rtt);
+			}
 			return this;
 		}
 

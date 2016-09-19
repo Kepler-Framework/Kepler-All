@@ -9,7 +9,6 @@ import org.apache.commons.logging.LogFactory;
 
 import com.kepler.KeplerException;
 import com.kepler.config.PropertiesUtils;
-import com.kepler.connection.Counter;
 import com.kepler.connection.Reject;
 import com.kepler.connection.handler.CodecHeader;
 import com.kepler.connection.handler.DecoderHandler;
@@ -23,6 +22,7 @@ import com.kepler.protocol.RequestProcessor;
 import com.kepler.protocol.RequestValidation;
 import com.kepler.protocol.Response;
 import com.kepler.protocol.ResponseFactory;
+import com.kepler.quality.Quality;
 import com.kepler.serial.Serials;
 import com.kepler.service.ExportedContext;
 import com.kepler.service.Quiet;
@@ -106,7 +106,7 @@ public class DefaultServer {
 
 	private final Serials serials;
 
-	private final Counter counter;
+	private final Quality quality;
 
 	private final Traffic traffic;
 
@@ -116,14 +116,14 @@ public class DefaultServer {
 
 	private final Quiet quiet;
 
-	public DefaultServer(Trace trace, Reject reject, Traffic traffic, Serials serials, Counter counter, ServerHost local, Promotion promotion, TokenContext token, ExportedContext exported, ResponseFactory response, HeadersContext headers, ThreadPoolExecutor threads, RequestValidation validation, RequestProcessor processor, Quiet quiet) {
+	public DefaultServer(Trace trace, Reject reject, Traffic traffic, Serials serials, Quality quality, ServerHost local, Promotion promotion, TokenContext token, ExportedContext exported, ResponseFactory response, HeadersContext headers, ThreadPoolExecutor threads, RequestValidation validation, RequestProcessor processor, Quiet quiet) {
 		super();
 		this.validation = validation;
 		this.processor = processor;
 		this.promotion = promotion;
 		this.exported = exported;
 		this.response = response;
-		this.counter = counter;
+		this.quality = quality;
 		this.threads = threads;
 		this.headers = headers;
 		this.traffic = traffic;
@@ -272,6 +272,11 @@ public class DefaultServer {
 			 */
 			private long running;
 
+			/**
+			 * Reply等待时间
+			 */
+			private long waiting;
+
 			public Reply(ChannelHandlerContext ctx, Request request) {
 				super();
 				this.ctx = ctx;
@@ -285,12 +290,12 @@ public class DefaultServer {
 			 * @return
 			 */
 			private Reply init(Request request) {
-				// Request计数
-				DefaultServer.this.counter.incr();
 				// Reply执行时间
 				this.running = System.currentTimeMillis();
 				// 线程Copy Header, 用于嵌套服务调用时传递(In Kepler Threads)
 				DefaultServer.this.headers.set(request.headers());
+				// 记录等待时间
+				DefaultServer.this.quality.waiting(this.waiting = this.running - this.created);
 				return this;
 			}
 
@@ -302,7 +307,7 @@ public class DefaultServer {
 				Response response = this.init(request).response(request);
 				this.ctx.writeAndFlush(response).addListener(ExceptionListener.TRACE);
 				// 记录调用栈 (使用原始Request)
-				DefaultServer.this.trace.trace(this.request, response, ExportedHandler.this.local, ExportedHandler.this.target, this.running - this.created, System.currentTimeMillis() - this.running, this.created);
+				DefaultServer.this.trace.trace(this.request, response, ExportedHandler.this.local, ExportedHandler.this.target, this.waiting, System.currentTimeMillis() - this.running, this.created);
 			}
 
 			public Request request() {
@@ -334,8 +339,6 @@ public class DefaultServer {
 				} finally {
 					// 删除Header避免同线程的其他业务复用
 					DefaultServer.this.headers.release();
-					// Request执行完毕
-					DefaultServer.this.counter.decr();
 				}
 			}
 		}

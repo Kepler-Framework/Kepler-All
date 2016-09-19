@@ -1,7 +1,10 @@
 package com.kepler.admin.status.impl;
 
+import java.util.Map;
+
 import com.kepler.admin.PeriodTask;
 import com.kepler.admin.status.Feeder;
+import com.kepler.admin.status.Point;
 import com.kepler.admin.status.Status;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.host.Host;
@@ -44,8 +47,9 @@ public class StatusTask extends PeriodTask {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected void doing() {
-		this.feeder.feed(this.local, this.status.get());
+		this.feeder.feed(System.currentTimeMillis(), this.local, (Map<String, Point>) (Map<String, ?>) (this.status.get()));
 	}
 
 }

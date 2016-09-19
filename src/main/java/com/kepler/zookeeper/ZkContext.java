@@ -13,6 +13,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException.NoNodeException;
+import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -23,7 +24,6 @@ import org.springframework.util.StringUtils;
 
 import com.kepler.KeplerLocalException;
 import com.kepler.admin.status.Status;
-import com.kepler.admin.status.impl.StatusTask;
 import com.kepler.annotation.Internal;
 import com.kepler.config.Config;
 import com.kepler.config.Profile;
@@ -58,9 +58,19 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	public static final String CONFIG = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".config", "_configs");
 
 	/**
+	 * 保存配置信息路径, 如果失败是否抛出异常终止发布
+	 */
+	public static final boolean CONFIG_FROCE = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".config_force", false);
+
+	/**
 	 * 保存状态信息路径
 	 */
 	public static final String STATUS = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".status", "_status");
+
+	/**
+	 * 保存状态信息路径, 如果失败是否抛出异常终止发布
+	 */
+	public static final boolean STATUS_FROCE = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".status_force", false);
 
 	/**
 	 * 保存服务信息路径
@@ -169,8 +179,17 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	 */
 	private void status() throws Exception {
 		// 开启并尚未注册
-		if (StatusTask.ENABLED && this.exports.status()) {
-			this.exports.status(this.zoo.create(this.road.mkdir(new StringBuffer(ZkContext.ROOT).append(ZkContext.STATUS).toString()) + "/" + this.local.sid(), this.serials.def4output().output(new DefaultHostStatus(this.local, this.status.get()), HostStatus.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL));
+		if (this.exports.status()) {
+			try {
+				this.exports.status(this.zoo.create(this.road.mkdir(new StringBuffer(ZkContext.ROOT).append(ZkContext.STATUS).toString()) + "/" + this.local.sid(), this.serials.def4output().output(new DefaultHostStatus(this.local, this.status.get()), HostStatus.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL));
+			} catch (NodeExistsException exception) {
+				// 如果强制发布Status则终止发布
+				if (ZkContext.STATUS_FROCE) {
+					throw exception;
+				} else {
+					ZkContext.LOGGER.warn("Status node can not create: " + this.local.sid());
+				}
+			}
 		}
 	}
 
@@ -180,9 +199,17 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	 * @throws Exception
 	 */
 	private void config() throws Exception {
-		// 开启并尚未注册
-		if (StatusTask.ENABLED && this.exports.config()) {
-			this.exports.config(new ConfigWatcher(this.zoo.create(this.road.mkdir(new StringBuffer(ZkContext.ROOT).append(ZkContext.CONFIG).toString()) + "/" + this.local.sid(), this.serials.def4output().output(PropertiesUtils.memory(), Map.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL)).path());
+		if (this.exports.config()) {
+			try {
+				this.exports.config(new ConfigWatcher(this.zoo.create(this.road.mkdir(new StringBuffer(ZkContext.ROOT).append(ZkContext.CONFIG).toString()) + "/" + this.local.sid(), this.serials.def4output().output(PropertiesUtils.memory(), Map.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL)).path());
+			} catch (NodeExistsException exception) {
+				// 如果强制发布Config则终止发布
+				if (ZkContext.CONFIG_FROCE) {
+					throw exception;
+				} else {
+					ZkContext.LOGGER.warn("Config node can not create: " + this.local.sid());
+				}
+			}
 		}
 	}
 
@@ -480,9 +507,9 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	private class Snapshot implements Imported, Exported {
 
 		/**
-		 * 已导入实例
+		 * 已导入实例(多线程竞争)
 		 */
-		private final Map<String, ServiceInstance> instances = new HashMap<String, ServiceInstance>();
+		private final Map<String, ServiceInstance> instances = new ConcurrentHashMap<String, ServiceInstance>();
 
 		/**
 		 * 已发布服务
@@ -641,8 +668,11 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 					String actual = path + "/" + child;
 					// 获取并移除快照
 					ServiceInstance instance = ZkContext.this.snapshot.instance(actual);
-					ZkContext.this.listener.delete(instance);
-					ZkContext.LOGGER.info("Reconfig and delete instance: " + actual + " ( " + instance.host() + ") ");
+					// 多节点同时上线/下线时可能造成Instance已删除但依然调用Deleted方法
+					if (instance != null) {
+						ZkContext.this.listener.delete(instance);
+						ZkContext.LOGGER.info("Reconfig and delete instance: " + actual + " ( " + instance.host() + ") ");
+					}
 				} catch (Throwable e) {
 					ZkContext.LOGGER.error(e.getMessage(), e);
 				}

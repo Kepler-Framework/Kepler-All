@@ -2,6 +2,7 @@ package com.kepler.traffic.impl;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.kepler.admin.status.impl.StatusTask;
 import com.kepler.traffic.Traffic;
 
 /**
@@ -9,25 +10,35 @@ import com.kepler.traffic.Traffic;
  */
 public class DefaultTraffic implements Traffic {
 
+	/**
+	 * 出站数据大小
+	 */
 	private final AtomicLong output = new AtomicLong();
 
+	/**
+	 * 入站数据大小
+	 */
 	private final AtomicLong input = new AtomicLong();
 
 	@Override
 	public void input(long bytes) {
-		this.input.addAndGet(bytes);
+		if (StatusTask.ENABLED) {
+			this.input.addAndGet(bytes);
+		}
 	}
 
 	@Override
 	public void output(long bytes) {
-		this.output.addAndGet(bytes);
+		if (StatusTask.ENABLED) {
+			this.output.addAndGet(bytes);
+		}
 	}
 
 	public long getInputAndReset() {
-		return this.input.getAndSet(0);
+		return StatusTask.ENABLED ? this.input.getAndSet(0) : 0L;
 	}
 
 	public long getOutputAndReset() {
-		return this.output.getAndSet(0);
+		return StatusTask.ENABLED ? this.output.getAndSet(0) : 0L;
 	}
 }
