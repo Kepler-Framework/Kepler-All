@@ -1,20 +1,5 @@
 package com.kepler.connection.impl;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.bootstrap.ChannelFactory;
-import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import io.netty.handler.codec.LengthFieldPrepender;
-
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
@@ -52,6 +37,21 @@ import com.kepler.serial.Serials;
 import com.kepler.service.Quiet;
 import com.kepler.token.TokenContext;
 import com.kepler.traffic.Traffic;
+
+import io.netty.bootstrap.Bootstrap;
+import io.netty.bootstrap.ChannelFactory;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.LengthFieldPrepender;
 
 /**
  * Client 2 Service Connection
@@ -253,7 +253,7 @@ public class DefaultConnect implements Connect {
 			// 连接成功, 加入通道. 异常则跳过
 			this.channels.put(invoker.host(), invoker);
 		} catch (Throwable e) {
-			DefaultConnect.LOGGER.info("Connect (to " + invoker.host().address() + ") failed ...", e);
+			DefaultConnect.LOGGER.info("Connect " + invoker.host().address() + "[sid=" + invoker.host().sid() + "] failed ...", e);
 			// 关闭并尝试重连
 			this.banAndRelease(invoker);
 			throw e;

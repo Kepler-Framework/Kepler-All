@@ -100,15 +100,18 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 
 	private static final Log LOGGER = LogFactory.getLog(ZkContext.class);
 
-	private final Delay delay = new Delay();
-	
 	private final ZkWatcher watcher = new ZkWatcher();
-	
+
 	private final Snapshot snapshot = new Snapshot();
 
 	private final Exports exports = new Exports();
 
 	private final Roadmap road = new Roadmap();
+
+	/**
+	 * 用于延迟发布
+	 */
+	private final Delay delay = new Delay();
 
 	private final ImportedListener listener;
 
@@ -121,7 +124,7 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	private final Status status;
 
 	private final Config config;
-	
+
 	private final ZkClient zoo;
 
 	public ZkContext(ImportedListener listener, ServerHost local, Serials serials, Profile profile, Config config, Status status, ZkClient zoo) {
@@ -279,10 +282,10 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 
 	@Override
 	public void exported(Service service, Object instance) throws Exception {
-		delay.exported(service, instance);
+		this.delay.exported(service, instance);
 	}
-	
-	public void doExported(Service service, Object instance) throws Exception {
+
+	private void exported4delay(Service service, Object instance) throws Exception {
 		// 是否发布远程服务
 		if (!PropertiesUtils.profile(this.profile.profile(service), ZkContext.EXPORT_KEY, ZkContext.EXPORT_VAL)) {
 			ZkContext.LOGGER.warn("Disabled export service: " + service + " ... ");
@@ -300,8 +303,9 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		try {
+			// 延迟发布
+			this.delay.reach();
 			// 启动完毕后发布Status/Config节点
-			delay.reach();
 			this.status();
 			this.config();
 		} catch (Throwable throwable) {
@@ -843,37 +847,50 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 
 	/**
 	 * 服务端口启动成功后, 再发布服务
+	 * 
+	 * @author tudesheng
 	 */
 	private class Delay {
 
-		private List<Pair<Service, Object>> services = new ArrayList<>();
-		private boolean start = false;
+		private List<Pair<Service, Object>> services = new ArrayList<Pair<Service, Object>>();
+
+		private boolean started = false;
 
 		public synchronized void exported(Service service, Object instance) throws Exception {
-			if (start) {
-				ZkContext.this.doExported(service, instance);
+			if (this.started) {
+				// 如果已启动则直接发布(场景: 断线重连)
+				ZkContext.this.exported4delay(service, instance);
 			} else {
-				services.add(new Pair<Service, Object>(service, instance));
+				// 未重启则加入缓存
+				this.services.add(new Pair<Service, Object>(service, instance));
 			}
 		}
 
+		/**
+		 * 触发延迟加载
+		 * 
+		 * @throws Exception
+		 */
 		public synchronized void reach() throws Exception {
-			if (!start) {
+			if (!this.started) {
 				for (Pair<Service, Object> pair : services) {
-					ZkContext.this.doExported(pair.key(), pair.val());
+					ZkContext.this.exported4delay(pair.key(), pair.val());
 				}
-				start = true;
+				// 切换状态并清空缓存
+				started = true;
 				services = null;
 			}
 		}
 
 	}
 
-	private static class Pair<K, V> {
+	private class Pair<K, V> {
+
 		private K key;
+
 		private V val;
 
-		public Pair(K key, V val) {
+		private Pair(K key, V val) {
 			this.key = key;
 			this.val = val;
 		}
