@@ -6,7 +6,7 @@
 	<packaging>jar</packaging>
 	<name>kepler</name>
 	<url>http://maven.apache.org</url>
-
+	
 	<properties>
 		<maven.project.name>kepler-all</maven.project.name>
 		<maven.project.compile.version>1.7</maven.project.compile.version>

@@ -5,8 +5,8 @@
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-	<alias name="kepler.admin.status.task" alias="kepler.admin.task.status" />
 	<alias name="kepler.admin.refresh.task" alias="kepler.admin.task.refresh" />
+	<alias name="kepler.admin.status.task" alias="kepler.admin.task.status" />
 
 	<bean id="kepler.admin.status.feeder" class="com.kepler.service.imported.ImportedServiceFactory" parent="kepler.service.imported.abstract">
 		<constructor-arg index="0" value="com.kepler.admin.status.Feeder" />

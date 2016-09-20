@@ -9,7 +9,7 @@ import com.kepler.service.Service;
  *
  */
 public interface TraceCause extends Serializable {
-
+	
 	/**
 	 * 造成异常的服务
 	 * 
@@ -23,6 +23,13 @@ public interface TraceCause extends Serializable {
 	 * @return
 	 */
 	public String method();
+	
+	/**
+	 * 造成的原因
+	 * 
+	 * @return
+	 */
+	public String cause();
 
 	public String trace();
 }

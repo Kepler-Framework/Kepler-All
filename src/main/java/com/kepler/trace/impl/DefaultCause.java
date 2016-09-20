@@ -20,11 +20,18 @@ public class DefaultCause implements TraceCause {
 
 	private final String trace;
 
-	public DefaultCause(Service service, String method, String trace) {
+	private final String cause;
+
+	public DefaultCause(Throwable throwable, Service service, String method, String trace) {
 		super();
+		this.cause = this.cause(throwable).getMessage();
 		this.service = service;
 		this.method = method;
 		this.trace = trace;
+	}
+
+	private Throwable cause(Throwable throwable) {
+		return throwable.getCause() == null ? throwable : this.cause(throwable.getCause());
 	}
 
 	@Override
@@ -35,6 +42,10 @@ public class DefaultCause implements TraceCause {
 	@Override
 	public String method() {
 		return this.method;
+	}
+
+	public String cause() {
+		return this.cause;
 	}
 
 	@Override
