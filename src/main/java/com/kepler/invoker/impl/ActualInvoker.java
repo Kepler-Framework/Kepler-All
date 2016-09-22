@@ -92,6 +92,7 @@ public class ActualInvoker implements Invoker {
 			Mocker mocker = this.mocker.get(request.service());
 			return mocker != null ? mocker.mock(request) : this.retry(request, timestamp, exception);
 		} catch (Throwable throwable) {
+			// 常规异常
 			this.trace.put(request, throwable);
 			throw throwable;
 		}
@@ -99,15 +100,17 @@ public class ActualInvoker implements Invoker {
 
 	private Object retry(Request request, long timestamp, KeplerRoutingException exception) throws Throwable {
 		// 是否终止重试
-		this.timeout(timestamp, exception);
+		this.timeout(timestamp, request, exception);
 		ActualInvoker.LOGGER.warn("Warning: " + exception.getMessage() + " then retry ... ");
 		Thread.sleep(this.interval);
 		// 重试
 		return this.invoker(request, timestamp);
 	}
 
-	private void timeout(long timestamp, KeplerRoutingException exception) {
+	private void timeout(long timestamp, Request request, KeplerRoutingException exception) {
 		if ((System.currentTimeMillis() - timestamp) > this.timeout) {
+			// 服务丢失异常
+			this.trace.put(request, exception);
 			throw exception;
 		}
 	}
