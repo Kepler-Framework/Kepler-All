@@ -33,9 +33,9 @@ public class DefaultCauses implements TraceCauses {
 	/**
 	 * 周期性缓存池 
 	 */
-	private List<TraceCause> causes_one = new ArrayList<TraceCause>(DefaultCauses.MAX);
+	private volatile List<TraceCause> causes_one = new ArrayList<TraceCause>(DefaultCauses.MAX);
 
-	private List<TraceCause> causes_two = new ArrayList<TraceCause>(DefaultCauses.MAX);
+	private volatile List<TraceCause> causes_two = new ArrayList<TraceCause>(DefaultCauses.MAX);
 
 	public DefaultCauses(Host host, Quiet quiet) {
 		super();
@@ -55,7 +55,7 @@ public class DefaultCauses implements TraceCauses {
 
 	@Override
 	public void put(Request request, Throwable throwable) {
-		// 超过索引立即返回
+		// Guard case1, 超过索引立即返回
 		if (this.causes_one.size() > DefaultCauses.MAX) {
 			DefaultCauses.LOGGER.warn("Array out of range. [max=" + DefaultCauses.MAX + "][index=" + this.causes_one.size() + "]");
 			return;

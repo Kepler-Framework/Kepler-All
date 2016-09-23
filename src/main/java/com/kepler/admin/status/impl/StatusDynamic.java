@@ -11,9 +11,9 @@ import com.kepler.admin.status.Status;
  */
 abstract class StatusDynamic implements Status {
 
-	protected Map<String, Object> status_one = new HashMap<String, Object>();
+	protected volatile Map<String, Object> status_one = new HashMap<String, Object>();
 
-	protected Map<String, Object> status_two = new HashMap<String, Object>();
+	protected volatile Map<String, Object> status_two = new HashMap<String, Object>();
 
 	private final String[] fields;
 
