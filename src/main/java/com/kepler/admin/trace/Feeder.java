@@ -14,5 +14,5 @@ import com.kepler.trace.TraceCause;
 @Internal
 public interface Feeder {
 
-	public void feed(long timestamp, List<TraceCause> cause);
+	public void feed(List<TraceCause> cause);
 }

@@ -3,6 +3,7 @@ package com.kepler.admin.trace.impl;
 import java.util.List;
 
 import com.kepler.admin.PeriodTask;
+import com.kepler.admin.status.impl.StatusTask;
 import com.kepler.admin.trace.Feeder;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.trace.TraceCause;
@@ -14,7 +15,10 @@ import com.kepler.trace.TraceCauses;
  */
 public class TraceTask extends PeriodTask {
 
-	public static final boolean ENABLED = PropertiesUtils.get(TraceTask.class.getName().toLowerCase() + ".enabled", false);
+	/**
+	 * 默认Status监控开启 Trace监控开启
+	 */
+	public static final boolean ENABLED = PropertiesUtils.get(TraceTask.class.getName().toLowerCase() + ".enabled", StatusTask.ENABLED);
 
 	/**
 	 * 默认45秒, 最小30秒
@@ -45,7 +49,7 @@ public class TraceTask extends PeriodTask {
 	protected void doing() {
 		List<TraceCause> causes = this.trace.get();
 		if (!causes.isEmpty()) {
-			this.feeder.feed(System.currentTimeMillis(), causes);
+			this.feeder.feed(causes);
 		}
 	}
 }

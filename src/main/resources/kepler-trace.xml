@@ -11,6 +11,7 @@
 
 	<bean id="kepler.trace.causes" class="com.kepler.trace.impl.DefaultCauses">
 		<constructor-arg ref="kepler.service.quiet" />
+		<constructor-arg ref="kepler.host.local" />
 	</bean>
 
 </beans>

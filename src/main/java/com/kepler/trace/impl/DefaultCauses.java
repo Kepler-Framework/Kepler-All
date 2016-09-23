@@ -9,6 +9,7 @@ import org.apache.commons.logging.LogFactory;
 import com.kepler.admin.trace.impl.TraceTask;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.header.impl.TraceContext;
+import com.kepler.host.Host;
 import com.kepler.protocol.Request;
 import com.kepler.service.Quiet;
 import com.kepler.trace.TraceCause;
@@ -27,6 +28,8 @@ public class DefaultCauses implements TraceCauses {
 
 	private final Quiet quiet;
 
+	private final Host host;
+
 	/**
 	 * 周期性缓存池 
 	 */
@@ -34,9 +37,10 @@ public class DefaultCauses implements TraceCauses {
 
 	private List<TraceCause> causes_two = new ArrayList<TraceCause>(DefaultCauses.MAX);
 
-	public DefaultCauses(Quiet quiet) {
+	public DefaultCauses(Host host, Quiet quiet) {
 		super();
 		this.quiet = quiet;
+		this.host = host;
 	}
 
 	@Override
@@ -58,7 +62,7 @@ public class DefaultCauses implements TraceCauses {
 		}
 		// 收集非静默异常
 		if (TraceTask.ENABLED && !this.quiet.quiet(request, throwable.getClass())) {
-			this.causes_one.add(new DefaultCause(throwable, request.service(), request.method(), TraceContext.get()));
+			this.causes_one.add(new DefaultCause(throwable, this.host, request.service(), request.method(), TraceContext.get()));
 		}
 	}
 }
