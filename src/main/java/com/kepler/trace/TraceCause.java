@@ -39,6 +39,4 @@ public interface TraceCause extends Serializable {
 	public String cause();
 
 	public String trace();
-
-	public String host();
 }

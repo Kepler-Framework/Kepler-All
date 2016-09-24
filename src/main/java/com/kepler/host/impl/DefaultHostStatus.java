@@ -22,6 +22,8 @@ public class DefaultHostStatus implements HostStatus {
 
 	private final String group;
 
+	private final String application;
+
 	public final Map<String, Object> status;
 
 	public DefaultHostStatus(Host host, Map<String, Object> status) {
@@ -30,6 +32,7 @@ public class DefaultHostStatus implements HostStatus {
 		this.pid = host.pid();
 		this.host = host.host();
 		this.group = host.group();
+		this.application = host.name();
 		this.status = status;
 	}
 
@@ -51,6 +54,10 @@ public class DefaultHostStatus implements HostStatus {
 	@Override
 	public String getGroup() {
 		return this.group;
+	}
+
+	public String getApplication() {
+		return this.application;
 	}
 
 	@Override

@@ -6,6 +6,7 @@ import com.kepler.admin.PeriodTask;
 import com.kepler.admin.status.impl.StatusTask;
 import com.kepler.admin.trace.Feeder;
 import com.kepler.config.PropertiesUtils;
+import com.kepler.host.Host;
 import com.kepler.trace.TraceCause;
 import com.kepler.trace.TraceCauses;
 
@@ -29,8 +30,11 @@ public class TraceTask extends PeriodTask {
 
 	private final Feeder feeder;
 
-	public TraceTask(TraceCauses trace, Feeder feeder) {
+	private final Host host;
+
+	public TraceTask(TraceCauses trace, Feeder feeder, Host host) {
 		super();
+		this.host = host;
 		this.trace = trace;
 		this.feeder = feeder;
 	}
@@ -49,7 +53,7 @@ public class TraceTask extends PeriodTask {
 	protected void doing() {
 		List<TraceCause> causes = this.trace.get();
 		if (!causes.isEmpty()) {
-			this.feeder.feed(causes);
+			this.feeder.feed(this.host, causes);
 		}
 	}
 }

@@ -10,6 +10,7 @@
 	<bean id="kepler.admin.trace.task" class="com.kepler.admin.trace.impl.TraceTask">
 		<constructor-arg ref="kepler.admin.trace.feeder" />
 		<constructor-arg ref="kepler.trace.causes" />
+		<constructor-arg ref="kepler.host.local" />
 	</bean>
 
 	<bean id="kepler.admin.trace.feeder" class="com.kepler.service.imported.ImportedServiceFactory" parent="kepler.service.imported.abstract">

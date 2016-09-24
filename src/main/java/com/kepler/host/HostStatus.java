@@ -17,6 +17,8 @@ public interface HostStatus extends Serializable {
 	public String getHost();
 
 	public String getGroup();
+	
+	public String getApplication();
 
 	public Map<String, Object> getStatus();
 }

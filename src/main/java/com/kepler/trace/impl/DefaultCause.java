@@ -1,6 +1,5 @@
 package com.kepler.trace.impl;
 
-import com.kepler.host.Host;
 import com.kepler.service.Service;
 import com.kepler.trace.TraceCause;
 
@@ -25,12 +24,9 @@ public class DefaultCause implements TraceCause {
 
 	private final String cause;
 
-	private final String host;
-
-	public DefaultCause(Throwable throwable, Host host, Service service, String method, String trace) {
+	public DefaultCause(Throwable throwable, Service service, String method, String trace) {
 		super();
 		this.cause = this.cause(throwable).getMessage();
-		this.host = host.address();
 		this.service = service;
 		this.method = method;
 		this.trace = trace;
@@ -61,9 +57,5 @@ public class DefaultCause implements TraceCause {
 	@Override
 	public String trace() {
 		return this.trace;
-	}
-
-	public String host() {
-		return this.host;
 	}
 }

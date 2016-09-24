@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.kepler.annotation.Internal;
 import com.kepler.annotation.Service;
+import com.kepler.host.Host;
 import com.kepler.trace.TraceCause;
 
 /**
@@ -14,5 +15,9 @@ import com.kepler.trace.TraceCause;
 @Internal
 public interface Feeder {
 
-	public void feed(List<TraceCause> cause);
+	/**
+	 * @param host 本地主机
+	 * @param cause 
+	 */
+	public void feed(Host host, List<TraceCause> cause);
 }
