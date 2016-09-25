@@ -18,6 +18,7 @@
 	<import resource="kepler-filter.xml" />
 	<import resource="kepler-config.xml" />
 	<import resource="kepler-header.xml" />
+	<import resource="kepler-methods.xml" />
 	<import resource="kepler-quality.xml" />
 	<import resource="kepler-thread.xml" />
 	<import resource="kepler-serial.xml" />

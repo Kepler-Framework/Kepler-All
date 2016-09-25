@@ -12,11 +12,11 @@ public interface GenericDelegate {
 	/**
 	 * 泛化调用
 	 * 
-	 * @param service
+	 * @param instance
 	 * @param method
 	 * @param request
 	 * @return
 	 * @throws KeplerGenericException
 	 */
-	public GenericResponse delegate(Object service, String method, Request request) throws KeplerGenericException;
+	public GenericResponse delegate(Object instance, String method, Request request) throws KeplerGenericException;
 }

@@ -17,9 +17,9 @@ import com.kepler.generic.impl.DefaultMarker;
 import com.kepler.generic.reflect.GenericArgs;
 import com.kepler.generic.reflect.analyse.Fields;
 import com.kepler.generic.reflect.analyse.FieldsAnalyser;
+import com.kepler.method.Methods;
 import com.kepler.org.apache.commons.collections.keyvalue.MultiKey;
 import com.kepler.org.apache.commons.collections.map.MultiKeyMap;
-import com.kepler.org.apache.commons.lang.reflect.MethodUtils;
 import com.kepler.protocol.Request;
 
 /**
@@ -48,14 +48,17 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 
 	private final FieldsAnalyser analyser;
 
+	private final Methods methods;
+
 	/**
 	 * 缓存推导方法
 	 */
-	private volatile MultiKeyMap cache = new MultiKeyMap();
+	private volatile MultiKeyMap cached = new MultiKeyMap();
 
-	public DefaultDelegate(GenericResponseFactory factory, FieldsAnalyser analyser) {
+	public DefaultDelegate(GenericResponseFactory factory, FieldsAnalyser analyser, Methods methods) {
 		this.analyser = analyser;
 		this.factory = factory;
+		this.methods = methods;
 	}
 
 	protected String key() {
@@ -81,14 +84,14 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 	}
 
 	@Override
-	public GenericResponse delegate(Object service, String method, Request request) throws KeplerGenericException {
-		return this.delegate(service, method, GenericArgs.class.cast(request.args()[0]));
+	public GenericResponse delegate(Object instance, String method, Request request) throws KeplerGenericException {
+		return this.delegate(instance, method, GenericArgs.class.cast(request.args()[0]));
 	}
 
-	private GenericResponse delegate(Object service, String method, GenericArgs args) throws KeplerGenericException {
+	private GenericResponse delegate(Object instance, String method, GenericArgs args) throws KeplerGenericException {
 		try {
-			// 根据参数匹配的真实方法
-			Method method_actual = this.method(service.getClass(), method, args);
+			// 根据参数匹配的真实方法(使用Instance.class)
+			Method method_actual = this.method(instance.getClass(), method, args);
 			// 实际参数
 			Object[] args_actual = new Object[args.args().length];
 			// Method对应Fields集合
@@ -99,7 +102,7 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 				args_actual[index] = args.args()[index] == null ? null : fields.actual(args.args()[index]);
 			}
 			// 代理执行
-			return this.factory.response(method_actual.invoke(service, args_actual));
+			return this.factory.response(method_actual.invoke(instance, args_actual));
 		} catch (InvocationTargetException e) {
 			// 处理Method实际错误
 			throw new KeplerGenericException(e.getTargetException());
@@ -122,7 +125,7 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 		// 获取推导方法
 		Method method_guess = this.method4guess(service, method, args);
 		// 如果无推导则尝试获取实际方法
-		Method method_actual = method_guess != null ? method_guess : MethodUtils.getAccessibleMethod(service, method, args.classes());
+		Method method_actual = method_guess != null ? method_guess : this.methods.method(service, method, args.classes());
 		if (method_actual == null) {
 			throw new NoSuchMethodException(method);
 		}
@@ -163,7 +166,7 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 	private Method method4cached(Class<?> service, String method, int length) {
 		// 开启缓存则尝试获取
 		if (DefaultDelegate.CACHED) {
-			return Method.class.cast(this.cache.get(service, method, length));
+			return Method.class.cast(this.cached.get(service, method, length));
 		}
 		return null;
 	}
@@ -199,19 +202,19 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 	private Method replace4cached(Class<?> service, String method, int length, Method actual) {
 		synchronized (actual) {
 			// 同步检查
-			if (this.cache.containsKey(service, method, length)) {
+			if (this.cached.containsKey(service, method, length)) {
 				return actual;
 			}
-			DefaultDelegate.LOGGER.info("Refresh method cache: [service" + service + "][method=" + method + "][length=" + length + "][actual=" + actual + "]");
+			DefaultDelegate.LOGGER.warn("Refresh method cache: [service=" + service + "][method=" + method + "][length=" + length + "][actual=" + actual + "]");
 			MultiKeyMap cached = new MultiKeyMap();
 			// 复制
-			for (Object key : this.cache.keySet()) {
+			for (Object key : this.cached.keySet()) {
 				MultiKey key_ = MultiKey.class.cast(key);
-				cached.put(key_.getKey(0), key_.getKey(1), key_.getKey(2), this.cache.get(key));
+				cached.put(key_.getKey(0), key_.getKey(1), key_.getKey(2), this.cached.get(key));
 			}
 			// 放入新缓存并替换
 			cached.put(service, method, length, actual);
-			this.cache = cached;
+			this.cached = cached;
 		}
 		return actual;
 	}

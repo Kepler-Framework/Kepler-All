@@ -58,14 +58,14 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 	}
 
 	@Override
-	public GenericResponse delegate(Object service, String method, Request request) throws KeplerGenericException {
-		return this.delegate(service, method, request.args());
+	public GenericResponse delegate(Object instance, String method, Request request) throws KeplerGenericException {
+		return this.delegate(instance, method, request.args());
 	}
 
-	private GenericResponse delegate(Object service, String method, Object[] args) throws KeplerGenericException {
+	private GenericResponse delegate(Object instance, String method, Object[] args) throws KeplerGenericException {
 		// 代理执行
 		try {
-			return this.factory.response(MethodUtils.invokeMethod(service, method, new Args(args).args()));
+			return this.factory.response(MethodUtils.invokeMethod(instance, method, new Args(args).args()));
 		} catch (InvocationTargetException e) {
 			throw new KeplerGenericException(e.getTargetException());
 		} catch (Throwable e) {

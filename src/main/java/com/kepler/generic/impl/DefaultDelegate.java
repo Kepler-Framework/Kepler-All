@@ -42,7 +42,7 @@ public class DefaultDelegate implements GenericDelegate {
 	}
 
 	@Override
-	public GenericResponse delegate(Object service, String method, Request request) throws KeplerGenericException {
+	public GenericResponse delegate(Object instance, String method, Request request) throws KeplerGenericException {
 		// 未开启泛化立即返回
 		if (this.empty) {
 			return this.factory.unvalid();
@@ -50,7 +50,7 @@ public class DefaultDelegate implements GenericDelegate {
 		for (GenericInvoker invoker : this.invokers) {
 			// 如果Header标记支持则调用
 			if (invoker.marker().marked(request.headers())) {
-				return invoker.delegate().delegate(service, method, request);
+				return invoker.delegate().delegate(instance, method, request);
 			}
 		}
 		// 非泛化请求

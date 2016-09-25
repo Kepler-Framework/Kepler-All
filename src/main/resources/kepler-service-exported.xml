@@ -21,6 +21,7 @@
 
 	<bean id="kepler.service.exported.context" class="com.kepler.service.exported.DefaultContext">
 		<constructor-arg ref="kepler.generic.delegate" />
+		<constructor-arg ref="kepler.methods" />
 	</bean>
 
 	<bean id="kepler.service.exproted.abstract" abstract="true" init-method="init">

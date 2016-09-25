@@ -14,7 +14,7 @@ import com.kepler.config.PropertiesUtils;
 import com.kepler.generic.GenericDelegate;
 import com.kepler.generic.GenericResponse;
 import com.kepler.invoker.Invoker;
-import com.kepler.org.apache.commons.lang.reflect.MethodUtils;
+import com.kepler.method.Methods;
 import com.kepler.protocol.Request;
 import com.kepler.service.Exported;
 import com.kepler.service.ExportedContext;
@@ -38,8 +38,11 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 
 	private final GenericDelegate delegate;
 
-	public DefaultContext(GenericDelegate delegate) {
+	private final Methods methods;
+
+	public DefaultContext(GenericDelegate delegate, Methods methods) {
 		this.delegate = delegate;
+		this.methods = methods;
 	}
 
 	public Invoker get(Service service) {
@@ -88,8 +91,8 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 		 * @throws Throwable
 		 */
 		private Object invoke4method(Request request) throws Throwable {
-			// MethodUtils.getMatchingAccessibleMethod(request.service(), request.method(), request.types()) 获取指定Method
-			Method method = MethodUtils.getMatchingAccessibleMethod(Service.clazz(request.service()), request.method(), request.types());
+			// 获取执行方法
+			Method method = DefaultContext.this.methods.method(Service.clazz(request.service()), request.method(), request.types());
 			try {
 				return this.response(request, this.exists(request, method).invoke(this.service, request.args()));
 			} catch (NoSuchMethodException exception) {
