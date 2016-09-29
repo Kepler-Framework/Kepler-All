@@ -5,6 +5,9 @@ import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.kepler.config.PropertiesUtils;
 import com.kepler.connection.ConnectHost;
 import com.kepler.connection.Connects;
@@ -21,6 +24,8 @@ public class DefaultConnects implements Connects {
 
 	private static final int DELAY = PropertiesUtils.get(DefaultConnects.class.getName().toLowerCase() + ".delay", 5000);
 
+	private static final Log LOGGER = LogFactory.getLog(DefaultConnects.class);
+
 	private final BlockingQueue<ConnectHost> queue = new DelayQueue<ConnectHost>();
 
 	@Override
@@ -31,7 +36,9 @@ public class DefaultConnects implements Connects {
 
 	@Override
 	public void put(Host host) {
-		this.queue.offer(new DelayConnectHost(host));
+		DelayConnectHost connect = new DelayConnectHost(host);
+		this.queue.offer(connect);
+		DefaultConnects.LOGGER.warn("Host: " + connect + " will reconnet after " + DefaultConnects.DELAY);
 	}
 
 	private class DelayConnectHost implements ConnectHost {
@@ -59,6 +66,10 @@ public class DefaultConnects implements Connects {
 		@Override
 		public Host host() {
 			return this.host;
+		}
+
+		public String toString() {
+			return "[deadline=" + this.deadline + "][host=" + host + "]";
 		}
 	}
 }

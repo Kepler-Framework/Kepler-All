@@ -230,6 +230,8 @@ public class DefaultConnect implements Connect {
 			// 1个Host仅允许建立1个连接
 			if (!this.channels.contain(host)) {
 				this.connect(new InvokerHandler(new Bootstrap(), host));
+			} else {
+				DefaultConnect.LOGGER.warn("Host: " + host + " already connected ...");
 			}
 		}
 		// 连接成功或已连接则激活该Host所有服务

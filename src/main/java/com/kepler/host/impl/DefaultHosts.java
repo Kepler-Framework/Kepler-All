@@ -148,6 +148,10 @@ public class DefaultHosts implements Hosts {
 		}
 	}
 
+	public String toString() {
+		return "[service=" + this.service + "][waiting=" + this.waiting.size() + "][ban=" + this.bans.size() + "][hosts=" + this.hosts.size() + "]";
+	}
+
 	private class Tags {
 
 		private final Map<String, List<Host>> tags = new HashMap<String, List<Host>>();

@@ -81,8 +81,8 @@ public class DefaultHostContext implements HostsContext, Router {
 		synchronized (this.locks.get(host)) {
 			boolean baned = false;
 			for (Hosts each : this.hosts.values()) {
-				// 任何一台Host Ban成功则标记Baned = True
-				baned = baned || each.ban(host);
+				// 任何一台Host Ban成功则标记Baned = True. 强先后顺序, each.ban(host)必须调用
+				baned = each.ban(host) || baned;
 			}
 			// Hosts中任意服务Ban成功均尝试重连
 			if (baned) {
@@ -122,7 +122,7 @@ public class DefaultHostContext implements HostsContext, Router {
 		String tag = request.get(Host.TAG_KEY, Host.TAG_DEF);
 		List<Host> matched = hosts.tags(tag);
 		//若没有main, 也没有匹配tag, 则提前异常
-		if(matched.isEmpty() && hosts.main().isEmpty()){
+		if (matched.isEmpty() && hosts.main().isEmpty()) {
 			throw new KeplerRoutingException("None service for " + request.service() + " with tag " + tag);
 		}
 		// 获取Tag对应Host集合, 如果不存在则使用Main集合
