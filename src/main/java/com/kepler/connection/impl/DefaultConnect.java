@@ -58,11 +58,6 @@ import io.netty.handler.codec.LengthFieldPrepender;
  * 
  * @author kim 2015年7月10日
  */
-/**
- * @author kim
- *
- * 2016年2月10日
- */
 public class DefaultConnect implements Connect {
 
 	/**

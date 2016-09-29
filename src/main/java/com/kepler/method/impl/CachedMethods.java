@@ -8,6 +8,7 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.kepler.config.PropertiesUtils;
 import com.kepler.method.Methods;
 import com.kepler.org.apache.commons.lang.reflect.MethodUtils;
 
@@ -16,6 +17,11 @@ import com.kepler.org.apache.commons.lang.reflect.MethodUtils;
  *
  */
 public class CachedMethods implements Methods {
+
+	/**
+	 * 是否开启方法缓存, 如果关闭则每次均使用调用
+	 */
+	private static final boolean ENABLED = PropertiesUtils.get(CachedMethods.class.getName().toLowerCase() + ".enabled", true);
 
 	private static final Log LOGGER = LogFactory.getLog(CachedMethods.class);
 
@@ -64,9 +70,10 @@ public class CachedMethods implements Methods {
 	@Override
 	public Method method(Class<?> service, String method, Class<?>[] parameter) throws Exception {
 		ServiceAndMethod service_method = CachedMethods.SERVICE_METHOD.get().reset(method, service, parameter);
-		Method cached = Method.class.cast(this.cached.get(service_method));
+		// 开启Cached则尝试从缓存获取, 否则通过反射获取
+		Method matched = CachedMethods.ENABLED ? Method.class.cast(this.cached.get(service_method)) : MethodUtils.getAccessibleMethod(service_method.service(), service_method.method(), service_method.classes());
 		// 如果缓存已存在则返回, 否则查找方法并加入缓存
-		return cached != null ? cached : this.cached(service_method);
+		return matched != null ? matched : this.cached(service_method);
 	}
 
 	/**
