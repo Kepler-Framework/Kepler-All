@@ -132,17 +132,4 @@
 			</plugin>
 		</plugins>
 	</build>
-	
-	<distributionManagement>
-		<repository>
-			<id>releases</id>
-			<name>HaiLang Repository Release</name>
-			<url>http://lang.didichuxing.com/nexus/content/repositories/com.dhf.repository/</url>
-		</repository>
-		<snapshotRepository>
-			<id>snapshots</id>
-			<name>HaiLang Repository Snapshots</name>
-			<url>http://lang.didichuxing.com/nexus/content/repositories/com.dhf.repositories.snapshots/</url>
-		</snapshotRepository>
-	</distributionManagement>
 </project>
