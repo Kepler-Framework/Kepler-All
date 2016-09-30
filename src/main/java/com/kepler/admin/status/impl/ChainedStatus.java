@@ -11,8 +11,6 @@ import com.kepler.admin.status.Status;
  */
 public class ChainedStatus implements Status {
 
-	private final Map<String, Object> result = new TreeMap<String, Object>(String.CASE_INSENSITIVE_ORDER);
-
 	private final List<Status> status;
 
 	public ChainedStatus(List<Status> status) {
@@ -22,11 +20,11 @@ public class ChainedStatus implements Status {
 
 	@Override
 	public Map<String, Object> get() {
-		//重置
-		this.result.clear();
+		// 每次新建
+		Map<String, Object> result = new TreeMap<String, Object>(String.CASE_INSENSITIVE_ORDER);
 		for (Status each : this.status) {
-			this.result.putAll(each.get());
+			result.putAll(each.get());
 		}
-		return this.result;
+		return result;
 	}
 }
