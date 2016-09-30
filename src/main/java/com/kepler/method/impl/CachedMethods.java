@@ -46,7 +46,7 @@ public class CachedMethods implements Methods {
 	 */
 	private Method cached(ServiceAndMethod service_method) throws Exception {
 		// 实际方法
-		Method actual = MethodUtils.getAccessibleMethod(service_method.service(), service_method.method(), service_method.classes());
+		Method actual = MethodUtils.getMatchingAccessibleMethod(service_method.service(), service_method.method(), service_method.classes());
 		if (actual != null) {
 			synchronized (actual) {
 				// 同步检查
