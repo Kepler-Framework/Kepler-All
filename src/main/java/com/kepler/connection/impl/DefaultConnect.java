@@ -211,13 +211,13 @@ public class DefaultConnect implements Connect {
 	}
 
 	private void banAndRelease(Host host) throws Exception {
-		// 加入Ban名单(Close并不意味着连接永远移除.只要ZK中未注销, 对应Host将再次尝试重连)
-		this.context.ban(host);
-		// 如果多个请求(Request)同时出现故障并关闭导致再次返回Invoker为Null
+		// 如果多个请求(Request)同时出现故障并关闭导致再次返回Invoker为Null(与this.context.ban为强先后顺序)
 		ChannelInvoker invoker = this.channels.del(host);
 		if (invoker != null) {
 			invoker.release();
 		}
+		// 加入Ban名单(Close并不意味着连接永远移除.只要ZK中未注销, 对应Host将再次尝试重连)
+		this.context.ban(host);
 	}
 
 	public void connect(Host host) throws Exception {
