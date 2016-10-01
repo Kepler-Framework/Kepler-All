@@ -221,6 +221,7 @@ public class DefaultConnect implements Connect {
 	}
 
 	public void connect(Host host) throws Exception {
+		// 与this.channels.contain内部锁不同, 该锁用于同步建立Host的过程
 		synchronized (this.locks.get(host)) {
 			// 1个Host仅允许建立1个连接
 			if (!this.channels.contain(host)) {
