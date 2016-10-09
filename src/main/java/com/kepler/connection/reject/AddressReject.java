@@ -18,7 +18,7 @@ import com.kepler.protocol.Request;
  */
 public class AddressReject implements Reject {
 
-	private static final String ADDRESS_KEY = AddressReject.class.getName().toLowerCase() + ".address";
+	public static final String ADDRESS_KEY = AddressReject.class.getName().toLowerCase() + ".address";
 
 	private static final String ADDRESS_VAL = PropertiesUtils.get(AddressReject.ADDRESS_KEY, "");
 

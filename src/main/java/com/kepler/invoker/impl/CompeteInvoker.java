@@ -31,9 +31,9 @@ import com.kepler.service.Service;
  */
 public class CompeteInvoker implements Imported, Invoker {
 
-	private static final boolean ACTIVED = PropertiesUtils.get(CompeteInvoker.class.getName().toLowerCase() + ".actived", false);
+	public static final String CANCEL_KEY = CompeteInvoker.class.getName().toLowerCase() + ".cancel";
 
-	private static final String CANCEL_KEY = CompeteInvoker.class.getName().toLowerCase() + ".cancel";
+	private static final boolean ACTIVED = PropertiesUtils.get(CompeteInvoker.class.getName().toLowerCase() + ".actived", false);
 
 	private static final boolean CANCEL_DEF = PropertiesUtils.get(CompeteInvoker.CANCEL_KEY, true);
 

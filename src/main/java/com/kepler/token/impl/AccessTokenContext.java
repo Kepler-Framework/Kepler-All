@@ -18,17 +18,17 @@ import com.kepler.token.TokenContext;
  */
 public class AccessTokenContext implements TokenContext {
 
+	/**
+	 * 获取Profile
+	 */
+	public static final String TOKEN_PROFILE_KEY = AccessTokenContext.class.getName().toLowerCase() + ".token_profile";
+
 	private static final boolean ENABLED = PropertiesUtils.get(AccessTokenContext.class.getName().toLowerCase() + ".enabled", false);
 
 	/**
 	 * 存放Header
 	 */
 	private static final String TOKEN_HEADER = PropertiesUtils.get(AccessTokenContext.class.getName().toLowerCase() + ".token_header", "token_header");
-
-	/**
-	 * 获取Profile
-	 */
-	private static final String TOKEN_PROFILE_KEY = AccessTokenContext.class.getName().toLowerCase() + ".token_profile";
 
 	private static final String TOKEN_PROFILE_DEF = PropertiesUtils.get(AccessTokenContext.TOKEN_PROFILE_KEY, null);
 

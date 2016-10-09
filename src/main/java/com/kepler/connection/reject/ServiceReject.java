@@ -17,7 +17,7 @@ import com.kepler.protocol.Request;
  */
 public class ServiceReject implements Reject {
 
-	private static final String REJECT_KEY = ServiceReject.class.getName().toLowerCase() + ".reject";
+	public static final String REJECT_KEY = ServiceReject.class.getName().toLowerCase() + ".reject";
 
 	private static final boolean REJECT_VAL = PropertiesUtils.get(ServiceReject.REJECT_KEY, false);
 
@@ -34,7 +34,7 @@ public class ServiceReject implements Reject {
 	public Request reject(Request request, SocketAddress address) throws KeplerValidateException {
 		// 如果指定服务开启拒绝请求则抛出异常
 		if (PropertiesUtils.profile(this.profile.profile(request.service()), ServiceReject.REJECT_KEY, ServiceReject.REJECT_VAL)) {
-			throw new KeplerValidateException("Reject: " + request.service()  + " from " + address + " ... ");
+			throw new KeplerValidateException("Reject: " + request.service() + " from " + address + " ... ");
 		}
 		return request;
 	}

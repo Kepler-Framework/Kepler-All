@@ -23,7 +23,7 @@ import com.kepler.service.Service;
  */
 public class DefaultMockerContext implements ApplicationContextAware, InitializingBean, MockerContext {
 
-	private static final String MOCK_KEY = DefaultMockerContext.class.getName().toLowerCase() + ".mock";
+	public static final String MOCK_KEY = DefaultMockerContext.class.getName().toLowerCase() + ".mock";
 
 	/**
 	 * 是否默认开启Mock

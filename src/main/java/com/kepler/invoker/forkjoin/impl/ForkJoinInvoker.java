@@ -40,12 +40,12 @@ import com.kepler.service.Service;
  */
 public class ForkJoinInvoker implements Imported, Invoker {
 
-	private static final boolean ACTIVED = PropertiesUtils.get(ForkJoinInvoker.class.getName().toLowerCase() + ".actived", false);
-
 	/**
 	 * 需要Fork Request的Tag集合
 	 */
-	private static final String TAGS_KEY = ForkJoinInvoker.class.getName().toLowerCase() + ".tags";
+	public static final String TAGS_KEY = ForkJoinInvoker.class.getName().toLowerCase() + ".tags";
+
+	private static final boolean ACTIVED = PropertiesUtils.get(ForkJoinInvoker.class.getName().toLowerCase() + ".actived", false);
 
 	private static final String TAGS_DEF = PropertiesUtils.get(ForkJoinInvoker.TAGS_KEY, Host.TAG_VAL);
 

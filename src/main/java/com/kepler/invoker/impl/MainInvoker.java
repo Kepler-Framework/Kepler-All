@@ -22,16 +22,16 @@ import com.kepler.service.Service;
 public class MainInvoker implements Imported, Invoker {
 
 	/**
-	 * 是否开启流控
-	 */
-	private static final String THRESHOLD_ENABLED_KEY = MainInvoker.class.getName().toLowerCase() + ".threshold_enabled";
-
-	private static final boolean THRESHOLD_ENABLED_DEF = PropertiesUtils.get(MainInvoker.THRESHOLD_ENABLED_KEY, false);
-
-	/**
 	 * 阀值
 	 */
-	private static final String THRESHOLD_KEY = MainInvoker.class.getName().toLowerCase() + ".threshold";
+	public static final String THRESHOLD_KEY = MainInvoker.class.getName().toLowerCase() + ".threshold";
+
+	/**
+	 * 是否开启流控
+	 */
+	public static final String THRESHOLD_ENABLED_KEY = MainInvoker.class.getName().toLowerCase() + ".threshold_enabled";
+
+	private static final boolean THRESHOLD_ENABLED_DEF = PropertiesUtils.get(MainInvoker.THRESHOLD_ENABLED_KEY, false);
 
 	private static final int THRESHOLD_DEF = PropertiesUtils.get(MainInvoker.THRESHOLD_KEY, Integer.MAX_VALUE);
 

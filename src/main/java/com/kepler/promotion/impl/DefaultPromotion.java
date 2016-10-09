@@ -18,13 +18,13 @@ import com.kepler.service.Service;
  */
 public class DefaultPromotion implements Exported, Promotion {
 
+	public static final String ELAPSE_KEY = DefaultPromotion.class.getName().toLowerCase() + ".elapse";
+
+	public static final String TIMES_KEY = DefaultPromotion.class.getName().toLowerCase() + ".times";
+
 	private static final boolean ENABLED = PropertiesUtils.get(DefaultPromotion.class.getName().toLowerCase() + ".enabled", true);
 
-	private static final String ELAPSE_KEY = DefaultPromotion.class.getName().toLowerCase() + ".elapse";
-
 	private static final int ELAPSE_DEF = PropertiesUtils.get(DefaultPromotion.ELAPSE_KEY, 1);
-
-	private static final String TIMES_KEY = DefaultPromotion.class.getName().toLowerCase() + ".times";
 
 	private static final int TIMES_DEF = PropertiesUtils.get(DefaultPromotion.TIMES_KEY, 8);
 

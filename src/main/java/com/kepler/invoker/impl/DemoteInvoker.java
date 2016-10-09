@@ -16,12 +16,12 @@ import com.kepler.quality.Quality;
  */
 public class DemoteInvoker implements Invoker {
 
-	private static final boolean ACTIVED = PropertiesUtils.get(DemoteInvoker.class.getName().toLowerCase() + ".actived", false);
-
 	/**
 	 * 是否需要降级
 	 */
-	private static final String DEMOTE_KEY = DemoteInvoker.class.getName().toLowerCase() + ".demote";
+	public static final String DEMOTE_KEY = DemoteInvoker.class.getName().toLowerCase() + ".demote";
+
+	private static final boolean ACTIVED = PropertiesUtils.get(DemoteInvoker.class.getName().toLowerCase() + ".actived", false);
 
 	private static final boolean DEMOTE_DEF = PropertiesUtils.get(DemoteInvoker.DEMOTE_KEY, false);
 

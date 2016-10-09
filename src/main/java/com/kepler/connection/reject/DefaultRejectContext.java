@@ -21,12 +21,12 @@ import com.kepler.protocol.Request;
  */
 public class DefaultRejectContext implements Extension, Reject {
 
+	public static final String REJECT_KEY = DefaultRejectContext.class.getName().toLowerCase() + ".reject";
+
 	/**
 	 * 是否开启
 	 */
-	public static final boolean ENABLED = PropertiesUtils.get(DefaultRejectContext.class.getName().toLowerCase() + ".enabled", false);
-
-	private static final String REJECT_KEY = DefaultRejectContext.class.getName().toLowerCase() + ".reject";
+	private static final boolean ENABLED = PropertiesUtils.get(DefaultRejectContext.class.getName().toLowerCase() + ".enabled", false);
 
 	/**
 	 * 默认处理器名称

@@ -30,9 +30,9 @@ import com.kepler.service.Service;
  */
 public class BroadcastInvoker implements Imported, Invoker {
 
-	private static final boolean ACTIVED = PropertiesUtils.get(BroadcastInvoker.class.getName().toLowerCase() + ".actived", false);
+	public static final String CANCEL_KEY = BroadcastInvoker.class.getName().toLowerCase() + ".cancel";
 
-	private static final String CANCEL_KEY = BroadcastInvoker.class.getName().toLowerCase() + ".cancel";
+	private static final boolean ACTIVED = PropertiesUtils.get(BroadcastInvoker.class.getName().toLowerCase() + ".actived", false);
 
 	private static final boolean CANCEL_DEF = PropertiesUtils.get(BroadcastInvoker.CANCEL_KEY, true);
 

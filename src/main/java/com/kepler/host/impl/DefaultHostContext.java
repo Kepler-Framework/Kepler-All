@@ -24,7 +24,7 @@ import com.kepler.service.Service;
  */
 public class DefaultHostContext implements HostsContext, Router {
 
-	private static final String ROUTING_KEY = DefaultHostContext.class.getName().toLowerCase() + ".routing";
+	public static final String ROUTING_KEY = DefaultHostContext.class.getName().toLowerCase() + ".routing";
 
 	/**
 	 * 默认路由策略

@@ -19,13 +19,13 @@ import com.kepler.service.Service;
  */
 public class DefaultIDGenerators implements IDGenerators, Extension {
 
-	private final Profile profile;
+	public static final String GENERATOR_KEY = DefaultIDGenerators.class.getName().toLowerCase() + ".generator";
+
+	private static final String GENERATOR_DEF = PropertiesUtils.get(DefaultIDGenerators.GENERATOR_KEY, IncrGenerator.NAME);
 
 	private final Map<String, IDGenerator> ids = new HashMap<String, IDGenerator>();
 
-	private static final String GENERATOR_KEY = DefaultIDGenerators.class.getName().toLowerCase() + ".generator";
-
-	private static final String GENERATOR_DEF = PropertiesUtils.get(DefaultIDGenerators.GENERATOR_KEY, IncrGenerator.NAME);
+	private final Profile profile;
 
 	public DefaultIDGenerators(Profile profile) {
 		this.profile = profile;

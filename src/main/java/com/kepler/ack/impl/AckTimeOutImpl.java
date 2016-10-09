@@ -20,7 +20,7 @@ public class AckTimeOutImpl implements AckTimeOut {
 	/**
 	 * Timeout N次后降级
 	 */
-	private static final String DEMOTION_KEY = AckTimeOutImpl.class.getName().toLowerCase() + ".demotion";
+	public static final String DEMOTION_KEY = AckTimeOutImpl.class.getName().toLowerCase() + ".demotion";
 
 	private static final int DEMOTION_DEF = PropertiesUtils.get(AckTimeOutImpl.DEMOTION_KEY, Integer.MAX_VALUE);
 
