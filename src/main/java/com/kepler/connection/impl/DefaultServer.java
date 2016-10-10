@@ -252,6 +252,7 @@ public class DefaultServer {
 		public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
 			if (DefaultServer.IDLE_CLOSE && evt instanceof IdleStateEvent) {
 				DefaultServer.LOGGER.warn("Idle (" + IdleStateEvent.class.cast(evt).state() + ") trigger closed. [local=" + ctx.channel().localAddress() + "][remote=" + ctx.channel().remoteAddress() + "]");
+				DefaultServer.this.quality.idle();
 				ctx.close().addListener(ExceptionListener.TRACE);
 			}
 		}

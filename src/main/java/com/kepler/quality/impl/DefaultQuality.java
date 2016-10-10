@@ -17,6 +17,15 @@ public class DefaultQuality implements Quality {
 
 	private final AtomicLong waiting = new AtomicLong();
 
+	private final AtomicLong idle = new AtomicLong();
+
+	@Override
+	public void idle() {
+		if (StatusTask.ENABLED) {
+			this.idle.incrementAndGet();
+		}
+	}
+
 	@Override
 	public void breaking() {
 		if (StatusTask.ENABLED) {
@@ -51,5 +60,10 @@ public class DefaultQuality implements Quality {
 	@Override
 	public long getWaitingAndReset() {
 		return StatusTask.ENABLED ? this.waiting.getAndSet(0) : 0;
+	}
+
+	@Override
+	public long getIdleAndReset() {
+		return StatusTask.ENABLED ? this.idle.getAndSet(0) : 0;
 	}
 }

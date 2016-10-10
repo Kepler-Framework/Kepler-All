@@ -29,6 +29,7 @@ public class StatusQuality implements Status {
 		this.status.put("quality_breaking", this.quality.getBreakingAndReset());
 		this.status.put("quality_demoting", this.quality.getDemotingAndReset());
 		this.status.put("quality_waiting", this.quality.getWaitingAndReset());
+		this.status.put("quality_idle", this.quality.getIdleAndReset());
 		return this.status;
 	}
 }
