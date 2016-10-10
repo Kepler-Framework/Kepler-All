@@ -13,6 +13,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.aop.framework.Advised;
 import org.springframework.core.annotation.AnnotationUtils;
 
 import com.kepler.annotation.Generic;
@@ -103,7 +104,9 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 	private void analyse4interface(Service service, Object instance) throws Exception {
 		for (Method method_interface : Class.forName(service.service()).getMethods()) {
 			// 通过接口反向查找实现类对应方法并尝试自动分析
-			this.analyse(MethodUtils.getAccessibleMethod(instance.getClass(), method_interface.getName(), method_interface.getParameterTypes()), DefaultAnalyser.AUTOMATIC);
+			Method proxy_before = MethodUtils.getAccessibleMethod(Advised.class.isAssignableFrom(instance.getClass()) ? Advised.class.cast(instance).getTargetClass() : instance.getClass(), method_interface.getName(), method_interface.getParameterTypes());
+			Method proxy_after = MethodUtils.getAccessibleMethod(instance.getClass(), method_interface.getName(), method_interface.getParameterTypes());
+			this.analyse(proxy_after, proxy_before, DefaultAnalyser.AUTOMATIC);
 		}
 	}
 
@@ -114,34 +117,36 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 	 * @throws Exception
 	 */
 	private void analyse4instance(Object instance) throws Exception {
-		for (Method method : instance.getClass().getMethods()) {
+		// 获取实际方法(代理后)并分析
+		for (Method method : (Advised.class.isAssignableFrom(instance.getClass()) ? Advised.class.cast(instance).getTargetClass() : instance.getClass()).getMethods()) {
 			// 关闭自动分析
-			this.analyse(method, false);
+			this.analyse(method, method, false);
 		}
 	}
 
 	/**
 	 * 分析方法
 	 * 
-	 * @param method
+	 * @param proxy	 代理方法(代理后)
+	 * @parma acutal 实际方法(代理前)
 	 * @param generic 泛化标记
 	 */
-	private void analyse(Method method, boolean automatic) {
+	private void analyse(Method proxy, Method acutal, boolean automatic) {
 		// 1, 存在方法 
 		// 2, 尚未分析 
 		// 3, 如果没有标记Generic则由是否允许自动分析判断是否继续, 如果标记了Generic则仅当True时继续
-		if (method != null && !this.methods.containsKey(method)) {
-			Generic generic = AnnotationUtils.findAnnotation(method, Generic.class);
+		if (acutal != null && !this.methods.containsKey(acutal)) {
+			Generic generic = AnnotationUtils.findAnnotation(acutal, Generic.class);
 			if (generic == null ? automatic : generic.value()) {
-				Fields[] fields = new Fields[method.getParameterTypes().length];
-				for (int index = 0; index < method.getParameterTypes().length; index++) {
-					List<Class<?>> annotation_param = this.extension4param(method.getParameterAnnotations()[index]);
+				Fields[] fields = new Fields[acutal.getParameterTypes().length];
+				for (int index = 0; index < acutal.getParameterTypes().length; index++) {
+					List<Class<?>> annotation_param = this.extension4param(acutal.getParameterAnnotations()[index]);
 					// 分析参数, 并传递扩展信息(优先采用Annotation)
-					fields[index] = this.set(method.getParameterTypes()[index], !annotation_param.isEmpty() ? annotation_param.toArray(new Class<?>[] {}) : this.extension(method.getParameterTypes()[index], method.getGenericParameterTypes()[index]));
+					fields[index] = this.set(acutal.getParameterTypes()[index], !annotation_param.isEmpty() ? annotation_param.toArray(new Class<?>[] {}) : this.extension(proxy.getParameterTypes()[index], proxy.getGenericParameterTypes()[index]));
 				}
 				// 放入Method缓存
-				this.methods.put(method, fields);
-				DefaultAnalyser.LOGGER.info("Analyse method: " + method + " completed");
+				this.methods.put(proxy, fields);
+				DefaultAnalyser.LOGGER.info("Analyse method: " + acutal + " completed");
 			}
 		}
 	}
