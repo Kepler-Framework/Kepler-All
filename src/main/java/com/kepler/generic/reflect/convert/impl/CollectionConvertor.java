@@ -2,6 +2,8 @@ package com.kepler.generic.reflect.convert.impl;
 
 import java.util.Collection;
 
+import org.springframework.util.Assert;
+
 import com.kepler.generic.reflect.analyse.Fields;
 import com.kepler.generic.reflect.analyse.FieldsAnalyser;
 import com.kepler.generic.reflect.convert.ConvertorPriority;
@@ -24,6 +26,7 @@ abstract class CollectionConvertor extends ComplexConvertor {
 	}
 
 	private Object convert(FieldsAnalyser analyser, Class<?>[] extension, Collection<Object> actual, Getter source) throws Exception {
+		Assert.notNull(extension[0], "Undefined type of element");
 		// 获取List元素类型对应Fields
 		Fields fields = analyser.get(extension[0]);
 		for (int index = 0; index < source.length(); index++) {
