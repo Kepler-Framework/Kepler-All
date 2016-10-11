@@ -160,7 +160,8 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 		 * @return
 		 */
 		private Throwable cause(Throwable throwable) {
-			return throwable.getCause() == null ? throwable : this.cause(throwable.getCause());
+			// Example: throw null
+			return (throwable == null || throwable.getCause() == null) ? throwable : this.cause(throwable.getCause());
 		}
 
 		public boolean actived() {
