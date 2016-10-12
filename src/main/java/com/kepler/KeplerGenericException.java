@@ -11,6 +11,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.util.StringUtils;
 
 import com.kepler.config.PropertiesUtils;
 
@@ -37,6 +38,7 @@ public class KeplerGenericException extends KeplerLocalException {
 	private Map<String, Object> fields;
 
 	private List<String> classes;
+I
 
 	public KeplerGenericException(Throwable throwable) {
 		super(throwable);
@@ -48,6 +50,7 @@ public class KeplerGenericException extends KeplerLocalException {
 
 	public KeplerGenericException(String reason) {
 		super(reason);
+		this.reason = reason;
 	}
 
 	private void initClasses(Class<?> throwable) {
@@ -75,6 +78,10 @@ public class KeplerGenericException extends KeplerLocalException {
 		} catch (Exception e) {
 			KeplerGenericException.LOGGER.error(e.getMessage(), e);
 		}
+	}
+
+	public KeplerGenericException simple() {
+		return new KeplerGenericException(this.fields != null ? this.fields.toString() : StringUtils.isEmpty(this.reason) ? this.reason : "unknow");
 	}
 
 	public List<String> getThrowableClass() {

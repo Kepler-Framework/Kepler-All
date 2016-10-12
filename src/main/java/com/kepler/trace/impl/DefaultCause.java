@@ -1,5 +1,6 @@
 package com.kepler.trace.impl;
 
+import com.kepler.KeplerGenericException;
 import com.kepler.service.Service;
 import com.kepler.trace.TraceCause;
 
@@ -26,15 +27,17 @@ public class DefaultCause implements TraceCause {
 
 	public DefaultCause(Throwable throwable, Service service, String method, String trace) {
 		super();
-		this.cause = this.cause(throwable).getMessage();
+		this.cause = this.cause(throwable, throwable).getMessage();
 		this.service = service;
 		this.method = method;
 		this.trace = trace;
 	}
 
-	private Throwable cause(Throwable throwable) {
-		// Example: throw null
-		return (throwable == null || throwable.getCause() == null) ? throwable : this.cause(throwable.getCause());
+	private Throwable cause(Throwable root, Throwable throwable) {
+		if (KeplerGenericException.class.equals(throwable.getClass())) {
+			return new KeplerGenericException(KeplerGenericException.class.cast(throwable).getFields().toString());
+		}
+		return (throwable == null || throwable.getCause() == null) ? throwable : this.cause(root, throwable.getCause());
 	}
 
 	public long timestamp() {
