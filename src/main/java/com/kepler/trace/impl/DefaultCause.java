@@ -27,17 +27,19 @@ public class DefaultCause implements TraceCause {
 
 	public DefaultCause(Throwable throwable, Service service, String method, String trace) {
 		super();
-		this.cause = this.cause(throwable, throwable).getMessage();
+		this.cause = this.cause(throwable).getMessage();
 		this.service = service;
 		this.method = method;
 		this.trace = trace;
 	}
 
-	private Throwable cause(Throwable root, Throwable throwable) {
+	private Throwable cause(Throwable throwable) {
+		// Guard case, 泛化错误
 		if (KeplerGenericException.class.equals(throwable.getClass())) {
-			return new KeplerGenericException(KeplerGenericException.class.cast(throwable).getFields().toString());
+			return KeplerGenericException.class.cast(throwable).clone();
 		}
-		return (throwable == null || throwable.getCause() == null) ? throwable : this.cause(root, throwable.getCause());
+		// Example: throw null
+		return (throwable == null || throwable.getCause() == null) ? throwable : this.cause(throwable.getCause());
 	}
 
 	public long timestamp() {

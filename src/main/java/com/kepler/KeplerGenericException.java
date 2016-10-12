@@ -35,10 +35,11 @@ public class KeplerGenericException extends KeplerLocalException {
 		}
 	}
 
-	private Map<String, Object> fields;
+	private final Map<String, Object> fields;
 
-	private List<String> classes;
-I
+	private final List<String> classes;
+
+	private final String reason;
 
 	public KeplerGenericException(Throwable throwable) {
 		super(throwable);
@@ -46,11 +47,14 @@ I
 		this.classes = new ArrayList<String>();
 		this.initClasses(throwable.getClass());
 		this.initFields(throwable);
+		this.reason = null;
 	}
 
 	public KeplerGenericException(String reason) {
 		super(reason);
 		this.reason = reason;
+		this.classes = null;
+		this.fields = null;
 	}
 
 	private void initClasses(Class<?> throwable) {
@@ -80,7 +84,8 @@ I
 		}
 	}
 
-	public KeplerGenericException simple() {
+	public KeplerGenericException clone() {
+		// 克隆, 如果存在Field则使用其字符串形式, 如果不存在Field则检查Reason
 		return new KeplerGenericException(this.fields != null ? this.fields.toString() : StringUtils.isEmpty(this.reason) ? this.reason : "unknow");
 	}
 
