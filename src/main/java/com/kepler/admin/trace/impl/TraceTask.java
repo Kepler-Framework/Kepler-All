@@ -19,7 +19,9 @@ public class TraceTask extends PeriodTask {
 	/**
 	 * 默认Status监控开启 Trace监控开启
 	 */
-	public static final boolean ENABLED = PropertiesUtils.get(TraceTask.class.getName().toLowerCase() + ".enabled", StatusTask.ENABLED);
+	public static final String ENABLED_KEY = TraceTask.class.getName().toLowerCase() + ".enabled";
+
+	public static final boolean ENABLED_DEF = PropertiesUtils.get(TraceTask.ENABLED_KEY, StatusTask.ENABLED);
 
 	/**
 	 * 默认45秒, 最小30秒
@@ -46,7 +48,7 @@ public class TraceTask extends PeriodTask {
 
 	@Override
 	protected boolean enabled() {
-		return TraceTask.ENABLED;
+		return TraceTask.ENABLED_DEF;
 	}
 
 	@Override

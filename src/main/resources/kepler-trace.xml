@@ -10,6 +10,7 @@
 	<bean id="kepler.trace.traces" class="com.kepler.trace.impl.Traces" />
 
 	<bean id="kepler.trace.causes" class="com.kepler.trace.impl.DefaultCauses">
+		<constructor-arg ref="kepler.config.profile" />
 		<constructor-arg ref="kepler.service.quiet" />
 	</bean>
 

@@ -7,6 +7,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.kepler.admin.trace.impl.TraceTask;
+import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.header.impl.TraceContext;
 import com.kepler.protocol.Request;
@@ -34,8 +35,11 @@ public class DefaultCauses implements TraceCauses {
 
 	private volatile List<TraceCause> causes_two = new ArrayList<TraceCause>(DefaultCauses.MAX);
 
-	public DefaultCauses(Quiet quiet) {
+	private final Profile profile;
+
+	public DefaultCauses(Profile profile, Quiet quiet) {
 		super();
+		this.profile = profile;
 		this.quiet = quiet;
 	}
 
@@ -56,8 +60,8 @@ public class DefaultCauses implements TraceCauses {
 			DefaultCauses.LOGGER.warn("Array out of range. [max=" + DefaultCauses.MAX + "][index=" + this.causes_one.size() + "]");
 			return;
 		}
-		// 收集非静默异常
-		if (TraceTask.ENABLED && !this.quiet.quiet(request, throwable.getClass())) {
+		// 开启收集, 并且未非静默异常
+		if (PropertiesUtils.profile(this.profile.profile(request.service()), TraceTask.ENABLED_KEY, TraceTask.ENABLED_DEF) && !this.quiet.quiet(request, throwable.getClass())) {
 			this.causes_one.add(new DefaultCause(throwable, request.service(), request.method(), TraceContext.get()));
 		}
 	}
