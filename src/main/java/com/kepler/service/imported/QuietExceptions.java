@@ -14,6 +14,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 
 import com.kepler.annotation.QuietMethod;
 import com.kepler.annotation.QuietThrowable;
+import com.kepler.org.apache.commons.lang.reflect.MethodUtils;
 import com.kepler.protocol.Request;
 import com.kepler.service.Exported;
 import com.kepler.service.Imported;
@@ -57,8 +58,8 @@ public class QuietExceptions implements Quiet, Imported, Exported {
 			// 获取对应Method
 			QuietMethods methods = this.methods(service);
 			for (Method each : Service.clazz(service).getMethods()) {
-				// Method Name : Quite List
-				methods.put(each.getName(), this.quiet(AnnotationUtils.findAnnotation(each, QuietMethod.class)));
+				// Method : Quite List
+				methods.put(each, this.quiet(AnnotationUtils.findAnnotation(each, QuietMethod.class)));
 			}
 		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			QuietExceptions.LOGGER.info("Class not found: " + service);
@@ -87,15 +88,25 @@ public class QuietExceptions implements Quiet, Imported, Exported {
 
 	@Override
 	public boolean quiet(Request request, Class<? extends Throwable> throwable) {
-		// 当前Throwable是否为指定Service指定Method的静默异常
-		QuietMethods methods = this.methods.get(request.service());
-		// 仅判断非泛型接口, 如果在声明静默中或异常标记了静默
-		return (methods != null ? methods.exceptions(request.method()).contains(throwable) : false) || (AnnotationUtils.findAnnotation(throwable, QuietThrowable.class) != null);
+		try {
+			// Guard case, 静默标记异常
+			if (AnnotationUtils.findAnnotation(throwable, QuietThrowable.class) != null) {
+				return true;
+			}
+			QuietMethods methods = this.methods.get(request.service());
+			// 获取真实方法(慢速)
+			Method actual = MethodUtils.getAccessibleMethod(Class.forName(request.service().service()), request.method(), request.types());
+			// 如果可以获取QuietMethods(非泛化)并且可以获取实际方法则尝试从QuietMethods解析, 如果QuietMethods或实际方法任一无法获得则尝试解析异常
+			return (methods != null && actual != null) ? methods.exceptions(actual).contains(throwable) : false;
+		} catch (Exception e) {
+			QuietExceptions.LOGGER.info(e.getMessage(), e);
+			return false;
+		}
 	}
 
 	private class QuietMethods {
 
-		private final Map<String, List<Class<? extends Throwable>>> quiet = new HashMap<String, List<Class<? extends Throwable>>>();
+		private final Map<Method, List<Class<? extends Throwable>>> quiet = new HashMap<Method, List<Class<? extends Throwable>>>();
 
 		/**
 		 * Method -> 对应静默异常
@@ -104,12 +115,12 @@ public class QuietExceptions implements Quiet, Imported, Exported {
 		 * @param throwables
 		 * @return
 		 */
-		private QuietMethods put(String method, List<Class<? extends Throwable>> throwables) {
+		private QuietMethods put(Method method, List<Class<? extends Throwable>> throwables) {
 			this.quiet.put(method, throwables);
 			return this;
 		}
 
-		public List<Class<? extends Throwable>> exceptions(String method) {
+		public List<Class<? extends Throwable>> exceptions(Method method) {
 			List<Class<? extends Throwable>> exceptions = this.quiet.get(method);
 			return exceptions != null ? exceptions : QuietExceptions.EMPTY;
 		}

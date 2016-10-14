@@ -36,9 +36,9 @@ public class ActualInvoker implements Invoker {
 
 	private final ChannelContext channels;
 
-	private final TraceCauses trace;
-
 	private final MockerContext mocker;
+	
+	private final TraceCauses trace;
 
 	private final Router router;
 
@@ -92,7 +92,6 @@ public class ActualInvoker implements Invoker {
 			Mocker mocker = this.mocker.get(request.service());
 			return mocker != null ? mocker.mock(request) : this.retry(request, timestamp, exception);
 		} catch (Throwable throwable) {
-			// 常规异常
 			this.trace.put(request, throwable);
 			throw throwable;
 		}

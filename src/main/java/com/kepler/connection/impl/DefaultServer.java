@@ -78,6 +78,11 @@ public class DefaultServer {
 	 */
 	private static final String BINDING = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".binding", "0.0.0.0");
 
+	/**
+	 * 是否对静默异常本地提示
+	 */
+	private static final boolean WARNING = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".warning", false);
+
 	private static final DefaultChannelFactory<ServerChannel> FACTORY = new DefaultChannelFactory<ServerChannel>(NioServerSocketChannel.class);
 
 	private static final Log LOGGER = LogFactory.getLog(DefaultServer.class);
@@ -334,7 +339,10 @@ public class DefaultServer {
 					if (!DefaultServer.this.quiet.quiet(request, e.getClass())) {
 						DefaultServer.LOGGER.error(message, e);
 					} else {
-						DefaultServer.LOGGER.warn(message, e);
+						// 本地报警(如果开启)
+						if (DefaultServer.WARNING) {
+							DefaultServer.LOGGER.warn(message, e);
+						}
 					}
 					return DefaultServer.this.response.throwable(request.ack(), e, request.serial());
 				} finally {
