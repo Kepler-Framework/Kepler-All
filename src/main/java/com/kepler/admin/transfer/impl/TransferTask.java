@@ -58,14 +58,13 @@ public class TransferTask extends PeriodTask {
 
 	@Override
 	protected void doing() {
-		long current = System.currentTimeMillis();
 		if (TransferTask.COMPRESS) {
 			CompressTransfers compressed = new CompressTransfers(this.transfers);
 			if (compressed.actived()) {
-				this.feeder.feed(current, compressed.transfers());
+				this.feeder.feed(compressed.transfers());
 			}
 		} else {
-			this.feeder.feed(current, this.transfers);
+			this.feeder.feed(this.transfers);
 		}
 	}
 

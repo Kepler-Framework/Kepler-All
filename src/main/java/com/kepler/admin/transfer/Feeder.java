@@ -12,5 +12,5 @@ import com.kepler.annotation.Service;
 @Internal
 public interface Feeder {
 
-	public void feed(long timestamp, Collection<Transfers> transfer);
+	public void feed(Collection<Transfers> transfer);
 }
