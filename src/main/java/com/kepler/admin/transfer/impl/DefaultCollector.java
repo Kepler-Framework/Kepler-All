@@ -39,9 +39,12 @@ public class DefaultCollector implements Collector, Imported {
 	 * @param method 方法名称
 	 */
 	private void methods(Service service, String method) {
-		for (int index = 0; index < this.transfers.length; index++) {
-			// 获取所有Method并初始化DefaultTransfers
-			this.transfers[index].put(service, method, new DefaultTransfers(service, method));
+		// 粗粒度锁
+		synchronized (this) {
+			for (int index = 0; index < this.transfers.length; index++) {
+				// 获取所有Method并初始化DefaultTransfers
+				this.transfers[index].put(service, method, new DefaultTransfers(service, method));
+			}
 		}
 	}
 
