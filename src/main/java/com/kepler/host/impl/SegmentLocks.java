@@ -20,7 +20,7 @@ public class SegmentLocks implements HostLocks {
 	}
 
 	public Object get(Host host) {
-		// 不使用Host.hashcode, 因为包含PID Hash. Host.hashCode() { return this.host().hashCode() ^ this.pid().hashCode() ^ this.port(); }
+		// 以主机为维度的锁, 不计算端口和PID
 		return this.locks[Math.abs(host.host().hashCode()) % this.locks.length];
 	}
 }

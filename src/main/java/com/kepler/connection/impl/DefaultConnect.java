@@ -348,7 +348,7 @@ public class DefaultConnect implements Connect {
 				return future.request().async() ? future : future.get();
 			} catch (Throwable exception) {
 				// 任何异常均释放ACK
-				DefaultConnect.this.acks.del(request.ack());
+				DefaultConnect.this.acks.remove(request.ack());
 				// Timeout处理
 				this.timeout(future, exception);
 				throw exception;
@@ -373,7 +373,7 @@ public class DefaultConnect implements Connect {
 		public void channelRead(ChannelHandlerContext ctx, Object message) throws Exception {
 			Response response = Response.class.cast(message);
 			// 移除ACK
-			AckFuture future = DefaultConnect.this.acks.del(response.ack());
+			AckFuture future = DefaultConnect.this.acks.remove(response.ack());
 			// 如获取不到ACK表示已超时
 			if (future != null) {
 				future.response(response);
@@ -461,7 +461,7 @@ public class DefaultConnect implements Connect {
 			return future;
 		}
 
-		public AckFuture del(byte[] ack) {
+		public AckFuture remove(byte[] ack) {
 			return this.waitings.remove(new Bytes(ack));
 		}
 	}

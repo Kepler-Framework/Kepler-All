@@ -16,7 +16,7 @@ abstract public class PeriodTask implements Delayed {
 
 	private static final Log LOGGER = LogFactory.getLog(PeriodTask.class);
 
-	private long deadline;
+	protected long deadline;
 
 	/**
 	 * 准备下一次周期时间

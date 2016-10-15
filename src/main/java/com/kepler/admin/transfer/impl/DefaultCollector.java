@@ -96,8 +96,20 @@ public class DefaultCollector implements Collector, Imported {
 	 * @return
 	 */
 	private DefaultCollector clear() {
-		for (Object each : DefaultCollector.this.next().values()) {
+		for (Object each : this.next().values()) {
 			DefaultTransfers.class.cast(each).clear();
+		}
+		return this;
+	}
+
+	/**
+	 * 重置下次待使用所有DefaultTransfers
+	 * 
+	 * @return
+	 */
+	private DefaultCollector reset() {
+		for (Object each : this.next().values()) {
+			DefaultTransfers.class.cast(each).reset();
 		}
 		return this;
 	}
@@ -119,7 +131,11 @@ public class DefaultCollector implements Collector, Imported {
 	}
 
 	private MultiKeyMap exchange() {
+		// 重置待使用缓存区
+		this.reset();
+		// 切换待使用缓存区为当前缓存区
 		this.indexes.incrementAndGet();
+		// 清理下次使用缓存区并返回上次使用缓存区
 		return this.clear().prev();
 	}
 }

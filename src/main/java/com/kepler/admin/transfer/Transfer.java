@@ -10,10 +10,12 @@ import com.kepler.host.Host;
  */
 public interface Transfer extends Serializable {
 	
+	public void reset();
+
 	public Host local();
 
 	public Host target();
-
+	
 	/**
 	 * Round trip time
 	 * 
@@ -27,7 +29,14 @@ public interface Transfer extends Serializable {
 	 * @return
 	 */
 	public long total();
-	
+
+	/**
+	 * 首次收集时间
+	 * 
+	 * @return
+	 */
+	public long started();
+
 	/**
 	 * 超时数量
 	 * 
@@ -41,6 +50,4 @@ public interface Transfer extends Serializable {
 	 * @return
 	 */
 	public long exception();
-
-	public void reset();
 }

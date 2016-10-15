@@ -35,7 +35,7 @@ public class CachedMethods implements Methods {
 	/**
 	 * 缓存方法
 	 */
-	private volatile Map<ServiceAndMethod, Method> cached = new HashMap<ServiceAndMethod, Method>();
+	volatile private Map<ServiceAndMethod, Method> cached = new HashMap<ServiceAndMethod, Method>();
 
 	/**
 	 * 获取并缓存方法

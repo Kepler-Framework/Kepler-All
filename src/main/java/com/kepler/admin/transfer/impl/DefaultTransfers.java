@@ -1,9 +1,8 @@
 package com.kepler.admin.transfer.impl;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
@@ -14,7 +13,6 @@ import com.kepler.admin.transfer.Transfer;
 import com.kepler.admin.transfer.Transfers;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.host.Host;
-import com.kepler.org.apache.commons.collections.map.MultiKeyMap;
 import com.kepler.org.apache.commons.lang.builder.ToStringBuilder;
 import com.kepler.service.Service;
 
@@ -25,24 +23,23 @@ public class DefaultTransfers implements Transfers {
 
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * 冻结状态阀值(127次默认)
+	 */
+	private static final int FREEZE = PropertiesUtils.get(DefaultTransfers.class.getName().toLowerCase() + ".freeze", Byte.MAX_VALUE);
+
 	private static final Log LOGGER = LogFactory.getLog(DefaultTransfers.class);
 
 	/**
-	 * 冻结状态阀值
+	 * 可复用Hosts
 	 */
-	private static final int FREEZE = PropertiesUtils.get(DefaultTransfers.class.getName().toLowerCase() + ".freeze", 5);
+	private static final ThreadLocal<Hosts> HOSTS = new ThreadLocal<Hosts>() {
+		protected Hosts initialValue() {
+			return new Hosts();
+		}
+	};
 
-	/**
-	 * 需要冻结的Transfer
-	 */
-	private final Collection<Transfer> removed = new HashSet<Transfer>();
-
-	/**
-	 * 当前DefaultTransfers唯一ID(用于Log)
-	 */
-	private final String uuid = UUID.randomUUID().toString();
-
-	private final MultiKeyMap transfers = new MultiKeyMap();
+	private final ConcurrentMap<Hosts, Transfer> transfers = new ConcurrentHashMap<Hosts, Transfer>();
 
 	private final String service;
 
@@ -50,44 +47,17 @@ public class DefaultTransfers implements Transfers {
 
 	private final String method;
 
+	/**
+	 * 是否处于激活状态, 仅激活状态的Transfers需要传输
+	 */
+	volatile private boolean actived;
+
 	public DefaultTransfers(Service service, String method) {
 		super();
+		this.actived = false;
 		this.method = method;
 		this.service = service.service();
 		this.version = service.versionAndCatalog();
-	}
-
-	/**
-	 * Remove or clear
-	 * 
-	 * @param transfer
-	 */
-	private void clear(WriteableTransfer transfer) {
-		// 当前WriteableTransfer是否需要冻结并移除
-		if (transfer.freezed()) {
-			this.removed.add(transfer);
-		} else {
-			// 重置
-			transfer.reset();
-		}
-	}
-
-	/**
-	 * 清理过期Transfer
-	 */
-	private void remove() {
-		Iterator<Transfer> removed = this.removed.iterator();
-		while (removed.hasNext()) {
-			this.remove(removed.next());
-			removed.remove();
-		}
-	}
-
-	private void remove(Transfer each) {
-		Transfer removed = Transfer.class.cast(this.transfers.removeMultiKey(each.local(), each.target()));
-		if (removed != null) {
-			DefaultTransfers.LOGGER.debug("Transfer: (" + removed.local() + ") to (" + removed.target() + ") removed ... (" + this + ")");
-		}
 	}
 
 	public String service() {
@@ -102,33 +72,57 @@ public class DefaultTransfers implements Transfers {
 		return this.method;
 	}
 
-	@SuppressWarnings("unchecked")
+	public boolean actived() {
+		return this.actived;
+	}
+
 	public Collection<Transfer> transfers() {
 		return this.transfers.values();
 	}
 
 	public void clear() {
-		// 标记,清理
-		for (Object transfer : this.transfers.values()) {
-			this.clear(WriteableTransfer.class.cast(transfer));
+		for (Transfer transfer : this.transfers.values()) {
+			// 如果为冻结状态则进行移除
+			if (WriteableTransfer.class.cast(transfer).freezed() && (this.transfers.remove(DefaultTransfers.HOSTS.get().reset(transfer.local(), transfer.target())) != null)) {
+				DefaultTransfers.LOGGER.debug("Transfer: (" + transfer.local() + ") to (" + transfer.target() + ") removed ... (" + this + ")");
+			}
 		}
-		this.remove();
+	}
+
+	public void reset() {
+		for (Transfer transfer : this.transfers.values()) {
+			transfer.reset();
+		}
+		// 恢复状态为非激活
+		this.actived = false;
+	}
+
+	public Transfer get(Host local, Host target) {
+		return this.transfers.get(DefaultTransfers.HOSTS.get().reset(local, target));
+	}
+
+	/**
+	 * 获取或创建
+	 * 
+	 * @param local
+	 * @param target
+	 * @param transfer
+	 * @return
+	 */
+	private Transfer get(Host local, Host target, Transfer transfer) {
+		// 如果已存在则返回已存在否则返回新创建
+		Transfer actual = this.transfers.putIfAbsent(DefaultTransfers.HOSTS.get().reset(local, target), transfer);
+		return actual != null ? actual : transfer;
+	}
+
+	public Transfer put(Host local, Host target, Status status, long rtt) {
+		Transfer transfer = this.transfers.get(DefaultTransfers.HOSTS.get().reset(local, target));
+		transfer = (transfer != null ? transfer : this.get(local, target, new WriteableTransfer(local, target)));
+		return WriteableTransfer.class.cast(transfer).touch().rtt(rtt).timeout(status).exception(status);
 	}
 
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this);
-	}
-
-	public Transfer get(Host local, Host target) {
-		return Transfer.class.cast(this.transfers.get(local, target));
-	}
-
-	// 并发情况下出现允许范围内的丢失 (首次初始化时)
-	public Transfer put(Host local, Host target, Status status, long rtt) {
-		WriteableTransfer transfer = WriteableTransfer.class.cast(this.transfers.get(local, target));
-		// 不存在则创建
-		this.transfers.put(local, target, (transfer = (transfer != null ? transfer : new WriteableTransfer(local, target))).touch().rtt(rtt).timeout(status).exception(status));
-		return transfer;
 	}
 
 	private class WriteableTransfer implements Transfer {
@@ -145,15 +139,32 @@ public class DefaultTransfers implements Transfers {
 
 		private final AtomicLong exception = new AtomicLong();
 
-		private final Host local;
-
 		private final Host target;
 
-		public WriteableTransfer(Host local, Host target) {
+		private final Host local;
+
+		private long started;
+
+		private WriteableTransfer(Host local, Host target) {
 			super();
 			this.local = local;
 			this.target = target;
-			DefaultTransfers.LOGGER.debug("WriteableTransfer (" + DefaultTransfers.this.uuid + ") created: " + local + " / " + target + ") for (" + DefaultTransfers.this.service() + " / " + DefaultTransfers.this.version() + ")");
+			DefaultTransfers.LOGGER.debug("WriteableTransfer created: " + local + " to " + target + ") for (" + DefaultTransfers.this.service() + " / " + DefaultTransfers.this.version() + ")");
+		}
+
+		/**
+		 * 如果连续N次没有请求量则进入冻结状态,用于主机永久性离线后的WriteableTransfer清理
+		 * 
+		 * @return
+		 */
+		public boolean freezed() {
+			if (this.total.get() == 0) {
+				return this.freeze.incrementAndGet() > DefaultTransfers.FREEZE;
+			} else {
+				// 重置
+				this.freeze.set(0);
+				return false;
+			}
 		}
 
 		@Override
@@ -174,6 +185,10 @@ public class DefaultTransfers implements Transfers {
 			return this.total.get();
 		}
 
+		public long started() {
+			return this.started;
+		}
+
 		public long timeout() {
 			return this.timeout.get();
 		}
@@ -183,12 +198,12 @@ public class DefaultTransfers implements Transfers {
 		}
 
 		public WriteableTransfer touch() {
+			DefaultTransfers.this.actived = true;
 			this.total.incrementAndGet();
 			return this;
 		}
 
 		public WriteableTransfer rtt(long rtt) {
-			// 如果RTT或Waiting=0不调用计数器减少锁并发
 			if (rtt != 0) {
 				this.rtt.addAndGet(rtt);
 			}
@@ -214,29 +229,37 @@ public class DefaultTransfers implements Transfers {
 			this.total.set(0);
 			this.timeout.set(0);
 			this.exception.set(0);
-		}
-
-		/**
-		 * 如果连续N次没有请求量则进入冻结状态,用于主机永久性离线后的WriteableTransfer清理
-		 * 
-		 * @return
-		 */
-		public boolean freezed() {
-			return this.total.get() == 0 ? this.freeze.incrementAndGet() > DefaultTransfers.FREEZE : this.warm();
-		}
-
-		/**
-		 * 激活
-		 * 
-		 * @return
-		 */
-		private boolean warm() {
-			this.freeze.set(0);
-			return false;
+			this.started = System.currentTimeMillis();
 		}
 
 		public String toString() {
 			return ToStringBuilder.reflectionToString(this);
+		}
+	}
+
+	private static class Hosts {
+
+		private Host local;
+
+		private Host target;
+
+		private Hosts() {
+			super();
+		}
+
+		public Hosts reset(Host local, Host target) {
+			this.local = local;
+			this.target = target;
+			return this;
+		}
+
+		public int hashCode() {
+			return this.local.hashCode() ^ this.target.hashCode();
+		}
+
+		public boolean equals(Object ob) {
+			Hosts host = Hosts.class.cast(ob);
+			return this.local.equals(host.local) && this.target.equals(host.target);
 		}
 	}
 }

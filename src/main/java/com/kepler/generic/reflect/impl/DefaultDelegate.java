@@ -53,7 +53,7 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 	/**
 	 * 缓存推导方法
 	 */
-	private volatile MultiKeyMap cached = new MultiKeyMap();
+	volatile private MultiKeyMap cached = new MultiKeyMap();
 
 	public DefaultDelegate(GenericResponseFactory factory, FieldsAnalyser analyser, Methods methods) {
 		this.analyser = analyser;

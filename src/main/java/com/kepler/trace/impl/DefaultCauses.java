@@ -31,9 +31,9 @@ public class DefaultCauses implements TraceCauses {
 	/**
 	 * 周期性缓存池 
 	 */
-	private volatile List<TraceCause> causes_one = new ArrayList<TraceCause>(DefaultCauses.MAX);
+	volatile private List<TraceCause> causes_one = new ArrayList<TraceCause>(DefaultCauses.MAX);
 
-	private volatile List<TraceCause> causes_two = new ArrayList<TraceCause>(DefaultCauses.MAX);
+	volatile private List<TraceCause> causes_two = new ArrayList<TraceCause>(DefaultCauses.MAX);
 
 	private final Profile profile;
 
