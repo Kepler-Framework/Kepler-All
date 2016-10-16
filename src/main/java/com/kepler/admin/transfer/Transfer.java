@@ -9,13 +9,16 @@ import com.kepler.host.Host;
  * @author kim 2015年7月24日
  */
 public interface Transfer extends Serializable {
-	
+
+	/**
+	 * 重置计数
+	 */
 	public void reset();
 
 	public Host local();
 
 	public Host target();
-	
+
 	/**
 	 * Round trip time
 	 * 
@@ -31,13 +34,6 @@ public interface Transfer extends Serializable {
 	public long total();
 
 	/**
-	 * 首次收集时间
-	 * 
-	 * @return
-	 */
-	public long started();
-
-	/**
 	 * 超时数量
 	 * 
 	 * @return
@@ -50,4 +46,18 @@ public interface Transfer extends Serializable {
 	 * @return
 	 */
 	public long exception();
+
+	/**
+	 * 首次收集时间
+	 * 
+	 * @return
+	 */
+	public long timestamp();
+
+	/**
+	 * 是否处于激活状态
+	 * 
+	 * @return
+	 */
+	public boolean actived();
 }

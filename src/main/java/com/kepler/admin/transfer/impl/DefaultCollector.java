@@ -37,14 +37,21 @@ public class DefaultCollector implements Collector, Imported {
 	 * 
 	 * @param service 服务
 	 * @param method 方法名称
+	 * @return Current Transfers
 	 */
-	private void methods(Service service, String method) {
-		// 粗粒度锁
+	private Transfers methods(Service service, String method) {
+		// 泛化加载时的线程安全
 		synchronized (this) {
+			// Guard case, 如果已存在则返回
+			Transfers current = Transfers.class.cast(this.curr().get(service, method));
+			if (current != null) {
+				return current;
+			}
+			// 初始化并返回Current
 			for (int index = 0; index < this.transfers.length; index++) {
-				// 获取所有Method并初始化DefaultTransfers
 				this.transfers[index].put(service, method, new DefaultTransfers(service, method));
 			}
+			return Transfers.class.cast(this.curr().get(service, method));
 		}
 	}
 
@@ -68,14 +75,8 @@ public class DefaultCollector implements Collector, Imported {
 	 */
 	private Transfers get(Ack ack) {
 		Transfers transfers = Transfers.class.cast(this.curr().get(ack.request().service(), ack.request().method()));
-		if (transfers == null) {
-			// 如果未加载到Transfers(如Generic)则加载后尝试重新获取
-			this.methods(ack.request().service(), ack.request().method());
-			// 在加载时可以存在周期切换, 需要重新获取
-			return Transfers.class.cast(this.curr().get(ack.request().service(), ack.request().method()));
-		} else {
-			return transfers;
-		}
+		// 如果未加载到Transfers(如Generic)则加载后尝试重新获取
+		return transfers == null ? this.methods(ack.request().service(), ack.request().method()) : transfers;
 	}
 
 	public Transfer peek(Ack ack) {

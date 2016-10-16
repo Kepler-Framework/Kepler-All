@@ -22,11 +22,6 @@ public class TransferTask extends PeriodTask {
 	 */
 	private static final int PERIOD = Math.min(Math.max(5000, PropertiesUtils.get(TransferTask.class.getName().toLowerCase() + ".period", 10000)), 15000);
 
-	/**
-	 * 是否压缩传输
-	 */
-	private static final boolean COMPRESS = PropertiesUtils.get(TransferTask.class.getName().toLowerCase() + ".compress", true);
-
 	private static final boolean ENABLED = PropertiesUtils.get(TransferTask.class.getName().toLowerCase() + ".enabled", false);
 
 	private final Collector collector;
@@ -58,13 +53,9 @@ public class TransferTask extends PeriodTask {
 
 	@Override
 	protected void doing() {
-		if (TransferTask.COMPRESS) {
-			CompressTransfers compressed = new CompressTransfers(this.transfers);
-			if (compressed.actived()) {
-				this.feeder.feed(compressed.transfers());
-			}
-		} else {
-			this.feeder.feed(this.transfers);
+		Compress compressed = new Compress(this.transfers);
+		if (compressed.actived()) {
+			this.feeder.feed(compressed.transfers());
 		}
 	}
 
@@ -74,24 +65,25 @@ public class TransferTask extends PeriodTask {
 	 * @author KimShen
 	 *
 	 */
-	private class CompressTransfers {
+	private class Compress {
 
-		private List<Transfers> transfers;
+		private final List<Transfers> transfers = new ArrayList<Transfers>();
 
-		private CompressTransfers(Collection<Transfers> transfers) {
+		private Compress(Collection<Transfers> transfers) {
 			for (Transfers each : transfers) {
-				if (each.actived()) {
-					(this.transfers = this.transfers != null ? this.transfers : new ArrayList<Transfers>()).add(each);
+				SimpleTransfers simpled = new SimpleTransfers(each.service(), each.version(), each.method(), each.transfers());
+				if (simpled.actived()) {
+					this.transfers.add(simpled);
 				}
 			}
 		}
 
-		public List<Transfers> transfers() {
-			return this.transfers;
+		public boolean actived() {
+			return !this.transfers.isEmpty();
 		}
 
-		public boolean actived() {
-			return this.transfers != null;
+		public List<Transfers> transfers() {
+			return this.transfers;
 		}
 	}
 }

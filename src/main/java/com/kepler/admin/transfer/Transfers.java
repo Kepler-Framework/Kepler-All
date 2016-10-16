@@ -28,13 +28,6 @@ public interface Transfers extends Serializable {
 	public void reset();
 
 	/**
-	 * 是否为激活状态
-	 * 
-	 * @return
-	 */
-	public boolean actived();
-
-	/**
 	 * 多个Local -> Target
 	 * 
 	 * @return
