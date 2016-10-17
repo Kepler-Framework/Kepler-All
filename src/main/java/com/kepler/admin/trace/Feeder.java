@@ -11,7 +11,7 @@ import com.kepler.trace.TraceCause;
  * @author KimShen
  *
  */
-@Service(version = "0.0.8")
+@Service(version = "0.0.7")
 @Internal
 public interface Feeder {
 

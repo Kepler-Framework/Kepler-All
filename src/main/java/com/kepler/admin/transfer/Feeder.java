@@ -8,7 +8,7 @@ import com.kepler.annotation.Service;
 /**
  * @author kim 2015年7月22日
  */
-@Service(version = "0.0.8")
+@Service(version = "0.0.7")
 @Internal
 public interface Feeder {
 

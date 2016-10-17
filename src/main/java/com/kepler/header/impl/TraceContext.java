@@ -76,7 +76,7 @@ public class TraceContext {
 	 */
 	public static String get() {
 		Headers headers = TraceContext.headers();
-		// TODO, 获取Trace, 0.0.8去除TRACE_COVER
+		// TODO, 获取Trace, 0.0.7去除TRACE_COVER
 		String trace = headers.get(Trace.TRACE_COVER);
 		return StringUtils.isEmpty(trace) ? TraceContext.trace(headers) : trace;
 	}

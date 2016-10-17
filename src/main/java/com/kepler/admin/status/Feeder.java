@@ -9,7 +9,7 @@ import com.kepler.host.Host;
 /**
  * @author kim 2015年8月8日
  */
-@Service(version = "0.0.8")
+@Service(version = "0.0.7")
 @Internal
 public interface Feeder {
 
