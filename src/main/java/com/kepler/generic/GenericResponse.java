@@ -7,14 +7,6 @@ package com.kepler.generic;
 public interface GenericResponse {
 
 	/**
-	 * 指定Response
-	 * 
-	 * @param response
-	 * @return
-	 */
-	public GenericResponse response(Object response);
-
-	/**
 	 * 获取Response
 	 * 
 	 * @return

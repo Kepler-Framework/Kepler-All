@@ -10,10 +10,8 @@ public class DefaultResponse implements GenericResponse {
 
 	private Object response;
 
-	@Override
-	public GenericResponse response(Object response) {
+	public DefaultResponse(Object response) {
 		this.response = response;
-		return this;
 	}
 
 	@Override

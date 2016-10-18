@@ -21,15 +21,6 @@ public class DefaultTransfers implements Transfers {
 
 	private static final Log LOGGER = LogFactory.getLog(DefaultTransfers.class);
 
-	/**
-	 * 可复用Hosts(多DefaultTransfers共享)
-	 */
-	private static final ThreadLocal<Hosts> HOSTS = new ThreadLocal<Hosts>() {
-		protected Hosts initialValue() {
-			return new Hosts();
-		}
-	};
-
 	private static final long serialVersionUID = 1L;
 
 	/**
@@ -66,7 +57,7 @@ public class DefaultTransfers implements Transfers {
 	public void clear() {
 		for (Transfer transfer : this.transfers.values()) {
 			// 如果为冻结状态则进行移除
-			if (DefaultTransfer.class.cast(transfer).freezed() && (this.transfers.remove(DefaultTransfers.HOSTS.get().reset(transfer.local(), transfer.target())) != null)) {
+			if (DefaultTransfer.class.cast(transfer).freezed() && (this.transfers.remove(new Hosts(transfer.local(), transfer.target())) != null)) {
 				DefaultTransfers.LOGGER.info("Clear " + transfer + " for " + this.service + " [method=" + this.method + "]");
 			}
 		}
@@ -79,7 +70,7 @@ public class DefaultTransfers implements Transfers {
 	}
 
 	public Transfer get(Host local, Host target) {
-		return this.transfers.get(DefaultTransfers.HOSTS.get().reset(local, target));
+		return this.transfers.get(new Hosts(local, target));
 	}
 
 	/**
@@ -92,12 +83,12 @@ public class DefaultTransfers implements Transfers {
 	 */
 	private Transfer get(Host local, Host target, Transfer transfer) {
 		// 如果已存在则返回已存在否则返回新创建
-		Transfer actual = this.transfers.putIfAbsent(DefaultTransfers.HOSTS.get().reset(local, target), transfer);
+		Transfer actual = this.transfers.putIfAbsent(new Hosts(local, target), transfer);
 		return actual != null ? actual : transfer;
 	}
 
 	public Transfer put(Host local, Host target, Status status, long rtt) {
-		Transfer transfer = this.transfers.get(DefaultTransfers.HOSTS.get().reset(local, target));
+		Transfer transfer = this.transfers.get(new Hosts(local, target));
 		transfer = (transfer != null ? transfer : this.get(local, target, new DefaultTransfer(local, target)));
 		return DefaultTransfer.class.cast(transfer).touch().rtt(rtt).timeout(status).exception(status);
 	}
@@ -106,7 +97,7 @@ public class DefaultTransfers implements Transfers {
 		return ToStringBuilder.reflectionToString(this);
 	}
 
-	private static class Hosts {
+	private class Hosts {
 
 		private Host local;
 
@@ -116,10 +107,9 @@ public class DefaultTransfers implements Transfers {
 			super();
 		}
 
-		public Hosts reset(Host local, Host target) {
+		private Hosts(Host local, Host target) {
 			this.local = local;
 			this.target = target;
-			return this;
 		}
 
 		public int hashCode() {

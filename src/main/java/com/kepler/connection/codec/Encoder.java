@@ -25,15 +25,6 @@ public class Encoder {
 	private static final double ADJUST = PropertiesUtils.get(Encoder.class.getName().toLowerCase() + ".adjust", 0.75);
 
 	/**
-	 * 可重用OUTPUT
-	 */
-	private static final ThreadLocal<BufferOutputStream> OUTPUT = new ThreadLocal<BufferOutputStream>() {
-		protected BufferOutputStream initialValue() {
-			return new BufferOutputStream();
-		}
-	};
-
-	/**
 	 * 分配计算
 	 */
 	private final Handle estimate = AdaptiveRecvByteBufAllocator.DEFAULT.newHandle();
@@ -60,7 +51,7 @@ public class Encoder {
 			// 获取序列化策略(如Request/Response)
 			byte serial = SerialID.class.cast(message).serial();
 			// 首字节为序列化策略
-			return BufferOutputStream.class.cast(this.serials.output(serial).output(message, this.clazz, Encoder.OUTPUT.get().reset(buffer.writeByte(serial)), (int) (buffer.capacity() * Encoder.ADJUST))).record(this.traffic, this.estimate).buffer();
+			return BufferOutputStream.class.cast(this.serials.output(serial).output(message, this.clazz, new BufferOutputStream(buffer.writeByte(serial)), (int) (buffer.capacity() * Encoder.ADJUST))).record(this.traffic, this.estimate).buffer();
 		} catch (Exception exception) {
 			// 异常, 释放ByteBuf
 			if (buffer.refCnt() > 0) {
@@ -70,9 +61,13 @@ public class Encoder {
 		}
 	}
 
-	private static class BufferOutputStream extends OutputStream {
+	private class BufferOutputStream extends OutputStream {
 
 		private ByteBuf buffer;
+
+		private BufferOutputStream(ByteBuf buffer) {
+			this.buffer = buffer;
+		}
 
 		/**
 		 * 安全性校验
@@ -87,11 +82,6 @@ public class Encoder {
 			} else if ((offset < 0) || (offset > dest.length) || (length < 0) || ((offset + length) > dest.length) || ((offset + length) < 0)) {
 				throw new IndexOutOfBoundsException();
 			}
-		}
-
-		public BufferOutputStream reset(ByteBuf buffer) {
-			this.buffer = buffer;
-			return this;
 		}
 
 		public ByteBuf buffer() {

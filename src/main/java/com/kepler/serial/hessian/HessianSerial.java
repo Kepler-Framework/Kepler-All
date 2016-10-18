@@ -38,24 +38,11 @@ public class HessianSerial implements SerialOutput, SerialInput {
 	/**
 	 * 缓冲大小
 	 */
-	private static final int BUFFER = PropertiesUtils.get(HessianSerial.class.getName().toLowerCase() + ".buffer", 0x4 << 6);
+	private static final int BUFFER = PropertiesUtils.get(HessianSerial.class.getName().toLowerCase() + ".buffer", 10240);
 
 	private static final byte[] EMPTY = new byte[] {};
 
 	private static final byte SERIAL = 0;
-
-	// Single HessianSerial4Segment, not static
-	private final ThreadLocal<SegmentOutput> output = new ThreadLocal<SegmentOutput>() {
-		protected SegmentOutput initialValue() {
-			return new SegmentOutput();
-		}
-	};
-
-	private final ThreadLocal<SegmentInput> input = new ThreadLocal<SegmentInput>() {
-		protected SegmentInput initialValue() {
-			return new SegmentInput();
-		}
-	};
 
 	private final SerializerFactory hessian2factory = new Hessian2SerializerFactory();
 
@@ -84,48 +71,46 @@ public class HessianSerial implements SerialOutput, SerialInput {
 	}
 
 	public byte[] output(Object data, Class<?> clazz) throws Exception {
-		try (SegmentOutput output = this.output.get().reset(clazz)) {
+		try (SegmentOutput output = new SegmentOutput(clazz)) {
 			return output.writeObject(data).arrays();
 		}
 	}
 
 	public OutputStream output(Object data, Class<?> clazz, OutputStream stream, int buffer) throws Exception {
-		try (SegmentOutput output = this.output.get().reset(clazz, stream, buffer)) {
+		try (SegmentOutput output = new SegmentOutput(clazz, stream, buffer)) {
 			output.writeObject(data);
 		}
 		return stream;
 	}
 
 	public <T> T input(byte[] data, Class<T> clazz) throws Exception {
-		try (SegmentInput input = this.input.get().reset(data, clazz)) {
+		try (SegmentInput input = new SegmentInput(data, clazz)) {
 			return this.adapter.adpater(clazz, input.readObject());
 		}
 	}
 
 	public <T> T input(InputStream input, int buffer, Class<T> clazz) throws Exception {
-		try (SegmentInput stream = this.input.get().reset(input, buffer, clazz)) {
+		try (SegmentInput stream = new SegmentInput(input, buffer, clazz)) {
 			return this.adapter.adpater(clazz, stream.readObject());
 		}
 	}
 
 	private class SegmentInput implements Closeable {
 
-		private HessianInput input;
+		private final HessianInput input;
 
-		private Class<?> clazz;
+		private final Class<?> clazz;
 
-		public SegmentInput reset(byte[] arrays, Class<?> clazz) {
+		private SegmentInput(byte[] arrays, Class<?> clazz) {
 			this.input = new HessianInput(new BufferedInputStream(new ByteArrayInputStream(arrays), HessianSerial.BUFFER));
 			this.input.setSerializerFactory(HessianSerial.this.hessian2factory);
 			this.clazz = clazz;
-			return this;
 		}
 
-		public SegmentInput reset(InputStream stream, int buffer, Class<?> clazz) {
+		private SegmentInput(InputStream stream, int buffer, Class<?> clazz) {
 			this.input = new HessianInput(new BufferedInputStream(stream, buffer));
 			this.input.setSerializerFactory(HessianSerial.this.hessian2factory);
 			this.clazz = clazz;
-			return this;
 		}
 
 		@Override
@@ -142,28 +127,26 @@ public class HessianSerial implements SerialOutput, SerialInput {
 
 	private class SegmentOutput implements Closeable {
 
-		private Class<?> clazz;
+		private final Class<?> clazz;
 
-		private OutputStream stream;
+		private final OutputStream stream;
 
-		private HessianOutput output;
+		private final HessianOutput output;
 
-		private ByteArrayOutputStream arrays;
+		private final ByteArrayOutputStream arrays;
 
-		public SegmentOutput reset(Class<?> clazz) {
+		private SegmentOutput(Class<?> clazz) {
 			this.output = new HessianOutput(new BufferedOutputStream(this.arrays = new ByteArrayOutputStream(HessianSerial.BUFFER), HessianSerial.BUFFER));
 			this.output.setSerializerFactory(HessianSerial.this.hessian2factory);
 			this.clazz = clazz;
 			this.stream = null;
-			return this;
 		}
 
-		public SegmentOutput reset(Class<?> clazz, OutputStream stream, int buffer) {
+		public SegmentOutput(Class<?> clazz, OutputStream stream, int buffer) {
 			this.output = new HessianOutput(new BufferedOutputStream(this.stream = stream, buffer));
 			this.output.setSerializerFactory(HessianSerial.this.hessian2factory);
 			this.clazz = clazz;
 			this.arrays = null;
-			return this;
 		}
 
 		/**

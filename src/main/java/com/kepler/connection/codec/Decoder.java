@@ -20,15 +20,6 @@ public class Decoder {
 	 */
 	private static final double ADJUST = PropertiesUtils.get(Decoder.class.getName().toLowerCase() + ".adjust", 0.75);
 
-	/**
-	 * 可复用Input
-	 */
-	private static final ThreadLocal<BufferInputStream> INPUT = new ThreadLocal<BufferInputStream>() {
-		protected BufferInputStream initialValue() {
-			return new BufferInputStream();
-		}
-	};
-
 	private final Serials serials;
 
 	private final Traffic traffic;
@@ -48,7 +39,7 @@ public class Decoder {
 			this.traffic.input(buffer.readableBytes());
 			// buffer.readByte(), 首个字节保存序列化策略
 			// buffer.readableBytes() * Decoder.ADJUST确定Buffer大小
-			return this.serials.input(buffer.readByte()).input(Decoder.INPUT.get().reset(buffer), (int) (buffer.readableBytes() * Decoder.ADJUST), this.clazz);
+			return this.serials.input(buffer.readByte()).input(new BufferInputStream(buffer), (int) (buffer.readableBytes() * Decoder.ADJUST), this.clazz);
 		} finally {
 			if (buffer.refCnt() > 0) {
 				ReferenceCountUtil.release(buffer);
@@ -56,7 +47,7 @@ public class Decoder {
 		}
 	}
 
-	private static class BufferInputStream extends InputStream {
+	private class BufferInputStream extends InputStream {
 
 		/**
 		 * 当前数据集
@@ -73,11 +64,8 @@ public class Decoder {
 		 */
 		private int position;
 
-		// 重置
-		public BufferInputStream reset(ByteBuf buffer) {
+		private BufferInputStream(ByteBuf buffer) {
 			this.readable = (this.buffer = buffer).readableBytes();
-			this.position = 0;
-			return this;
 		}
 
 		/**

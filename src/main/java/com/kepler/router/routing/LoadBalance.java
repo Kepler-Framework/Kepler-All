@@ -13,12 +13,6 @@ import com.kepler.router.Routing;
  */
 abstract class LoadBalance implements Routing {
 
-	private static final ThreadLocal<Slots> SLOTS = new ThreadLocal<Slots>() {
-		protected Slots initialValue() {
-			return new Slots();
-		}
-	};
-
 	abstract protected int next(int weights);
 
 	@Override
@@ -27,16 +21,12 @@ abstract class LoadBalance implements Routing {
 		if (hosts.size() == 1) {
 			return hosts.get(0);
 		}
-		Slots slots = LoadBalance.SLOTS.get().reset(hosts);
-		try {
-			int cursor = this.next(this.sumUpWeight(hosts));
-			while (slots.hasNext()) {
-				if (cursor < slots.next()) {
-					return slots.host();
-				}
+		Slots slots = new Slots(hosts);
+		int cursor = this.next(this.sumUpWeight(hosts));
+		while (slots.hasNext()) {
+			if (cursor < slots.next()) {
+				return slots.host();
 			}
-		} finally {
-			slots.reset();
 		}
 		throw new KeplerRoutingException("None right service for " + request.service());
 	}
@@ -57,22 +47,10 @@ abstract class LoadBalance implements Routing {
 
 		private int currentSlot;
 
-		private Slots() {
-
-		}
-
-		private Slots reset() {
-			this.hosts = null;
-			this.currentHost = -1;
-			this.currentSlot = 0;
-			return this;
-		}
-
-		private Slots reset(List<Host> hosts) {
+		private Slots(List<Host> hosts) {
 			this.hosts = hosts;
 			this.currentHost = -1;
 			this.currentSlot = 0;
-			return this;
 		}
 
 		@Override

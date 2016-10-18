@@ -25,13 +25,6 @@ public class CachedMethods implements Methods {
 
 	private static final Log LOGGER = LogFactory.getLog(CachedMethods.class);
 
-	/*可复用ServiceAndMethod*/
-	private static final ThreadLocal<ServiceAndMethod> SERVICE_METHOD = new ThreadLocal<ServiceAndMethod>() {
-		protected ServiceAndMethod initialValue() {
-			return new ServiceAndMethod();
-		}
-	};
-
 	/**
 	 * 缓存方法
 	 */
@@ -69,7 +62,7 @@ public class CachedMethods implements Methods {
 
 	@Override
 	public Method method(Class<?> service, String method, Class<?>[] parameter) throws Exception {
-		ServiceAndMethod service_method = CachedMethods.SERVICE_METHOD.get().reset(method, service, parameter);
+		ServiceAndMethod service_method = new ServiceAndMethod(method, service, parameter);
 		// 开启Cached则尝试从缓存获取, 否则通过反射获取
 		Method matched = CachedMethods.ENABLED ? Method.class.cast(this.cached.get(service_method)) : MethodUtils.getAccessibleMethod(service_method.service(), service_method.method(), service_method.classes());
 		// 如果缓存已存在则返回, 否则查找方法并加入缓存
@@ -103,23 +96,10 @@ public class CachedMethods implements Methods {
 		 * @param classes
 		 */
 		private ServiceAndMethod(String method, Class<?> service, Class<?>[] classes) {
-			this.reset(method, service, classes);
-		}
-
-		/**
-		 * 重置
-		 * 
-		 * @param method
-		 * @param service
-		 * @param classes
-		 * @return
-		 */
-		private ServiceAndMethod reset(String method, Class<?> service, Class<?>[] classes) {
 			this.method = method;
 			this.service = service;
 			// 检查是否存在参数
 			this.classes = classes != null ? classes : ServiceAndMethod.EMPTY;
-			return this;
 		}
 
 		public String method() {

@@ -31,18 +31,6 @@ import com.kepler.serial.SerialOutput;
  */
 public class JacksonSerial implements SerialInput, SerialOutput {
 
-	private final ThreadLocal<AutoCloseInput> input = new ThreadLocal<AutoCloseInput>() {
-		protected AutoCloseInput initialValue() {
-			return new AutoCloseInput();
-		}
-	};
-
-	private final ThreadLocal<AutoCloseOutput> output = new ThreadLocal<AutoCloseOutput>() {
-		protected AutoCloseOutput initialValue() {
-			return new AutoCloseOutput();
-		}
-	};
-
 	/**
 	 * 缓冲大小
 	 */
@@ -82,14 +70,14 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 
 	@Override
 	public byte[] output(Object data, Class<?> clazz) throws Exception {
-		try (AutoCloseOutput output = this.output.get().reset(clazz)) {
+		try (AutoCloseOutput output = new AutoCloseOutput(clazz)) {
 			return output.writeObject(data).arrays();
 		}
 	}
 
 	@Override
 	public OutputStream output(Object data, Class<?> clazz, OutputStream stream, int buffer) throws Exception {
-		try (AutoCloseOutput output = this.output.get().reset(stream, buffer, clazz)) {
+		try (AutoCloseOutput output = new AutoCloseOutput(stream, buffer, clazz)) {
 			output.writeObject(data);
 		}
 		return stream;
@@ -97,34 +85,32 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 
 	@Override
 	public <T> T input(byte[] data, Class<T> clazz) throws Exception {
-		try (AutoCloseInput input = this.input.get().reset(data, clazz)) {
+		try (AutoCloseInput input = new AutoCloseInput(data, clazz)) {
 			return clazz.cast(input.readObject());
 		}
 	}
 
 	@Override
 	public <T> T input(InputStream input, int buffer, Class<T> clazz) throws Exception {
-		try (AutoCloseInput stream = this.input.get().reset(input, buffer, clazz)) {
+		try (AutoCloseInput stream = new AutoCloseInput(input, buffer, clazz)) {
 			return clazz.cast(stream.readObject());
 		}
 	}
 
 	private class AutoCloseInput implements Closeable {
 
-		private InputStream stream;
+		private final InputStream stream;
 
-		private Class<?> clazz;
+		private final Class<?> clazz;
 
-		public AutoCloseInput reset(byte[] arrays, Class<?> clazz) {
+		private AutoCloseInput(byte[] arrays, Class<?> clazz) {
 			this.stream = new BufferedInputStream(new ByteArrayInputStream(arrays), JacksonSerial.BUFFER);
 			this.clazz = clazz;
-			return this;
 		}
 
-		public AutoCloseInput reset(InputStream stream, int buffer, Class<?> clazz) {
+		private AutoCloseInput(InputStream stream, int buffer, Class<?> clazz) {
 			this.stream = new BufferedInputStream(stream, buffer);
 			this.clazz = clazz;
-			return this;
 		}
 
 		@Override
@@ -139,23 +125,21 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 
 	private class AutoCloseOutput implements Closeable {
 
-		private ByteArrayOutputStream arrays;
+		private final ByteArrayOutputStream arrays;
 
-		private OutputStream stream;
+		private final OutputStream stream;
 
-		private Class<?> clazz;
+		private final Class<?> clazz;
 
-		public AutoCloseOutput reset(Class<?> clazz) {
+		private AutoCloseOutput(Class<?> clazz) {
 			this.stream = new BufferedOutputStream(this.arrays = new ByteArrayOutputStream(JacksonSerial.BUFFER), JacksonSerial.BUFFER);
 			this.clazz = clazz;
-			return this;
 		}
 
-		public AutoCloseOutput reset(OutputStream stream, int buffer, Class<?> clazz) {
-			this.stream = new BufferedOutputStream(this.stream = stream, buffer);
+		private AutoCloseOutput(OutputStream stream, int buffer, Class<?> clazz) {
+			this.stream = new BufferedOutputStream(stream, buffer);
 			this.clazz = clazz;
 			this.arrays = null;
-			return this;
 		}
 
 		/**

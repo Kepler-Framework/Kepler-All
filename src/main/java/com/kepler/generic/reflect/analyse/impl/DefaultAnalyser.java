@@ -50,13 +50,6 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 	 */
 	private static final boolean ENABLED = PropertiesUtils.get(DefaultAnalyser.class.getName().toLowerCase() + ".enabled", true);
 
-	/*可复用Extension*/
-	private static final ThreadLocal<Extension> EXTENSION = new ThreadLocal<Extension>() {
-		protected Extension initialValue() {
-			return new Extension();
-		}
-	};
-
 	private static final Log LOGGER = LogFactory.getLog(DefaultAnalyser.class);
 
 	/**
@@ -209,7 +202,7 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 	}
 
 	public Fields get(Class<?> clazz, Class<?>[] extension) {
-		return this.fields.get(DefaultAnalyser.EXTENSION.get().reset(clazz, extension));
+		return this.fields.get(new Extension(clazz, extension));
 	}
 
 	@Override
@@ -263,7 +256,7 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 	 * @author KimShen
 	 *
 	 */
-	private static class Extension {
+	private class Extension {
 
 		private Class<?>[] extension;
 
@@ -281,19 +274,6 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 		private Extension(Class<?> clazz, Class<?>[] extension) {
 			this.extension = extension;
 			this.clazz = clazz;
-		}
-
-		/**
-		 * 复用重置
-		 * 
-		 * @param clazz
-		 * @param extension
-		 * @return
-		 */
-		private Extension reset(Class<?> clazz, Class<?>[] extension) {
-			this.extension = extension;
-			this.clazz = clazz;
-			return this;
 		}
 
 		public Class<?>[] extension() {
