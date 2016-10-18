@@ -10,27 +10,25 @@ import org.apache.commons.logging.LogFactory;
 import com.kepler.KeplerException;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.connection.Reject;
-import com.kepler.connection.handler.CodecHeader;
-import com.kepler.connection.handler.DecoderHandler;
-import com.kepler.connection.handler.EncoderHandler;
-import com.kepler.connection.handler.ResourceHandler;
+import com.kepler.connection.codec.CodecHeader;
+import com.kepler.connection.codec.Decoder;
+import com.kepler.connection.codec.Encoder;
+import com.kepler.connection.codec.ResourceHandler;
 import com.kepler.header.HeadersContext;
 import com.kepler.host.impl.ServerHost;
-import com.kepler.promotion.Promotion;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.RequestProcessor;
 import com.kepler.protocol.RequestValidation;
 import com.kepler.protocol.Response;
 import com.kepler.protocol.ResponseFactory;
 import com.kepler.quality.Quality;
-import com.kepler.serial.Serials;
 import com.kepler.service.ExportedContext;
 import com.kepler.service.Quiet;
 import com.kepler.token.TokenContext;
 import com.kepler.trace.Trace;
-import com.kepler.traffic.Traffic;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -103,17 +101,15 @@ public class DefaultServer {
 
 	private final HeadersContext headers;
 
-	private final Promotion promotion;
-
 	private final TokenContext token;
 
 	private final ServerHost local;
 
-	private final Serials serials;
-
 	private final Quality quality;
 
-	private final Traffic traffic;
+	private final Encoder encoder;
+
+	private final Decoder decoder;
 
 	private final Reject reject;
 
@@ -121,18 +117,17 @@ public class DefaultServer {
 
 	private final Quiet quiet;
 
-	public DefaultServer(Trace trace, Reject reject, Traffic traffic, Serials serials, Quality quality, ServerHost local, Promotion promotion, TokenContext token, ExportedContext exported, ResponseFactory response, HeadersContext headers, ThreadPoolExecutor threads, RequestValidation validation, RequestProcessor processor, Quiet quiet) {
+	public DefaultServer(Trace trace, Reject reject, Encoder encoder, Decoder decoder, Quality quality, ServerHost local, TokenContext token, ExportedContext exported, ResponseFactory response, HeadersContext headers, ThreadPoolExecutor threads, RequestValidation validation, RequestProcessor processor, Quiet quiet) {
 		super();
 		this.validation = validation;
 		this.processor = processor;
-		this.promotion = promotion;
 		this.exported = exported;
 		this.response = response;
 		this.quality = quality;
 		this.threads = threads;
 		this.headers = headers;
-		this.traffic = traffic;
-		this.serials = serials;
+		this.encoder = encoder;
+		this.decoder = decoder;
 		this.reject = reject;
 		this.quiet = quiet;
 		this.token = token;
@@ -150,9 +145,6 @@ public class DefaultServer {
 		this.inits.add(new ResourceHandler());
 		// 黏包
 		this.inits.add(new LengthFieldPrepender(CodecHeader.DEFAULT));
-		// 编码/解码
-		this.inits.add(new EncoderHandler(DefaultServer.this.traffic, DefaultServer.this.serials, Response.class));
-		this.inits.add(new DecoderHandler(DefaultServer.this.traffic, DefaultServer.this.serials, Request.class));
 		// 本地服务
 		this.inits.add(new ExportedHandler());
 		// 服务配置(绑定端口,SO_REUSEADDR=true)
@@ -245,13 +237,7 @@ public class DefaultServer {
 
 		@Override
 		public void channelRead(ChannelHandlerContext ctx, Object message) throws Exception {
-			Reply reply = new Reply(ctx, Request.class.cast(message));
-			// 使用EventLoop线程还是使用Kepler线程
-			if (DefaultServer.this.promotion.promote(reply.request())) {
-				ctx.executor().execute(reply);
-			} else {
-				DefaultServer.this.threads.execute(reply);
-			}
+			DefaultServer.this.threads.execute(new Reply(ctx, ByteBuf.class.cast(message)));
 		}
 
 		public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
@@ -271,7 +257,7 @@ public class DefaultServer {
 
 			private final ChannelHandlerContext ctx;
 
-			private final Request request;
+			private final ByteBuf buffer;
 
 			/**
 			 * Reply执行时间
@@ -283,10 +269,10 @@ public class DefaultServer {
 			 */
 			private long waiting;
 
-			public Reply(ChannelHandlerContext ctx, Request request) {
+			public Reply(ChannelHandlerContext ctx, ByteBuf buffer) {
 				super();
 				this.ctx = ctx;
-				this.request = request;
+				this.buffer = buffer;
 			}
 
 			/**
@@ -307,32 +293,29 @@ public class DefaultServer {
 
 			@Override
 			public void run() {
-				// Request After Process (Processor处理后的Request可能为Wrap, 不能使用this.request进行传递)
-				Request request = DefaultServer.this.processor.process(this.request);
-				// 使用处理后Request
-				Response response = this.init(request).response(request);
-				this.ctx.writeAndFlush(response).addListener(ExceptionListener.TRACE);
-				// 记录调用栈 (使用原始Request)
-				DefaultServer.this.trace.trace(this.request, response, ExportedHandler.this.local, ExportedHandler.this.target, this.waiting, System.currentTimeMillis() - this.running, this.created);
-			}
-
-			public Request request() {
-				return this.request;
+				try {
+					// Request After Process
+					Request request = DefaultServer.this.processor.process(Request.class.cast(DefaultServer.this.decoder.decode(this.buffer)));
+					// 使用处理后Request
+					Response response = this.init(request).response(request);
+					this.ctx.writeAndFlush(DefaultServer.this.encoder.encode(response)).addListener(ExceptionListener.TRACE);
+					// 记录调用栈 (使用原始Request)
+					DefaultServer.this.trace.trace(request, response, ExportedHandler.this.local, ExportedHandler.this.target, this.waiting, System.currentTimeMillis() - this.running, this.created);
+				} catch (Throwable throwable) {
+					DefaultServer.LOGGER.error(throwable.getMessage(), throwable);
+				}
 			}
 
 			private Response response(Request request) {
 				try {
-					// 校验是否Reject(TODO: 是否提升至IO线程进行判断)
+					// 校验是否Reject
 					request = DefaultServer.this.reject.reject(request, this.ctx.channel().remoteAddress());
 					// 校验请求合法性
 					request = DefaultServer.this.token.valid(request);
 					// 校验请求参数(如JSR 303)
 					request = DefaultServer.this.validation.valid(request);
 					// 获取服务并执行
-					Response response = DefaultServer.this.response.response(request.ack(), DefaultServer.this.exported.get(request.service()).invoke(request), request.serial());
-					// 优化执行线程
-					DefaultServer.this.promotion.record(request, this.running);
-					return response;
+					return DefaultServer.this.response.response(request.ack(), DefaultServer.this.exported.get(request.service()).invoke(request), request.serial());
 				} catch (Throwable e) {
 					// 业务异常, 如果非静默异常使用Error,否则使用Warn
 					String message = "[trace=" + request.get(Trace.TRACE) + "][message=" + e.getMessage() + "]";

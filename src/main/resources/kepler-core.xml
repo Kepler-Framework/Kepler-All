@@ -28,7 +28,6 @@
 	<import resource="kepler-traffic.xml" />
 	<import resource="kepler-profile.xml" />
 	<import resource="kepler-protocol.xml" />
-	<import resource="kepler-promotion.xml" />
 	<import resource="kepler-extension.xml" />
 	<import resource="kepler-zookeeper.xml" />
 	<import resource="kepler-connection.xml" />

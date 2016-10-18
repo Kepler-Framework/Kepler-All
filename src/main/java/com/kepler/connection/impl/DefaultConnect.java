@@ -4,9 +4,9 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -24,22 +24,21 @@ import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.connection.Connect;
 import com.kepler.connection.Connects;
-import com.kepler.connection.handler.CodecHeader;
-import com.kepler.connection.handler.DecoderHandler;
-import com.kepler.connection.handler.EncoderHandler;
+import com.kepler.connection.codec.CodecHeader;
+import com.kepler.connection.codec.Decoder;
+import com.kepler.connection.codec.Encoder;
 import com.kepler.host.Host;
 import com.kepler.host.HostLocks;
 import com.kepler.host.HostsContext;
 import com.kepler.host.impl.SegmentLocks;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.Response;
-import com.kepler.serial.Serials;
 import com.kepler.service.Quiet;
 import com.kepler.token.TokenContext;
-import com.kepler.traffic.Traffic;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ChannelFactory;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -52,6 +51,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
+import io.netty.util.AttributeKey;
 
 /**
  * Client 2 Service Connection
@@ -99,6 +99,8 @@ public class DefaultConnect implements Connect {
 
 	private static final ChannelFactory<SocketChannel> FACTORY = new DefaultChannelFactory<SocketChannel>(NioSocketChannel.class);
 
+	private static final AttributeKey<Acks> ACK = AttributeKey.newInstance("ACKS");
+
 	private static final Log LOGGER = LogFactory.getLog(DefaultConnect.class);
 
 	/**
@@ -117,18 +119,13 @@ public class DefaultConnect implements Connect {
 
 	private final HostLocks locks = new SegmentLocks();
 
-	/**
-	 * ACK
-	 */
-	private final Acks acks = new Acks();
-
 	private final Host local;
 
 	private final Quiet quiet;
 
-	private final Traffic traffic;
+	private final Encoder encoder;
 
-	private final Serials serials;
+	private final Decoder decoder;
 
 	private final Profile profiles;
 
@@ -146,14 +143,14 @@ public class DefaultConnect implements Connect {
 
 	private final ThreadPoolExecutor threads;
 
-	public DefaultConnect(Host local, Quiet quiet, Serials serials, Traffic traffic, Profile profiles, Connects connects, TokenContext token, AckTimeOut timeout, HostsContext context, ChannelContext channels, Collector collector, ThreadPoolExecutor threads) {
+	public DefaultConnect(Host local, Quiet quiet, Encoder encoder, Decoder decoder, Profile profiles, Connects connects, TokenContext token, AckTimeOut timeout, HostsContext context, ChannelContext channels, Collector collector, ThreadPoolExecutor threads) {
 		super();
 		this.local = local;
 		this.token = token;
 		this.quiet = quiet;
-		this.serials = serials;
+		this.encoder = encoder;
+		this.decoder = decoder;
 		this.threads = threads;
-		this.traffic = traffic;
 		this.context = context;
 		this.timeout = timeout;
 		this.connects = connects;
@@ -169,9 +166,6 @@ public class DefaultConnect implements Connect {
 		}
 		// 黏包
 		this.inits.add(new LengthFieldPrepender(CodecHeader.DEFAULT));
-		// 编码/解码
-		this.inits.add(new EncoderHandler(DefaultConnect.this.traffic, DefaultConnect.this.serials, Request.class));
-		this.inits.add(new DecoderHandler(DefaultConnect.this.traffic, DefaultConnect.this.serials, Response.class));
 	}
 
 	public void destroy() throws Exception {
@@ -309,8 +303,9 @@ public class DefaultConnect implements Connect {
 
 		public void channelActive(ChannelHandlerContext ctx) throws Exception {
 			DefaultConnect.LOGGER.info("Connect active (" + DefaultConnect.this.local + " to " + this.target + ") ...");
+			(this.ctx = ctx).channel().attr(DefaultConnect.ACK).set(new Acks());
 			// 初始化赋值
-			(this.ctx = ctx).fireChannelActive();
+			this.ctx.fireChannelActive();
 		}
 
 		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
@@ -342,13 +337,24 @@ public class DefaultConnect implements Connect {
 			// DefaultConnect.this.token.set(request, this.target.token())增加Token
 			AckFuture future = new AckFuture(DefaultConnect.this.collector, DefaultConnect.this.local, this.target, DefaultConnect.this.token.set(request, this), DefaultConnect.this.profiles, DefaultConnect.this.quiet);
 			try {
+				// 编码
+				ByteBuf buffer = DefaultConnect.this.encoder.encode(future.request());
 				// 加入ACK -> 发送消息 -> 等待ACK
-				this.ctx.writeAndFlush(DefaultConnect.this.acks.put(future).request()).addListener(ExceptionListener.TRACE);
+				if (this.ctx.channel().eventLoop().inEventLoop()) {
+					this.ctx.channel().attr(DefaultConnect.ACK).get().put(future);
+					this.ctx.writeAndFlush(buffer).addListener(ExceptionListener.TRACE);
+				} else {
+					this.ctx.channel().eventLoop().execute(new InvokeRunnable(this.ctx, future, buffer));
+				}
 				// 如果为Future或@Async则立即返回, 负责线程等待
 				return future.request().async() ? future : future.get();
 			} catch (Throwable exception) {
 				// 任何异常均释放ACK
-				DefaultConnect.this.acks.remove(request.ack());
+				if (this.ctx.channel().eventLoop().inEventLoop()) {
+					this.ctx.channel().attr(DefaultConnect.ACK).get().remove(request.ack());
+				} else {
+					this.ctx.channel().eventLoop().execute(new RemovedRunnable(this.ctx, request));
+				}
 				// Timeout处理
 				this.timeout(future, exception);
 				throw exception;
@@ -371,9 +377,9 @@ public class DefaultConnect implements Connect {
 
 		@Override
 		public void channelRead(ChannelHandlerContext ctx, Object message) throws Exception {
-			Response response = Response.class.cast(message);
+			Response response = Response.class.cast(DefaultConnect.this.decoder.decode(ByteBuf.class.cast(message)));
 			// 移除ACK
-			AckFuture future = DefaultConnect.this.acks.remove(response.ack());
+			AckFuture future = this.ctx.channel().attr(DefaultConnect.ACK).get().remove(response.ack());
 			// 如获取不到ACK表示已超时
 			if (future != null) {
 				future.response(response);
@@ -452,9 +458,49 @@ public class DefaultConnect implements Connect {
 		}
 	}
 
+	private class InvokeRunnable implements Runnable {
+
+		private final ChannelHandlerContext ctx;
+
+		private final AckFuture future;
+
+		private final ByteBuf buffer;
+
+		private InvokeRunnable(ChannelHandlerContext ctx, AckFuture future, ByteBuf buffer) {
+			super();
+			this.future = future;
+			this.buffer = buffer;
+			this.ctx = ctx;
+		}
+
+		@Override
+		public void run() {
+			this.ctx.channel().attr(DefaultConnect.ACK).get().put(this.future);
+			this.ctx.writeAndFlush(this.buffer).addListener(ExceptionListener.TRACE);
+		}
+	}
+
+	private class RemovedRunnable implements Runnable {
+
+		private final ChannelHandlerContext ctx;
+
+		private final Request request;
+
+		public RemovedRunnable(ChannelHandlerContext ctx, Request request) {
+			super();
+			this.ctx = ctx;
+			this.request = request;
+		}
+
+		@Override
+		public void run() {
+			this.ctx.channel().attr(DefaultConnect.ACK).get().remove(this.request.ack());
+		}
+	}
+
 	private class Acks {
 
-		private final Map<Bytes, AckFuture> waitings = new ConcurrentHashMap<Bytes, AckFuture>();
+		private final Map<Bytes, AckFuture> waitings = new HashMap<Bytes, AckFuture>();
 
 		public AckFuture put(AckFuture future) {
 			this.waitings.put(new Bytes(future.request().ack()), future);

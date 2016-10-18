@@ -1,4 +1,4 @@
-package com.kepler.connection.handler;
+package com.kepler.connection.codec;
 
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;

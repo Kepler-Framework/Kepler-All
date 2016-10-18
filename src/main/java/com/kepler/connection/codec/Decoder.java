@@ -1,32 +1,24 @@
-package com.kepler.connection.handler;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.util.ReferenceCountUtil;
+package com.kepler.connection.codec;
 
 import java.io.InputStream;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import com.kepler.config.PropertiesUtils;
 import com.kepler.serial.Serials;
 import com.kepler.traffic.Traffic;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.util.ReferenceCountUtil;
+
 /**
- * @author kim 2015年7月8日
+ * @author KimShen
+ *
  */
-@Sharable
-public class DecoderHandler extends ChannelInboundHandlerAdapter {
+public class Decoder {
 
 	/**
 	 * 调整因子
 	 */
-	private static final double ADJUST = PropertiesUtils.get(DecoderHandler.class.getName().toLowerCase() + ".adjust", 0.75);
-
-	private static final Log LOGGER = LogFactory.getLog(DecoderHandler.class);
+	private static final double ADJUST = PropertiesUtils.get(Decoder.class.getName().toLowerCase() + ".adjust", 0.75);
 
 	/**
 	 * 可复用Input
@@ -43,23 +35,20 @@ public class DecoderHandler extends ChannelInboundHandlerAdapter {
 
 	private final Class<?> clazz;
 
-	public DecoderHandler(Traffic traffic, Serials serials, Class<?> clazz) {
+	public Decoder(Traffic traffic, Serials serials, Class<?> clazz) {
 		super();
 		this.clazz = clazz;
 		this.traffic = traffic;
 		this.serials = serials;
 	}
 
-	public void channelRead(ChannelHandlerContext ctx, Object message) throws Exception {
-		ByteBuf buffer = ByteBuf.class.cast(message);
+	public Object decode(ByteBuf buffer) throws Exception {
 		try {
 			// 流量统计(Input)
 			this.traffic.input(buffer.readableBytes());
 			// buffer.readByte(), 首个字节保存序列化策略
-			// buffer.readableBytes() * DecoderHandler.ADJUST确定Buffer大小
-			ctx.fireChannelRead(this.serials.input(buffer.readByte()).input(DecoderHandler.INPUT.get().reset(buffer), (int) (buffer.readableBytes() * DecoderHandler.ADJUST), this.clazz));
-		} catch (Throwable throwable) {
-			DecoderHandler.LOGGER.error("From:(" + ctx.channel().remoteAddress() + ") " + throwable.getMessage(), throwable);
+			// buffer.readableBytes() * Decoder.ADJUST确定Buffer大小
+			return this.serials.input(buffer.readByte()).input(Decoder.INPUT.get().reset(buffer), (int) (buffer.readableBytes() * Decoder.ADJUST), this.clazz);
 		} finally {
 			if (buffer.refCnt() > 0) {
 				ReferenceCountUtil.release(buffer);

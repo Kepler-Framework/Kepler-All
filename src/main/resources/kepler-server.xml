@@ -9,16 +9,15 @@
 		<constructor-arg ref="kepler.trace" />
 		<constructor-arg ref="kepler.token" />
 		<constructor-arg ref="kepler.quality" />
-		<constructor-arg ref="kepler.serials" />
 		<constructor-arg ref="kepler.threads" />
-		<constructor-arg ref="kepler.traffic" />
-		<constructor-arg ref="kepler.promotion" />
 		<constructor-arg ref="kepler.host.local" />
 		<constructor-arg ref="kepler.service.quiet" />
 		<constructor-arg ref="kepler.reject.context" />
 		<constructor-arg ref="kepler.header.context" />
 		<constructor-arg ref="kepler.protocol.response" />
 		<constructor-arg ref="kepler.protocol.processor" />
+		<constructor-arg ref="kepler.codec.decoder.request" />
+		<constructor-arg ref="kepler.codec.encoder.response" />
 		<constructor-arg ref="kepler.service.exported.context" />
 		<constructor-arg ref="kepler.protocol.validation4service" />
 	</bean>

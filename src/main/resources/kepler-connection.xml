@@ -6,14 +6,13 @@
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
 	<import resource="kepler-connection-reject.xml" />
+	<import resource="kepler-connection-codec.xml" />
 
 	<bean id="kepler.connection.connects" class="com.kepler.connection.impl.DefaultConnects" />
 
 	<bean id="kepler.connection.connect" class="com.kepler.connection.impl.DefaultConnect" init-method="init" destroy-method="destroy">
 		<constructor-arg ref="kepler.token" />
-		<constructor-arg ref="kepler.serials" />
 		<constructor-arg ref="kepler.threads" />
-		<constructor-arg ref="kepler.traffic" />
 		<constructor-arg ref="kepler.host.local" />
 		<constructor-arg ref="kepler.ack.timeout" />
 		<constructor-arg ref="kepler.host.context" />
@@ -21,6 +20,8 @@
 		<constructor-arg ref="kepler.config.profile" />
 		<constructor-arg ref="kepler.channel.context" />
 		<constructor-arg ref="kepler.connection.connects" />
+		<constructor-arg ref="kepler.codec.encoder.request" />
+		<constructor-arg ref="kepler.codec.decoder.response" />
 		<constructor-arg ref="kepler.admin.transfer.collector" />
 	</bean>
 

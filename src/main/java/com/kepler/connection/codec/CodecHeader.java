@@ -1,4 +1,4 @@
-package com.kepler.connection.handler;
+package com.kepler.connection.codec;
 
 import java.util.HashMap;
 import java.util.Map;
