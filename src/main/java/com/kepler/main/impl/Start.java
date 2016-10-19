@@ -1,5 +1,8 @@
 package com.kepler.main.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -19,9 +22,7 @@ public class Start {
 		try {
 			// 加载Prepare
 			Start.prepare();
-			// 默认启动XML为kepler-runtime
-			String xml = System.getProperty(Start.class.getName().toLowerCase() + ".xml", "kepler-runtime.xml");
-			ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("classpath:" + xml);
+			ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(Start.configs());
 			Runtime.getRuntime().addShutdownHook(new Shutdown(context));
 			Start.wait(context);
 			Start.LOGGER.warn("Service closed ...");
@@ -30,6 +31,22 @@ public class Start {
 			Start.LOGGER.fatal(e.getMessage(), e);
 			System.exit(1);
 		}
+	}
+
+	/**
+	 * 读取配置文件
+	 * 
+	 * @return
+	 */
+	private static String[] configs() {
+		List<String> configs = new ArrayList<String>();
+		// 默认启动XM
+		configs.add("classpath:" + System.getProperty("kepler.main", "kepler-runtime.xml"));
+		// 加载插件
+		for (String plugin : System.getProperty("kepler.plugin", "").split(";")) {
+			configs.add("classpath:" + plugin);
+		}
+		return configs.toArray(new String[] {});
 	}
 
 	/**

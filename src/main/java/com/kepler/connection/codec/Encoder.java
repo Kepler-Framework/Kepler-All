@@ -8,11 +8,17 @@ import com.kepler.serial.Serials;
 import com.kepler.traffic.Traffic;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.RecvByteBufAllocator.Handle;
 import io.netty.util.ReferenceCountUtil;
 
+/**
+ * @author KimShen
+ *
+ */
 /**
  * @author KimShen
  *
@@ -25,11 +31,24 @@ public class Encoder {
 	private static final double ADJUST = PropertiesUtils.get(Encoder.class.getName().toLowerCase() + ".adjust", 0.75);
 
 	/**
+	 * 是否使用内存池分配
+	 */
+	private static final boolean POOLED = PropertiesUtils.get(Encoder.class.getName().toLowerCase() + ".pooled", true);
+
+	/**
+	 * 是否预估计算分配大小
+	 */
+	private static final boolean ESTIMATE = PropertiesUtils.get(Encoder.class.getName().toLowerCase() + ".estimate", true);
+
+	/**
 	 * 分配计算
 	 */
 	private final Handle estimate = AdaptiveRecvByteBufAllocator.DEFAULT.newHandle();
 
-	private final PooledByteBufAllocator allocator = PooledByteBufAllocator.DEFAULT;
+	/**
+	 * 内存分配
+	 */
+	private final ByteBufAllocator allocator = Encoder.POOLED ? PooledByteBufAllocator.DEFAULT : UnpooledByteBufAllocator.DEFAULT;
 
 	private final Serials serials;
 
@@ -45,8 +64,8 @@ public class Encoder {
 	}
 
 	public ByteBuf encode(Object message) throws Exception {
-		// 分配ByteBuf(预测大小)
-		ByteBuf buffer = this.estimate.allocate(this.allocator);
+		// 分配ByteBuf
+		ByteBuf buffer = Encoder.ESTIMATE ? this.estimate.allocate(this.allocator) : this.allocator.ioBuffer();
 		try {
 			// 获取序列化策略(如Request/Response)
 			byte serial = SerialID.class.cast(message).serial();
@@ -116,8 +135,10 @@ public class Encoder {
 			int readable = this.buffer.readableBytes();
 			// 流量记录
 			traffic.output(readable);
-			// 预估大小更新
-			estimate.record(readable);
+			// 预估大小更新(如果开启了预估)
+			if (Encoder.ESTIMATE) {
+				estimate.record(readable);
+			}
 			return this;
 		}
 	}
