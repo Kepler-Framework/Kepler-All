@@ -270,28 +270,28 @@ public class DefaultServer {
 			}
 
 			/**
-			 * 初始化Request
+			 * 初始化
 			 * 
-			 * @param request
 			 * @return
 			 */
-			private Reply init(Request request) {
+			private void init() {
 				// Reply执行时间
 				this.running = System.currentTimeMillis();
-				// 线程Copy Header, 用于嵌套服务调用时传递(In Kepler Threads)
-				DefaultServer.this.headers.set(request.headers());
 				// 记录等待时间
 				DefaultServer.this.quality.waiting(this.waiting = this.running - this.created);
-				return this;
 			}
 
 			@Override
 			public void run() {
 				try {
+					// 初始化, 记录时间信息
+					this.init();
 					// Request After Process
 					Request request = DefaultServer.this.processor.process(Request.class.cast(DefaultServer.this.decoder.decode(this.buffer)));
+					// 线程Copy Header, 用于嵌套服务调用时传递
+					DefaultServer.this.headers.set(request.headers());
 					// 使用处理后Request
-					Response response = this.init(request).response(request);
+					Response response = this.response(request);
 					this.ctx.writeAndFlush(DefaultServer.this.encoder.encode(response)).addListener(ExceptionListener.TRACE);
 					// 记录调用栈 (使用原始Request)
 					DefaultServer.this.trace.trace(request, response, this.ctx.channel().localAddress().toString(), this.ctx.channel().remoteAddress().toString(), this.waiting, System.currentTimeMillis() - this.running, this.created);
