@@ -22,9 +22,11 @@ public class ChainedBlocker implements InstanceBlocker {
 
 	@Override
 	public boolean blocked(ServiceInstance instance) {
-		for (InstanceBlocker blocker : this.blockers) {
-			if (blocker.blocked(instance)) {
-				return true;
+		if (!this.blockers.isEmpty()) {
+			for (InstanceBlocker blocker : this.blockers) {
+				if (blocker.blocked(instance)) {
+					return true;
+				}
 			}
 		}
 		return false;

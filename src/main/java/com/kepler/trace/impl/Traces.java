@@ -33,11 +33,13 @@ public class Traces implements Trace, Extension {
 
 	@Override
 	public void trace(Request request, Response response, String local, String remote, long waiting, long elapse, long received) {
-		for (Trace each : this.traces) {
-			try {
-				each.trace(request, response, local, remote, waiting, elapse, received);
-			} catch (Throwable throwable) {
-				Traces.LOGGER.warn(throwable.getMessage(), throwable);
+		if (!this.traces.isEmpty()) {
+			for (Trace each : this.traces) {
+				try {
+					each.trace(request, response, local, remote, waiting, elapse, received);
+				} catch (Throwable throwable) {
+					Traces.LOGGER.warn(throwable.getMessage(), throwable);
+				}
 			}
 		}
 	}

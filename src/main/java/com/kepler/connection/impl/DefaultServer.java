@@ -196,14 +196,8 @@ public class DefaultServer {
 	@Sharable
 	private class ExportedHandler extends ChannelInboundHandlerAdapter {
 
-		private String target;
-
-		private String local;
-
 		public void channelActive(ChannelHandlerContext ctx) throws Exception {
-			this.local = ctx.channel().localAddress().toString();
-			this.target = ctx.channel().remoteAddress().toString();
-			DefaultServer.LOGGER.info("Connect active (" + this.local + " to " + this.target + ") ...");
+			DefaultServer.LOGGER.info("Connect active (" + ctx.channel().localAddress().toString() + " to " + ctx.channel().remoteAddress().toString() + ") ...");
 			ctx.fireChannelActive();
 		}
 
@@ -211,7 +205,7 @@ public class DefaultServer {
 		 * @see com.kepler.host.ServerHost扫描端口时会触发对本地服务端口嗅探
 		 */
 		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-			DefaultServer.LOGGER.info("Connect inactive (" + this.local + " to " + this.target + ") ...");
+			DefaultServer.LOGGER.info("Connect inactive (" + ctx.channel().localAddress().toString() + " to " + ctx.channel().remoteAddress().toString() + ") ...");
 			ctx.fireChannelInactive();
 		}
 
@@ -300,7 +294,7 @@ public class DefaultServer {
 					Response response = this.init(request).response(request);
 					this.ctx.writeAndFlush(DefaultServer.this.encoder.encode(response)).addListener(ExceptionListener.TRACE);
 					// 记录调用栈 (使用原始Request)
-					DefaultServer.this.trace.trace(request, response, ExportedHandler.this.local, ExportedHandler.this.target, this.waiting, System.currentTimeMillis() - this.running, this.created);
+					DefaultServer.this.trace.trace(request, response, this.ctx.channel().localAddress().toString(), ctx.channel().remoteAddress().toString(), this.waiting, System.currentTimeMillis() - this.running, this.created);
 				} catch (Throwable throwable) {
 					DefaultServer.LOGGER.error(throwable.getMessage(), throwable);
 				}

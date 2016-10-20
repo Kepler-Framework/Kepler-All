@@ -34,9 +34,11 @@ public class DefaultSelector implements ConvertorSelector {
 
 	@Override
 	public Convertor select(Class<?> clazz) {
-		for (Convertor each : this.converts) {
-			if (each.support(clazz)) {
-				return each;
+		if (!this.converts.isEmpty()) {
+			for (Convertor each : this.converts) {
+				if (each.support(clazz)) {
+					return each;
+				}
 			}
 		}
 		return this.nothing;

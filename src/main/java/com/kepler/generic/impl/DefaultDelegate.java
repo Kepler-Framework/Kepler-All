@@ -47,10 +47,12 @@ public class DefaultDelegate implements GenericDelegate {
 		if (this.empty) {
 			return this.factory.unvalid();
 		}
-		for (GenericInvoker invoker : this.invokers) {
-			// 如果Header标记支持则调用
-			if (invoker.marker().marked(request.headers())) {
-				return invoker.delegate().delegate(instance, method, request);
+		if (!this.invokers.isEmpty()) {
+			for (GenericInvoker invoker : this.invokers) {
+				// 如果Header标记支持则调用
+				if (invoker.marker().marked(request.headers())) {
+					return invoker.delegate().delegate(instance, method, request);
+				}
 			}
 		}
 		// 非泛化请求

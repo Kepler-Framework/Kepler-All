@@ -43,10 +43,12 @@ public class ChainedMockerContext implements Extension, MockerContext {
 
 	@Override
 	public Mocker get(Service service) {
-		for (MockerContext each : this.context) {
-			Mocker mocker = each.get(service);
-			if (mocker != null) {
-				return mocker;
+		if (!this.context.isEmpty()) {
+			for (MockerContext each : this.context) {
+				Mocker mocker = each.get(service);
+				if (mocker != null) {
+					return mocker;
+				}
 			}
 		}
 		return null;

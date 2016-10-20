@@ -33,8 +33,10 @@ abstract class LoadBalance implements Routing {
 
 	private int sumUpWeight(List<Host> hosts) {
 		int totalWeight = 0;
-		for (Host host : hosts) {
-			totalWeight += host.priority();
+		if (!hosts.isEmpty()) {
+			for (Host host : hosts) {
+				totalWeight += host.priority();
+			}
 		}
 		return totalWeight;
 	}

@@ -24,10 +24,12 @@ public class ChainedFilter implements FieldsFilter {
 
 	@Override
 	public boolean filter(Class<?> clazz) {
-		for (FieldsFilter filter : this.filters) {
-			if (filter.filter(clazz)) {
-				ChainedFilter.LOGGER.debug("Class: " + clazz + " was filted by " + filter.getClass());
-				return true;
+		if (!this.filters.isEmpty()) {
+			for (FieldsFilter filter : this.filters) {
+				if (filter.filter(clazz)) {
+					ChainedFilter.LOGGER.debug("Class: " + clazz + " was filted by " + filter.getClass());
+					return true;
+				}
 			}
 		}
 		return false;

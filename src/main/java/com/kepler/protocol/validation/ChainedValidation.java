@@ -25,8 +25,10 @@ public class ChainedValidation implements RequestValidation, Extension {
 	@Override
 	public Request valid(Request request) throws KeplerValidateException {
 		Request actual = request;
-		for (RequestValidation each : this.validations) {
-			actual = each.valid(request);
+		if (!this.validations.isEmpty()) {
+			for (RequestValidation each : this.validations) {
+				actual = each.valid(request);
+			}
 		}
 		return actual;
 	}

@@ -29,8 +29,10 @@ public class ChainedFilter implements HostFilter, Extension {
 	@Override
 	public List<Host> filter(Request request, List<Host> hosts) {
 		List<Host> approved = hosts;
-		for (HostFilter filter : this.filters) {
-			approved = filter.filter(request, approved);
+		if (!this.filters.isEmpty()) {
+			for (HostFilter filter : this.filters) {
+				approved = filter.filter(request, approved);
+			}
 		}
 		return approved;
 	}

@@ -15,18 +15,22 @@ public class ChainedParser implements Extension, ConfigParser {
 
 	@Override
 	public Object parse(Class<?> request, String config) {
-		for (ConfigParser each : this.parsers) {
-			if (each.support(request)) {
-				return each.parse(request, config);
+		if (!this.parsers.isEmpty()) {
+			for (ConfigParser each : this.parsers) {
+				if (each.support(request)) {
+					return each.parse(request, config);
+				}
 			}
 		}
 		return null;
 	}
 
 	public boolean support(Class<?> request) {
-		for (ConfigParser each : this.parsers) {
-			if (each.support(request)) {
-				return true;
+		if (!this.parsers.isEmpty()) {
+			for (ConfigParser each : this.parsers) {
+				if (each.support(request)) {
+					return true;
+				}
 			}
 		}
 		return false;

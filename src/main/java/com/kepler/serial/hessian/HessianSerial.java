@@ -453,7 +453,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 		}
 
 		private RequestSerializer write4header(HessianOutput output, Request request) throws Exception {
-			if (request.headers() != null) {
+			if (request.headers() != null && request.headers().length() != 0) {
 				for (String key : request.headers().keys()) {
 					// String -> String
 					output.writeString(key);

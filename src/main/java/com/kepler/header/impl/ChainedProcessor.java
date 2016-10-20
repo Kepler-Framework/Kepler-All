@@ -26,8 +26,10 @@ public class ChainedProcessor implements HeadersProcessor, Extension {
 	// 将本次迭代返回Headers作为下次迭代参数Headers
 	public Headers process(Service service, Headers headers) {
 		Headers each = headers;
-		for (HeadersProcessor processor : this.processors) {
-			each = processor.process(service, each);
+		if (!this.processors.isEmpty()) {
+			for (HeadersProcessor processor : this.processors) {
+				each = processor.process(service, each);
+			}
 		}
 		return each;
 	}

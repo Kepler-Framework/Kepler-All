@@ -23,8 +23,10 @@ public class ChainedProcessor implements RequestProcessor, Extension {
 	@Override
 	public Request process(Request request) {
 		Request each = request;
-		for (RequestProcessor processor : this.processors) {
-			each = processor.process(each);
+		if (!this.processors.isEmpty()) {
+			for (RequestProcessor processor : this.processors) {
+				each = processor.process(each);
+			}
 		}
 		return each;
 	}
