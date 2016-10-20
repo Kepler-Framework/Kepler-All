@@ -17,6 +17,11 @@ public class ConnectTokenContext implements TokenContext {
 
 	private static final boolean ENABLED = PropertiesUtils.get(ConnectTokenContext.class.getName().toLowerCase() + ".enabled", false);
 
+	@Override
+	public boolean actived() {
+		return Headers.ENABLED && ConnectTokenContext.ENABLED;
+	}
+
 	/*
 	 * Headers.ENABLED强依赖
 	 */

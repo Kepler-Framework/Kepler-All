@@ -1,5 +1,6 @@
 package com.kepler.token.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.kepler.KeplerValidateException;
@@ -14,11 +15,20 @@ import com.kepler.token.TokenContext;
  */
 public class ChainedTokenContext implements TokenContext {
 
-	private final List<TokenContext> contexts;
+	private final List<TokenContext> contexts = new ArrayList<TokenContext>();
 
 	public ChainedTokenContext(List<TokenContext> contexts) {
 		super();
-		this.contexts = contexts;
+		for (TokenContext context : contexts) {
+			if (context.actived()) {
+				this.contexts.add(context);
+			}
+		}
+	}
+
+	@Override
+	public boolean actived() {
+		return false;
 	}
 
 	@Override

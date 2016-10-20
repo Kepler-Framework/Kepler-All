@@ -39,6 +39,11 @@ public class AccessTokenContext implements TokenContext {
 		this.profile = profile;
 	}
 
+	@Override
+	public boolean actived() {
+		return Headers.ENABLED && AccessTokenContext.ENABLED;
+	}
+
 	/*
 	 * Headers.ENABLED强依赖
 	 */

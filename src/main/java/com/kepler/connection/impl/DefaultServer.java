@@ -294,7 +294,7 @@ public class DefaultServer {
 					Response response = this.init(request).response(request);
 					this.ctx.writeAndFlush(DefaultServer.this.encoder.encode(response)).addListener(ExceptionListener.TRACE);
 					// 记录调用栈 (使用原始Request)
-					DefaultServer.this.trace.trace(request, response, this.ctx.channel().localAddress().toString(), ctx.channel().remoteAddress().toString(), this.waiting, System.currentTimeMillis() - this.running, this.created);
+					DefaultServer.this.trace.trace(request, response, this.ctx.channel().localAddress().toString(), this.ctx.channel().remoteAddress().toString(), this.waiting, System.currentTimeMillis() - this.running, this.created);
 				} catch (Throwable throwable) {
 					DefaultServer.LOGGER.error(throwable.getMessage(), throwable);
 				}

@@ -12,6 +12,13 @@ import com.kepler.protocol.Request;
 public interface TokenContext {
 
 	/**
+	 * 是否激活
+	 * 
+	 * @return
+	 */
+	public boolean actived();
+
+	/**
 	 * 追加Token
 	 * 
 	 * @param request
