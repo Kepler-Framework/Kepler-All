@@ -41,7 +41,7 @@ public class CachedMethods implements Methods {
 		// 实际方法
 		Method actual = MethodUtils.getMatchingAccessibleMethod(service_method.service(), service_method.method(), service_method.classes());
 		if (actual != null) {
-			synchronized (actual) {
+			synchronized (this.cached) {
 				// 同步检查
 				if (this.cached.containsKey(service_method)) {
 					return actual;
