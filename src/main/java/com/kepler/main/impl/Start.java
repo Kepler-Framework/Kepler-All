@@ -10,6 +10,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.main.Demotion;
 import com.kepler.main.Prepare;
+import com.kepler.org.apache.commons.lang.StringUtils;
 
 /**
  * @author kim 2015年7月13日
@@ -44,7 +45,9 @@ public class Start {
 		configs.add("classpath:" + System.getProperty("kepler.main", "kepler-runtime.xml"));
 		// 加载插件
 		for (String plugin : System.getProperty("kepler.plugin", "").split(";")) {
-			configs.add("classpath:" + plugin);
+			if (StringUtils.isNotEmpty(plugin)) {
+				configs.add("classpath:" + plugin);
+			}
 		}
 		return configs.toArray(new String[] {});
 	}

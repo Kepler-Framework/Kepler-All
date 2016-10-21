@@ -20,7 +20,7 @@ import com.kepler.config.PropertiesUtils;
  */
 public class KeplerGenericException extends KeplerLocalException {
 
-	private static final String FILTER = PropertiesUtils.get(KeplerGenericException.class.getName().toLowerCase() + ".filter", "stackTrace");
+	private static final String FILTER = PropertiesUtils.get(KeplerGenericException.class.getName().toLowerCase() + ".filter", "cause;message;stackTrace;suppressed;localizedMessage;");
 
 	private static final Log LOGGER = LogFactory.getLog(KeplerGenericException.class);
 
@@ -30,7 +30,7 @@ public class KeplerGenericException extends KeplerLocalException {
 
 	static {
 		// 追加过滤属性
-		for (String field : KeplerGenericException.FILTER.split(",")) {
+		for (String field : KeplerGenericException.FILTER.split(";")) {
 			KeplerGenericException.FILTER_FIELD.add(field);
 		}
 	}
