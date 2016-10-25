@@ -49,41 +49,70 @@ public class Start {
 	 */
 	private static String[] configs() {
 		List<String> configs = new ArrayList<String>();
-		// 默认启动XM
+		// 默认启动XML
+		Start.loading4default(configs);
+		// 加载指定插件
+		Start.loading4config(configs);
+		// 加载默认插件
+		Start.loading4path(configs);
+		Start.LOGGER.warn("Loading configs: " + configs);
+		return configs.toArray(new String[] {});
+	}
+
+	/**
+	 * 加载核心配置
+	 * 
+	 * @param configs
+	 */
+	private static void loading4default(List<String> configs) {
 		configs.add("classpath:" + System.getProperty("kepler.main", "kepler-runtime.xml"));
-		// 加载插件
-		for (String plugin : System.getProperty("kepler.plugin", "").split(";")) {
+	}
+
+	/**
+	 * 加载指定插件
+	 * 
+	 * @param configs
+	 */
+	private static void loading4config(List<String> configs) {
+		for (String plugin : System.getProperty("kepler.plugin.list", "").split(";")) {
 			if (StringUtils.isNotEmpty(plugin)) {
 				configs.add("classpath:" + plugin);
 			}
 		}
-		// 加载其他资源
-		 URL[] urls = URLClassLoader.class.cast(Start.class.getClassLoader()).getURLs();
-		 for(URL url: urls){
-			 File file = new File(url.getFile());
-			 if (file.isDirectory()) {
+	}
+
+	/**
+	 * 加载默认插件 @author zhangjiehao
+	 * 
+	 * @param configs
+	 */
+	private static void loading4path(List<String> configs) {
+		String prefix = System.getProperty("kepler.plugin.prefix", "kepler-plugin-");
+		String suffix = System.getProperty("kepler.plugin.suffix", ".xml");
+		for (URL url : URLClassLoader.class.cast(Start.class.getClassLoader()).getURLs()) {
+			File file = new File(url.getFile());
+			// 如果为目录则扫描目录(仅一层, 如WEB-INF)
+			if (file.isDirectory()) {
 				for (File entry : file.listFiles()) {
-					if (entry.getName().startsWith("kepler-plugin-") && entry.getName().endsWith(".xml")) {
-						 configs.add("classpath:" + entry.getName());
-					 }
+					if (entry.getName().startsWith(prefix) && entry.getName().endsWith(suffix)) {
+						configs.add("classpath:" + entry.getName());
+					}
 				}
-			 } else if (file.getName().endsWith(".jar")) {			 
-				 try (JarFile jarFile = new JarFile(file)) {
-					 Enumeration<JarEntry> entries = jarFile.entries();
-					 while (entries.hasMoreElements() ){
-						 JarEntry entry = entries.nextElement();
-						 if (entry.getName().startsWith("kepler-plugin-") && entry.getName().endsWith(".xml")) {
-							 LOGGER.info("add " + entry.getName() + " to configs");
-							 configs.add("classpath:" + entry.getName());
-						 }
-					 }
-				 } catch (IOException e) {
-					LOGGER.error("Failed decompressing the JAR");
+			} else if (file.getName().endsWith(".jar")) {
+				// 如果为Jar包则扫描
+				try (JarFile jar = new JarFile(file)) {
+					Enumeration<JarEntry> entries = jar.entries();
+					while (entries.hasMoreElements()) {
+						JarEntry entry = entries.nextElement();
+						if (entry.getName().startsWith(prefix) && entry.getName().endsWith(suffix)) {
+							configs.add("classpath:" + entry.getName());
+						}
+					}
+				} catch (IOException e) {
+					Start.LOGGER.error("Failed decompressing the JAR");
 				}
-			 }
-		 }
-		
-		return configs.toArray(new String[] {});
+			}
+		}
 	}
 
 	/**
