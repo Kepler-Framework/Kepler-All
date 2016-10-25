@@ -1,8 +1,13 @@
 package com.kepler.quality.impl;
 
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.kepler.admin.status.impl.StatusTask;
+import com.kepler.config.PropertiesUtils;
 import com.kepler.quality.Quality;
 
 /**
@@ -11,11 +16,15 @@ import com.kepler.quality.Quality;
  */
 public class DefaultQuality implements Quality {
 
+	private static final int TIMES = PropertiesUtils.get(DefaultQuality.class.getName().toLowerCase() + ".times", Byte.MAX_VALUE);
+
+	private static final Log LOGGER = LogFactory.getLog(DefaultQuality.class);
+
+	private final AtomicReference<Long> waiting = new AtomicReference<Long>();
+
 	private final AtomicLong breaking = new AtomicLong();
 
 	private final AtomicLong demoting = new AtomicLong();
-
-	private final AtomicLong waiting = new AtomicLong();
 
 	private final AtomicLong idle = new AtomicLong();
 
@@ -43,7 +52,19 @@ public class DefaultQuality implements Quality {
 	@Override
 	public void waiting(long waiting) {
 		if (StatusTask.ENABLED) {
-			this.waiting.incrementAndGet();
+			for (int index = 0; index < DefaultQuality.TIMES; index++) {
+				long current = this.waiting.get();
+				if (current < waiting) {
+					// CAS成功则返回. 失败则继续循环
+					if (this.waiting.compareAndSet(current, waiting)) {
+						return;
+					}
+				} else {
+					return;
+				}
+			}
+			// 尝试TIMES失败后提示日志
+			DefaultQuality.LOGGER.warn("Max waiting update failed after " + DefaultQuality.TIMES + " times");
 		}
 	}
 
@@ -59,7 +80,7 @@ public class DefaultQuality implements Quality {
 
 	@Override
 	public long getWaitingAndReset() {
-		return StatusTask.ENABLED ? this.waiting.getAndSet(0) : 0;
+		return StatusTask.ENABLED ? this.waiting.getAndSet(0L) : 0;
 	}
 
 	@Override

@@ -8,22 +8,22 @@ package com.kepler.quality;
 public interface Quality {
 
 	/**
-	 * 闲置
+	 * 累计闲置
 	 */
 	public void idle();
 
 	/**
-	 * 熔断
+	 * 累计熔断
 	 */
 	public void breaking();
 
 	/**
-	 * 降级
+	 * 累计降级
 	 */
 	public void demoting();
 
 	/**
-	 * 等待
+	 * 最大等待
 	 * 
 	 * @param waiting
 	 */
@@ -44,7 +44,7 @@ public interface Quality {
 	public long getDemotingAndReset();
 
 	/**
-	 * 累计等待(重置内置计数)
+	 * 最大等待(重置内置计数)
 	 * 
 	 * @return
 	 */
