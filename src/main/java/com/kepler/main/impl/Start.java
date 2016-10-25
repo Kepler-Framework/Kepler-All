@@ -1,7 +1,14 @@
 package com.kepler.main.impl;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,6 +45,7 @@ public class Start {
 	 * 读取配置文件
 	 * 
 	 * @return
+	 * @throws IOException 
 	 */
 	private static String[] configs() {
 		List<String> configs = new ArrayList<String>();
@@ -49,6 +57,32 @@ public class Start {
 				configs.add("classpath:" + plugin);
 			}
 		}
+		// 加载其他资源
+		 URL[] urls = URLClassLoader.class.cast(Start.class.getClassLoader()).getURLs();
+		 for(URL url: urls){
+			 File file = new File(url.getFile());
+			 if (file.isDirectory()) {
+				for (File entry : file.listFiles()) {
+					if (entry.getName().startsWith("kepler-plugin-") && entry.getName().endsWith(".xml")) {
+						 configs.add("classpath:" + entry.getName());
+					 }
+				}
+			 } else if (file.getName().endsWith(".jar")) {			 
+				 try (JarFile jarFile = new JarFile(file)) {
+					 Enumeration<JarEntry> entries = jarFile.entries();
+					 while (entries.hasMoreElements() ){
+						 JarEntry entry = entries.nextElement();
+						 if (entry.getName().startsWith("kepler-plugin-") && entry.getName().endsWith(".xml")) {
+							 LOGGER.info("add " + entry.getName() + " to configs");
+							 configs.add("classpath:" + entry.getName());
+						 }
+					 }
+				 } catch (IOException e) {
+					LOGGER.error("Failed decompressing the JAR");
+				}
+			 }
+		 }
+		
 		return configs.toArray(new String[] {});
 	}
 
