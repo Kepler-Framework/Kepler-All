@@ -1,5 +1,11 @@
 package com.kepler.ack.impl;
 
+import java.util.Arrays;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.util.Assert;
+
 import com.kepler.KeplerLocalException;
 import com.kepler.KeplerRemoteException;
 import com.kepler.KeplerTimeoutException;
@@ -12,11 +18,6 @@ import com.kepler.host.Host;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.Response;
 import com.kepler.service.Quiet;
-import org.springframework.util.Assert;
-
-import java.util.Arrays;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Warning: 监视器使用this避免创建无用对象(协商)
@@ -91,8 +92,18 @@ public class AckFuture implements Future<Object>, Ack {
 		this.target = target;
 		this.request = request;
 		this.collector = collector;
-		// 计算Timeout
-		this.deadline = PropertiesUtils.profile(profile.profile(request.service()), AckFuture.TIMEOUT_KEY, AckFuture.TIMEOUT_DEF);
+		this.deadline = this.deadline(PropertiesUtils.profile(profile.profile(request.service()), AckFuture.TIMEOUT_KEY, AckFuture.TIMEOUT_DEF));
+	}
+
+	/**
+	 * 计算Timeout
+	 * 
+	 * @param deadline
+	 * @return
+	 */
+	private long deadline(long deadline) {
+		// 如果超时小于等于0则使用表示不指定超时时间
+		return deadline > 0 ? deadline : Long.MAX_VALUE;
 	}
 
 	/**
