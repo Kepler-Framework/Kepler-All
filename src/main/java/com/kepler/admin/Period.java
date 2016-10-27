@@ -5,7 +5,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -19,18 +18,13 @@ public class Period implements Runnable {
 
 	private static final int INTERVAL = PropertiesUtils.get(Period.class.getName().toLowerCase() + ".interval", 60000);
 
-	/**
-	 * Period线程数量
-	 */
-	private static final int THREAD = PropertiesUtils.get(Period.class.getName().toLowerCase() + ".thread", 1);
-
 	private static final Log LOGGER = LogFactory.getLog(Period.class);
 
 	private final BlockingQueue<PeriodTask> tasks = new DelayQueue<PeriodTask>();
 
-	private final AtomicBoolean shutdown = new AtomicBoolean();
-
 	private final ThreadPoolExecutor threads;
+
+	volatile private boolean shutdown;
 
 	public Period(ThreadPoolExecutor threads, List<PeriodTask> tasks) {
 		super();
@@ -45,16 +39,14 @@ public class Period implements Runnable {
 	 * For Spring
 	 */
 	public void init() {
-		for (int index = 0; index < Period.THREAD; index++) {
-			this.threads.execute(this);
-		}
+		this.threads.execute(this);
 	}
 
 	/**
 	 * For Spring
 	 */
 	public void destroy() {
-		this.shutdown.set(true);
+		this.shutdown = true;
 	}
 
 	private void command(PeriodTask task) {
@@ -68,7 +60,7 @@ public class Period implements Runnable {
 
 	@Override
 	public void run() {
-		while (!this.shutdown.get()) {
+		while (!this.shutdown) {
 			try {
 				PeriodTask task = this.tasks.poll(Period.INTERVAL, TimeUnit.MILLISECONDS);
 				if (task != null) {

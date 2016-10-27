@@ -1,7 +1,5 @@
 package com.kepler.zookeeper;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.zookeeper.WatchedEvent;
@@ -140,31 +138,31 @@ public class ZkFactory implements FactoryBean<ZkClient> {
 
 	private class ZkConnection {
 
-		private final AtomicBoolean valid = new AtomicBoolean();
-
 		private long start;
+
+		volatile private boolean valid;
 
 		public void reset() {
 			this.start = System.currentTimeMillis();
-			this.valid.set(false);
+			this.valid = false;
 		}
 
 		public void await() throws Exception {
-			if (!this.valid.get()) {
+			if (!this.valid) {
 				this.doWait();
 			}
 		}
 
 		public void activate() {
 			synchronized (this) {
-				this.valid.set(true);
+				this.valid = true;
 				this.notifyAll();
 			}
 		}
 
 		private void doWait() throws Exception {
 			synchronized (this) {
-				while (!this.valid.get()) {
+				while (!this.valid) {
 					this.wait();
 				}
 			}

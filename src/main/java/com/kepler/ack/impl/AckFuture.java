@@ -1,6 +1,7 @@
 package com.kepler.ack.impl;
 
 import java.util.Arrays;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -12,6 +13,7 @@ import com.kepler.KeplerTimeoutException;
 import com.kepler.ack.Ack;
 import com.kepler.ack.Status;
 import com.kepler.admin.transfer.Collector;
+import com.kepler.admin.transfer.impl.TransferTask;
 import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.host.Host;
@@ -24,7 +26,7 @@ import com.kepler.service.Quiet;
  * 
  * @author kim 2015年7月23日
  */
-public class AckFuture implements Future<Object>, Ack {
+public class AckFuture implements Future<Object>, Runnable, Ack {
 
 	public static final String TIMEOUT_KEY = AckFuture.class.getName().toLowerCase() + ".timeout";
 
@@ -44,6 +46,8 @@ public class AckFuture implements Future<Object>, Ack {
 	private final Thread thread = Thread.currentThread();
 
 	private final Collector collector;
+
+	private final Executor executor;
 
 	/**
 	 * 原始请求
@@ -85,12 +89,13 @@ public class AckFuture implements Future<Object>, Ack {
 	 */
 	volatile private boolean interrupt;
 
-	public AckFuture(Collector collector, Host local, Host target, Request request, Profile profile, Quiet quiet) {
+	public AckFuture(Collector collector, Executor executor, Host local, Host target, Request request, Profile profile, Quiet quiet) {
 		super();
 		this.local = local;
 		this.quiet = quiet;
 		this.target = target;
 		this.request = request;
+		this.executor = executor;
 		this.collector = collector;
 		this.deadline = this.deadline(PropertiesUtils.profile(profile.profile(request.service()), AckFuture.TIMEOUT_KEY, AckFuture.TIMEOUT_DEF));
 	}
@@ -274,8 +279,10 @@ public class AckFuture implements Future<Object>, Ack {
 			// 是否中断, 是否超时, 是否取消, 是否抛出异常
 			return this.checkInterrupt().checkTimeout().checkCancel().checkException().response.response();
 		} finally {
-			// 收集Response信息
-			this.collector.collect(this);
+			if (TransferTask.ENABLED) {
+				// 收集Response信息
+				this.executor.execute(this);
+			}
 		}
 	}
 
@@ -307,5 +314,11 @@ public class AckFuture implements Future<Object>, Ack {
 	 */
 	public long elapse() {
 		return System.currentTimeMillis() - this.start;
+	}
+
+	@Override
+	public void run() {
+		// Host local, Host target对应唯一通道
+		this.collector.collect(this);
 	}
 }

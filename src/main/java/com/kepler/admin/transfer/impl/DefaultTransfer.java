@@ -1,7 +1,5 @@
 package com.kepler.admin.transfer.impl;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 import com.kepler.ack.Status;
 import com.kepler.admin.transfer.Transfer;
 import com.kepler.config.PropertiesUtils;
@@ -21,24 +19,24 @@ public class DefaultTransfer implements Transfer {
 
 	private static final long serialVersionUID = 1L;
 
-	private final AtomicLong rtt = new AtomicLong();
-
-	private final AtomicLong total = new AtomicLong();
-
-	private final AtomicLong freeze = new AtomicLong();
-
-	private final AtomicLong timeout = new AtomicLong();
-
-	private final AtomicLong exception = new AtomicLong();
-
 	private final Host target;
 
 	private final Host local;
 
+	volatile private long rtt;
+
+	volatile private long total;
+
+	volatile private long freeze;
+
+	volatile private long timeout;
+
+	volatile private long exception;
+
 	/**
 	 * 实际首次收集时间
 	 */
-	private long timestamp;
+	volatile private long timestamp;
 
 	public DefaultTransfer(Host local, Host target) {
 		super();
@@ -53,11 +51,11 @@ public class DefaultTransfer implements Transfer {
 	 * @return
 	 */
 	public boolean freezed() {
-		if (this.total.get() == 0) {
-			return this.freeze.incrementAndGet() > DefaultTransfer.FREEZE;
+		if (this.total == 0) {
+			return (this.freeze++) > DefaultTransfer.FREEZE;
 		} else {
 			// 任一一次请求有效则重置计数
-			this.freeze.set(0);
+			this.freeze = 0;
 			return false;
 		}
 	}
@@ -73,19 +71,19 @@ public class DefaultTransfer implements Transfer {
 	}
 
 	public long rtt() {
-		return this.rtt.get();
+		return this.rtt;
 	}
 
 	public long total() {
-		return this.total.get();
+		return this.total;
 	}
 
 	public long timeout() {
-		return this.timeout.get();
+		return this.timeout;
 	}
 
 	public long exception() {
-		return this.exception.get();
+		return this.exception;
 	}
 
 	public long timestamp() {
@@ -94,40 +92,38 @@ public class DefaultTransfer implements Transfer {
 
 	public boolean actived() {
 		// 没有任何请求则标记为非激活
-		return this.total.get() != 0;
+		return this.total != 0;
 	}
 
 	public DefaultTransfer touch() {
-		this.total.incrementAndGet();
+		this.total++;
 		return this;
 	}
 
 	public DefaultTransfer rtt(long rtt) {
-		if (rtt != 0) {
-			this.rtt.addAndGet(rtt);
-		}
+		this.rtt += rtt;
 		return this;
 	}
 
 	public DefaultTransfer timeout(Status status) {
 		if (status.equals(Status.TIMEOUT)) {
-			this.timeout.incrementAndGet();
+			this.timeout++;
 		}
 		return this;
 	}
 
 	public DefaultTransfer exception(Status status) {
 		if (status.equals(Status.EXCEPTION)) {
-			this.exception.incrementAndGet();
+			this.exception++;
 		}
 		return this;
 	}
 
 	public void reset() {
-		this.rtt.set(0);
-		this.total.set(0);
-		this.timeout.set(0);
-		this.exception.set(0);
+		this.rtt = 0;
+		this.total = 0;
+		this.timeout = 0;
+		this.exception = 0;
 		// 更新时间
 		this.timestamp = System.currentTimeMillis();
 	}

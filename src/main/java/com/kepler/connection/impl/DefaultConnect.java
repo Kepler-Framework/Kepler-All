@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -110,8 +109,6 @@ public class DefaultConnect implements Connect {
 
 	private final InitializerFactory inits = new InitializerFactory();
 
-	private final AtomicBoolean shutdown = new AtomicBoolean();
-
 	/**
 	 * 建立连接任务,无状态
 	 */
@@ -143,6 +140,8 @@ public class DefaultConnect implements Connect {
 
 	private final ThreadPoolExecutor threads;
 
+	volatile private boolean shutdown;
+
 	public DefaultConnect(Host local, Quiet quiet, Encoder encoder, Decoder decoder, Profile profiles, Connects connects, TokenContext token, AckTimeOut timeout, HostsContext context, ChannelContext channels, Collector collector, ThreadPoolExecutor threads) {
 		super();
 		this.local = local;
@@ -169,7 +168,7 @@ public class DefaultConnect implements Connect {
 	}
 
 	public void destroy() throws Exception {
-		this.shutdown.set(true);
+		this.shutdown = true;
 		this.release4shared();
 	}
 
@@ -335,7 +334,7 @@ public class DefaultConnect implements Connect {
 
 		public Object invoke(Request request) throws Throwable {
 			// DefaultConnect.this.token.set(request, this.target.token())增加Token
-			AckFuture future = new AckFuture(DefaultConnect.this.collector, DefaultConnect.this.local, this.target, DefaultConnect.this.token.set(request, this), DefaultConnect.this.profiles, DefaultConnect.this.quiet);
+			AckFuture future = new AckFuture(DefaultConnect.this.collector, this.ctx.channel().eventLoop(), DefaultConnect.this.local, this.target, DefaultConnect.this.token.set(request, this), DefaultConnect.this.profiles, DefaultConnect.this.quiet);
 			try {
 				// 编码
 				ByteBuf buffer = DefaultConnect.this.encoder.encode(future.request());
@@ -444,7 +443,7 @@ public class DefaultConnect implements Connect {
 	private class EstablishRunnable implements Runnable {
 		@Override
 		public void run() {
-			while (!DefaultConnect.this.shutdown.get()) {
+			while (!DefaultConnect.this.shutdown) {
 				try {
 					Host host = DefaultConnect.this.connects.get();
 					if (host != null) {

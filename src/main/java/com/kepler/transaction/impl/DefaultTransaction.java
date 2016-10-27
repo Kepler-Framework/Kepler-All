@@ -5,7 +5,6 @@ import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
@@ -73,8 +72,6 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 
 	private final AtomicInteger threshold = new AtomicInteger();
 
-	private final AtomicBoolean shutdown = new AtomicBoolean();
-
 	private final ThreadPoolExecutor executor;
 
 	private final HeadersContext headers;
@@ -85,6 +82,8 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 	private final Persistent persistent;
 
 	private ApplicationContext context;
+
+	volatile private boolean shutdown;
 
 	public DefaultTransaction(ThreadPoolExecutor executor, HeadersContext headers, Persistent persistent) {
 		super();
@@ -111,7 +110,7 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 	}
 
 	public void destroy() {
-		this.shutdown.set(true);
+		this.shutdown = true;
 	}
 
 	public Object commit(Request request, Invoker invoker) throws Exception {
@@ -287,7 +286,7 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 
 		@Override
 		public void run() {
-			while (!DefaultTransaction.this.shutdown.get()) {
+			while (!DefaultTransaction.this.shutdown) {
 				try {
 					// 如果延迟回滚任务再次失败则重置后推送至等待队列
 					DelayRollback rollback = DefaultTransaction.this.queue.take();

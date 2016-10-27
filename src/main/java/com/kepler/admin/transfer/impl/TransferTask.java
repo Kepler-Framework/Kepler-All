@@ -17,12 +17,12 @@ import com.kepler.config.PropertiesUtils;
  */
 public class TransferTask extends PeriodTask {
 
+	public static final boolean ENABLED = PropertiesUtils.get(TransferTask.class.getName().toLowerCase() + ".enabled", false);
+
 	/**
 	 * 默认10秒, 最短5秒, 最长15秒
 	 */
 	private static final int PERIOD = Math.min(Math.max(5000, PropertiesUtils.get(TransferTask.class.getName().toLowerCase() + ".period", 10000)), 15000);
-
-	private static final boolean ENABLED = PropertiesUtils.get(TransferTask.class.getName().toLowerCase() + ".enabled", false);
 
 	private final Collector collector;
 

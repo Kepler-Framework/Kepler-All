@@ -2,7 +2,6 @@ package com.kepler.admin.transfer.impl;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,7 +29,7 @@ public class DefaultCollector implements Collector, Imported {
 	/**
 	 * Start from 1
 	 */
-	private final AtomicInteger indexes = new AtomicInteger(1);
+	volatile private int indexes = 1;
 
 	/**
 	 * 指定服务, 指定方法加载Transfers
@@ -131,14 +130,14 @@ public class DefaultCollector implements Collector, Imported {
 	}
 
 	private MultiKeyMap index(int index) {
-		return this.transfers[((this.indexes.get() + index) & Byte.MAX_VALUE) % this.transfers.length];
+		return this.transfers[((this.indexes + index) & Byte.MAX_VALUE) % this.transfers.length];
 	}
 
 	private MultiKeyMap exchange() {
 		// 重置待使用缓存区
 		this.reset();
 		// 切换待使用缓存区为当前缓存区
-		this.indexes.incrementAndGet();
+		this.indexes++;
 		// 清理下次使用缓存区并返回上次使用缓存区
 		return this.clear().prev();
 	}
