@@ -23,15 +23,15 @@ public class DefaultTransfer implements Transfer {
 
 	private final Host local;
 
-	volatile private long rtt;
+	private long rtt;
 
-	volatile private long total;
+	private long total;
 
-	volatile private long freeze;
+	private long freeze;
 
-	volatile private long timeout;
+	private long timeout;
 
-	volatile private long exception;
+	private long exception;
 
 	/**
 	 * 实际首次收集时间

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
 	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
@@ -18,6 +19,7 @@
 		<constructor-arg ref="kepler.mock.context" />
 		<constructor-arg ref="kepler.invoker.joins" />
 		<constructor-arg ref="kepler.invoker.forks" />
+		<constructor-arg ref="kepler.service.quiet" />
 		<constructor-arg ref="kepler.invoker.actual" />
 		<constructor-arg ref="kepler.config.profile" />
 		<constructor-arg ref="kepler.protocol.request" />

@@ -56,9 +56,12 @@ public class StartPID implements Pid, BeanPostProcessor, ApplicationListener<Con
 	private File conflict(File pid) {
 		StartPID.LOGGER.info("PID path: " + pid.getAbsolutePath());
 		// 是否已存在启动的进程
-		for (String each : pid.getAbsoluteFile().getParentFile().list()) {
-			if (StartPID.CONFLICT && each.matches("^" + StartPID.PREFIX + "\\d.*")) {
-				throw new KeplerValidateException("Kepler was started on " + each + " ... ");
+		String[] pids = pid.getAbsoluteFile().getParentFile().list();
+		if (pids != null) {
+			for (String each : pids) {
+				if (StartPID.CONFLICT && each.matches("^" + StartPID.PREFIX + "\\d.*")) {
+					throw new KeplerValidateException("Kepler was started on " + each + " ... ");
+				}
 			}
 		}
 		return pid;

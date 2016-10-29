@@ -21,6 +21,6 @@ public class SegmentLocks implements HostLocks {
 
 	public Object get(Host host) {
 		// 以主机为维度的锁, 不计算端口和PID
-		return this.locks[Math.abs(host.host().hashCode()) % this.locks.length];
+		return this.locks[Math.abs(host.host().hashCode() % this.locks.length)];
 	}
 }

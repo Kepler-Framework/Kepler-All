@@ -29,7 +29,7 @@ public class DefaultCollector implements Collector, Imported {
 	/**
 	 * Start from 1
 	 */
-	volatile private int indexes = 1;
+	private int indexes = 1;
 
 	/**
 	 * 指定服务, 指定方法加载Transfers

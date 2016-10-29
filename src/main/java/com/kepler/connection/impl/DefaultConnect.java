@@ -383,7 +383,7 @@ public class DefaultConnect implements Connect {
 			if (future != null) {
 				future.response(response);
 			} else {
-				DefaultConnect.LOGGER.warn("Missing ack for response: " + response.ack() + " (" + this.target + "), may be timeout ...");
+				DefaultConnect.LOGGER.warn("Missing ack for response: " + Arrays.toString(response.ack()) + " (" + this.target.address() + "), may be timeout ...");
 			}
 		}
 	}
@@ -521,6 +521,11 @@ public class DefaultConnect implements Connect {
 
 		@Override
 		public boolean equals(Object obj) {
+			// Guard case1, Null
+			if (obj == null) {
+				return false;
+			}
+			// Guard case2, 地址相等
 			if (this == obj) {
 				return true;
 			}

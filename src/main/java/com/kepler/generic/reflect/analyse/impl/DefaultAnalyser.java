@@ -294,12 +294,16 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 		}
 
 		public boolean equals(Object ob) {
+			// Guard case1, null
+			if (ob == null) {
+				return false;
+			}
 			Extension target = Extension.class.cast(ob);
-			// Guard case1, 类型不一致
+			// Guard case2, 类型不一致
 			if (!this.clazz.equals(target.clazz)) {
 				return false;
 			}
-			// Guard case2, 扩展长度不相等
+			// Guard case3, 扩展长度不相等
 			if (this.extension.length != target.extension.length) {
 				return false;
 			}

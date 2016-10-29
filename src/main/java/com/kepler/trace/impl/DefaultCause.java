@@ -34,7 +34,11 @@ public class DefaultCause implements TraceCause {
 	}
 
 	private Throwable cause(Throwable throwable) {
-		// Guard case, 泛化错误
+		// Guard case1, null
+		if (throwable == null) {
+			return null;
+		}
+		// Guard case2, 泛化错误
 		if (KeplerGenericException.class.equals(throwable.getClass())) {
 			return KeplerGenericException.class.cast(throwable).clone();
 		}

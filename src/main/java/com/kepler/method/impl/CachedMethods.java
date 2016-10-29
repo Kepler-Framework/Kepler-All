@@ -41,7 +41,7 @@ public class CachedMethods implements Methods {
 		// 实际方法
 		Method actual = MethodUtils.getMatchingAccessibleMethod(service_method.service(), service_method.method(), service_method.classes());
 		if (actual != null) {
-			synchronized (this.cached) {
+			synchronized (this) {
 				// 同步检查
 				if (this.cached.containsKey(service_method)) {
 					return actual;
@@ -75,7 +75,7 @@ public class CachedMethods implements Methods {
 	 * @author KimShen
 	 *
 	 */
-	private static class ServiceAndMethod {
+	private static class ServiceAndMethod implements Cloneable {
 
 		private static final Class<?>[] EMPTY = new Class<?>[0];
 
@@ -124,12 +124,16 @@ public class CachedMethods implements Methods {
 		}
 
 		public boolean equals(Object ob) {
+			// Guard case1, null
+			if (ob == null) {
+				return false;
+			}
 			ServiceAndMethod target = ServiceAndMethod.class.cast(ob);
-			// Guard case1, 服务或方法不一致
+			// Guard case2, 服务或方法不一致
 			if (!this.service.equals(target.service) || !this.method.equals(target.method)) {
 				return false;
 			}
-			// Guard case2, 参数长度不相等
+			// Guard case3, 参数长度不相等
 			if (this.classes.length != target.classes.length) {
 				return false;
 			}

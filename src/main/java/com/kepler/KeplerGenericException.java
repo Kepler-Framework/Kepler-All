@@ -18,7 +18,7 @@ import com.kepler.config.PropertiesUtils;
 /**
  * @author zhangjiehao 2016年8月16日
  */
-public class KeplerGenericException extends KeplerLocalException {
+public class KeplerGenericException extends KeplerLocalException implements Cloneable {
 
 	private static final String FILTER = PropertiesUtils.get(KeplerGenericException.class.getName().toLowerCase() + ".filter", "cause;message;stackTrace;suppressed;localizedMessage;");
 

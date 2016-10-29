@@ -101,7 +101,10 @@ public class DefaultHost implements Host {
 	}
 
 	public boolean equals(Object ob) {
-		// Not null point security
+		// Guard case
+		if (ob == null) {
+			return false;
+		}
 		Host host = Host.class.cast(ob);
 		return this.host().equals(host.host()) && (this.pid().equals(host.pid())) && (this.port() == host.port());
 	}

@@ -72,7 +72,9 @@ public final class Service implements Serializable {
 	}
 
 	public boolean equals(Object ob) {
-		// Not null point security
+		if (ob == null) {
+			return false;
+		}
 		Service service = Service.class.cast(ob);
 		return StringUtils.equals(this.service(), service.service()) && StringUtils.equals(this.version(), service.version()) && StringUtils.equals(this.catalog(), service.catalog());
 	}

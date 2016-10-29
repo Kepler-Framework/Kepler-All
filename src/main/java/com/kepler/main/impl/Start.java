@@ -93,9 +93,12 @@ public class Start {
 			File file = new File(url.getFile());
 			// 如果为目录则扫描目录(仅一层, 如WEB-INF)
 			if (file.isDirectory()) {
-				for (File entry : file.listFiles()) {
-					if (entry.getName().startsWith(prefix) && entry.getName().endsWith(suffix)) {
-						configs.add("classpath:" + entry.getName());
+				File[] files = file.listFiles();
+				if (files != null) {
+					for (File entry : files) {
+						if (entry.getName().startsWith(prefix) && entry.getName().endsWith(suffix)) {
+							configs.add("classpath:" + entry.getName());
+						}
 					}
 				}
 			} else if (file.getName().endsWith(".jar")) {

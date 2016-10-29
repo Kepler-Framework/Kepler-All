@@ -64,7 +64,7 @@ abstract public class DefaultImported implements GenericImported {
 	public void imported(Service service) throws Exception {
 		// 仅加载尚未加载的服务
 		if (!this.services.contains(service)) {
-			synchronized (this.services) {
+			synchronized (this) {
 				// Double check
 				if (this.services.contains(service)) {
 					return;
@@ -74,7 +74,8 @@ abstract public class DefaultImported implements GenericImported {
 				for (Service each : this.services) {
 					services.add(each);
 				}
-				(this.services = services).add(service);
+				this.services = services;
+				this.services.add(service);
 				this.imported.subscribe(service);
 				DefaultImported.LOGGER.warn("Import generic service: " + service + ", and will not be uninstalled until server closed");
 			}

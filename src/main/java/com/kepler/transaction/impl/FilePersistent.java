@@ -76,7 +76,7 @@ public class FilePersistent implements Persistent {
 		try (FileOutputStream stream = new FileOutputStream(this.location(request.uuid()))) {
 			// 使用默认序列化策略序列化
 			this.serials.def4output().output(request, Request.class, stream, FilePersistent.BUFFER);
-		}catch(Exception e){
+		} catch (Exception e) {
 			throw new KeplerPersistentException(e);
 		}
 	}
@@ -92,10 +92,13 @@ public class FilePersistent implements Persistent {
 	@Override
 	public List<Request> list() {
 		List<Request> requests = new ArrayList<Request>();
-		// 遍历还未删除的请求
-		for (File each : new File(StringUtils.isEmpty(FilePersistent.DIR) ? "." : FilePersistent.DIR).listFiles()) {
-			if (each.isFile() && each.getName().startsWith(FilePersistent.PREFIX)) {
-				this.restore(requests, each);
+		File[] files = new File(StringUtils.isEmpty(FilePersistent.DIR) ? "." : FilePersistent.DIR).listFiles();
+		if (files != null) {
+			// 遍历还未删除的请求
+			for (File each : files) {
+				if (each.isFile() && each.getName().startsWith(FilePersistent.PREFIX)) {
+					this.restore(requests, each);
+				}
 			}
 		}
 		return requests;

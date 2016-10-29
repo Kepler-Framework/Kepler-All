@@ -117,9 +117,17 @@ public class DefaultTransfers implements Transfers {
 		}
 
 		public boolean equals(Object ob) {
+			// Guard case
+			if (ob == null) {
+				return false;
+			}
 			Hosts host = Hosts.class.cast(ob);
 			// 完全相等
 			return this.local.equals(host.local) && this.target.equals(host.target);
 		}
+	}
+
+	public static void main(String[] args) {
+		System.out.println(byte[].class);
 	}
 }

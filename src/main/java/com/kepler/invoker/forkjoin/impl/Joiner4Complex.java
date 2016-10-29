@@ -26,6 +26,10 @@ public class Joiner4Complex implements Joiner {
 
 	@Override
 	public Object join(Object current, Object joined) {
+		// Guard case, 如果Joined结果为Null则不做处理
+		if (joined == null) {
+			return current;
+		}
 		// 如果为Collection类型则调用Add, 否则调用Put. 如果Current为Null则直接返回新值
 		return current != null ? Collection.class.isAssignableFrom(joined.getClass()) ? this.add(current, joined) : this.put(current, joined) : joined;
 	}

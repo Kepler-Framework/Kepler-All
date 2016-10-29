@@ -2,12 +2,8 @@ package com.kepler.invoker.forkjoin.impl;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -16,7 +12,6 @@ import org.springframework.util.Assert;
 import com.kepler.KeplerRoutingException;
 import com.kepler.KeplerValidateException;
 import com.kepler.annotation.ForkJoin;
-import com.kepler.annotation.QuietMethod;
 import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.header.Headers;
@@ -31,6 +26,7 @@ import com.kepler.org.apache.commons.collections.map.MultiKeyMap;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.RequestFactory;
 import com.kepler.service.Imported;
+import com.kepler.service.Quiet;
 import com.kepler.service.Service;
 
 /**
@@ -45,9 +41,9 @@ public class ForkJoinInvoker implements Imported, Invoker {
 	 */
 	public static final String TAGS_KEY = ForkJoinInvoker.class.getName().toLowerCase() + ".tags";
 
-	private static final boolean ACTIVED = PropertiesUtils.get(ForkJoinInvoker.class.getName().toLowerCase() + ".actived", false);
-
 	private static final String TAGS_DEF = PropertiesUtils.get(ForkJoinInvoker.TAGS_KEY, Host.TAG_VAL);
+
+	private static final boolean ACTIVED = PropertiesUtils.get(ForkJoinInvoker.class.getName().toLowerCase() + ".actived", false);
 
 	private static final Log LOGGER = LogFactory.getLog(ForkJoinInvoker.class);
 
@@ -55,9 +51,9 @@ public class ForkJoinInvoker implements Imported, Invoker {
 
 	private final ThreadPoolExecutor threads;
 
-	private final RequestFactory request;
-
 	private final IDGenerators generators;
+
+	private final RequestFactory request;
 
 	private final MockerContext mocker;
 
@@ -65,11 +61,13 @@ public class ForkJoinInvoker implements Imported, Invoker {
 
 	private final Profile profile;
 
+	private final Quiet quiet;
+
 	private final Forks forks;
 
 	private final Joins joins;
 
-	public ForkJoinInvoker(Forks forks, Joins joins, Invoker delegate, Profile profile, IDGenerators generator, RequestFactory request, MockerContext mocker, ThreadPoolExecutor threads) {
+	public ForkJoinInvoker(Forks forks, Joins joins, Quiet quiet, Invoker delegate, Profile profile, IDGenerators generator, RequestFactory request, MockerContext mocker, ThreadPoolExecutor threads) {
 		super();
 		this.generators = generator;
 		this.delegate = delegate;
@@ -77,6 +75,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 		this.profile = profile;
 		this.request = request;
 		this.mocker = mocker;
+		this.quiet = quiet;
 		this.forks = forks;
 		this.joins = joins;
 	}
@@ -94,8 +93,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 				ForkJoin forkjoin = method.getAnnotation(ForkJoin.class);
 				if (forkjoin != null) {
 					Assert.state(!method.getReturnType().equals(void.class), "Method must not return void ... ");
-					// 构建ForkJoinInstance
-					this.forkers.put(service, method.getName(), new ForkJoinInstance(forkjoin, method.getAnnotation(QuietMethod.class)));
+					this.forkers.put(service, method.getName(), forkjoin);
 				}
 			}
 		} catch (ClassNotFoundException | NoClassDefFoundError e) {
@@ -107,6 +105,22 @@ public class ForkJoinInvoker implements Imported, Invoker {
 	public Object invoke(Request request) throws Throwable {
 		// 是否开启了Fork, 否则进入下一个Invoker
 		return this.forkers.containsKey(request.service(), request.method()) ? this.fork(request) : Invoker.EMPTY;
+	}
+
+	/**
+	 * Mock
+	 * 
+	 * @param request
+	 * @param exception
+	 * @return
+	 */
+	private Object mock(Request request, KeplerRoutingException exception) {
+		Mocker mocker = this.mocker.get(request.service());
+		if (mocker != null) {
+			return mocker.mock(request);
+		} else {
+			throw exception;
+		}
 	}
 
 	/**
@@ -147,7 +161,6 @@ public class ForkJoinInvoker implements Imported, Invoker {
 	 */
 	private String[] tag(Request request) {
 		String tags = PropertiesUtils.profile(this.profile.profile(request.service()), ForkJoinInvoker.TAGS_KEY, ForkJoinInvoker.TAGS_DEF);
-		ForkJoinInvoker.LOGGER.info("Fork service " + request.service() + " / " + request.method() + " for tags: " + tags);
 		return tags.split(";");
 	}
 
@@ -159,102 +172,75 @@ public class ForkJoinInvoker implements Imported, Invoker {
 	 */
 	private Object fork(Request request) throws Throwable {
 		try {
-			ForkJoinInstance instance = ForkJoinInstance.class.cast(this.forkers.get(request.service(), request.method()));
-			return new ForkJoinProcessor(this.join(instance.forkjoin().join(), request), instance).fork(request, this.fork(instance.forkjoin().fork(), request), this.tag(request)).value();
+			ForkJoin fk = ForkJoin.class.cast(this.forkers.get(request.service(), request.method()));
+			Joiner joiner = this.join(fk.join(), request);
+			Forker forker = this.fork(fk.fork(), request);
+			String[] tags = this.tag(request);
+			// 发起请求, 等待合并结果
+			return new ForkJoinProcessor(joiner).fork(request, forker, tags).value();
 		} catch (KeplerRoutingException exception) {
+			// 失败则尝试Mock
 			return this.mock(request, exception);
 		}
 	}
 
 	/**
-	 * Mock and not retry
+	 * FK主流程
 	 * 
-	 * @param request
-	 * @param exception
-	 * @return
-	 */
-	private Object mock(Request request, KeplerRoutingException exception) {
-		Mocker mocker = this.mocker.get(request.service());
-		if (mocker != null) {
-			return mocker.mock(request);
-		} else {
-			throw exception;
-		}
-	}
-
-	/**
-	 * 异常静默策略
-	 * 
-	 * @author kim
+	 * @author KimShen
 	 *
-	 * 2016年2月22日
 	 */
-	private interface Quiet {
-
-		public boolean quiet(Throwable throwable);
-	}
-
 	private class ForkJoinProcessor {
 
 		/**
-		 * Fork任务列表(用于资源释放)
+		 * Fork任务列表
 		 */
-		private final List<ForkerRunnable> runnables = new ArrayList<ForkerRunnable>();
-
-		/**
-		 * 计数器
-		 */
-		private final AtomicInteger monitor = new AtomicInteger();
+		private final List<ForkerRunnable> forkers = new ArrayList<ForkerRunnable>();
 
 		private final Joiner joiner;
 
 		/**
-		 * 静默异常
+		 * 异常(唯一)
 		 */
-		private final Quiet quiets;
+		private Throwable throwable;
 
 		/**
-		 * 异常
+		 * 计数
 		 */
-		volatile private Throwable throwable;
-
-		/**
-		 * 最终结果
-		 */
-		volatile private Object value;
+		private int running;
 
 		/**
 		 * @param joiner
-		 * @param quiets 静默异常
 		 */
-		private ForkJoinProcessor(Joiner joiner, Quiet quiets) {
+		private ForkJoinProcessor(Joiner joiner) {
 			super();
 			this.joiner = joiner;
-			this.quiets = quiets;
 		}
 
 		/**
 		 * 释放资源
 		 */
 		private void release() {
-			for (ForkerRunnable runnable : this.runnables) {
-				runnable.release();
+			for (ForkerRunnable fork : this.forkers) {
+				fork.release();
 			}
 		}
 
 		/**
-		 * 加入任务列表并返回
+		 * 归并结果
 		 * 
-		 * @param actual
 		 * @return
 		 */
-		private ForkJoinProcessor runnable(ForkerRunnable runnable) {
-			this.runnables.add(runnable);
-			return this;
+		private Object join() {
+			Object current = null;
+			for (ForkerRunnable forker : this.forkers) {
+				current = this.joiner.join(current, forker.response);
+			}
+			return current;
 		}
 
 		/**
-		 * 是否存在异常
+		 * 校验, 如果存在异常则抛出
 		 * 
 		 * @return
 		 * @throws Throwable
@@ -267,40 +253,50 @@ public class ForkJoinInvoker implements Imported, Invoker {
 		}
 
 		public ForkJoinProcessor fork(Request request, Forker forker, String[] tags) {
-			for (String tag : tags) {
-				// Fork Request Args
-				Request actual = ForkJoinInvoker.this.request.request(request, ForkJoinInvoker.this.generators.get(request.service(), request.method()).generate(), forker.fork(request.args(), tag, this.monitor.get()));
-				// 指定Header
-				actual.put(Host.TAG_KEY, tag);
-				ForkJoinInvoker.this.threads.execute(new ForkerRunnable(this, this.monitor, actual));
+			// 向所有Tag集群发送请求(可能出现None Service Exception)
+			for (int index = 0; index < tags.length; this.running++, index++) {
+				// 拆分参数
+				Object[] args = forker.fork(request.args(), tags[index], this.running);
+				// 生成ACK
+				byte[] ack = ForkJoinInvoker.this.generators.get(request.service(), request.method()).generate();
+				// 构造请求
+				Request actual = ForkJoinInvoker.this.request.request(request, ack, args).put(Host.TAG_KEY, tags[index]);
+				ForkerRunnable runnable = new ForkerRunnable(this, actual);
+				this.forkers.add(runnable);
+				ForkJoinInvoker.this.threads.execute(runnable);
 			}
 			return this;
 		}
 
-		// 值回调
-		public void value(Object value) {
-			// This同步
+		/**
+		 * 递减计数器, 并触发唤醒
+		 */
+		public void decrease() {
 			synchronized (this) {
-				this.value = this.joiner.join(this.value, value);
+				// 计数器归0或者存在异常则唤醒
+				if ((--this.running) == 0 || this.throwable != null) {
+					this.notifyAll();
+				}
 			}
 		}
 
 		// 异常回调
-		public void throwable(Throwable throwable) {
-			// 如果已赋值则不做修改, 如果未赋值则仅非静默异常会被赋值
-			this.throwable = (this.throwable == null ? (this.quiets.quiet(throwable) ? null : throwable) : this.throwable);
+		public void throwable(Request request, Throwable throwable) {
+			synchronized (this) {
+				this.throwable = (this.throwable != null ? this.throwable : (ForkJoinInvoker.this.quiet.quiet(request, throwable.getClass()) ? null : throwable));
+			}
 		}
 
 		public Object value() throws Throwable {
 			try {
-				// 监听器同步
-				synchronized (this.monitor) {
-					// 等待监听器,直到计数为0或出现异常或中断
-					while (this.monitor.get() > 0 && this.throwable == null) {
-						this.monitor.wait();
+				// 监听器同步(ForkJoinProcessor)
+				synchronized (this) {
+					// 等待监听器, 直到计数为0或出现异常或中断
+					while (this.running > 0 && this.throwable == null) {
+						this.wait();
 					}
 				}
-				return this.valid().value;
+				return this.valid().join();
 			} finally {
 				// 释放资源
 				this.release();
@@ -312,39 +308,35 @@ public class ForkJoinInvoker implements Imported, Invoker {
 
 		private final ForkJoinProcessor forker;
 
-		private final AtomicInteger monitor;
-
 		private final Request request;
 
+		/**
+		 * 返回结果
+		 */
+		volatile private Object response;
+
+		/**
+		 * 执行线程
+		 */
 		volatile private Thread thread;
 
 		/**
 		 * @param forker
-		 * @param monitor 计数器
 		 * @param request
 		 */
-		private ForkerRunnable(ForkJoinProcessor forker, AtomicInteger monitor, Request request) {
+		private ForkerRunnable(ForkJoinProcessor forker, Request request) {
 			super();
-			// 递增监视器
-			(this.monitor = monitor).incrementAndGet();
 			this.request = request;
 			this.forker = forker;
 		}
 
 		/**
-		 * 初始化
+		 * 尝试中断底层未完成AckFuture
+		 * 
+		 * @return
 		 */
-		private ForkerRunnable prepare() {
-			// 绑定线程
-			this.thread = Thread.currentThread();
-			// 如果任务已开始则回调注册
-			this.forker.runnable(this);
-			return this;
-		}
-
 		public ForkerRunnable release() {
 			if (this.thread != null) {
-				// 尝试中断底层未完成AckFuture
 				this.thread.interrupt();
 			}
 			return this;
@@ -353,45 +345,18 @@ public class ForkJoinInvoker implements Imported, Invoker {
 		@Override
 		public void run() {
 			try {
-				// 归并结果
-				this.prepare().forker.value(ForkJoinInvoker.this.delegate.invoke(this.request));
+				// 绑定线程
+				this.thread = Thread.currentThread();
+				this.response = ForkJoinInvoker.this.delegate.invoke(this.request);
 			} catch (Throwable e) {
-				// 回调异常
-				synchronized (this.monitor) {
-					// 通知ForkJoin主线程出现异常并唤醒
-					this.forker.throwable(e);
-					this.monitor.notifyAll();
-				}
+				// 异常回调
+				this.forker.throwable(this.request, e);
 			} finally {
-				// 递减监视器,如果为0则唤醒线程
-				synchronized (this.monitor) {
-					if (this.monitor.decrementAndGet() == 0) {
-						this.monitor.notifyAll();
-					}
-				}
+				// 解绑线程
+				this.thread = null;
+				// 递减计数
+				this.forker.decrease();
 			}
-		}
-	}
-
-	private class ForkJoinInstance implements Quiet {
-
-		private final Collection<Class<? extends Throwable>> quiets;
-
-		private final ForkJoin forkjoin;
-
-		private ForkJoinInstance(ForkJoin forkjoin, QuietMethod quiet) {
-			super();
-			this.forkjoin = forkjoin;
-			// 提取静默异常
-			this.quiets = quiet != null ? Arrays.asList(quiet.quiet()) : new HashSet<Class<? extends Throwable>>();
-		}
-
-		public ForkJoin forkjoin() {
-			return this.forkjoin;
-		}
-
-		public boolean quiet(Throwable throwable) {
-			return this.quiets.contains(throwable.getClass());
 		}
 	}
 }

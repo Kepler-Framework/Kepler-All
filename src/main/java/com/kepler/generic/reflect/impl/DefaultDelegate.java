@@ -200,7 +200,7 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 	 * @return
 	 */
 	private Method replace4cached(Class<?> service, String method, int length, Method actual) {
-		synchronized (this.cached) {
+		synchronized (this) {
 			// 同步检查
 			if (this.cached.containsKey(service, method, length)) {
 				return actual;
@@ -215,8 +215,8 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 			// 放入新缓存并替换
 			cached.put(service, method, length, actual);
 			this.cached = cached;
+			return actual;
 		}
-		return actual;
 	}
 
 	/**
