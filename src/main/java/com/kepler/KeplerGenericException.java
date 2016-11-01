@@ -16,15 +16,19 @@ import org.springframework.util.StringUtils;
 import com.kepler.config.PropertiesUtils;
 
 /**
+ * 泛化调用错误
+ * 
  * @author zhangjiehao 2016年8月16日
  */
 public class KeplerGenericException extends KeplerLocalException implements Cloneable {
 
 	private static final String FILTER = PropertiesUtils.get(KeplerGenericException.class.getName().toLowerCase() + ".filter", "cause;message;stackTrace;suppressed;localizedMessage;");
 
-	private static final Log LOGGER = LogFactory.getLog(KeplerGenericException.class);
+	private static final Set<Class<? extends Throwable>> FILTER_CLASS = new HashSet<Class<? extends Throwable>>();
 
 	private static final Set<String> FILTER_FIELD = new HashSet<String>();
+
+	private static final Log LOGGER = LogFactory.getLog(KeplerGenericException.class);
 
 	private static final long serialVersionUID = 1L;
 
@@ -33,20 +37,32 @@ public class KeplerGenericException extends KeplerLocalException implements Clon
 		for (String field : KeplerGenericException.FILTER.split(";")) {
 			KeplerGenericException.FILTER_FIELD.add(field);
 		}
+		KeplerGenericException.FILTER_CLASS.add(Exception.class);
+		KeplerGenericException.FILTER_CLASS.add(Throwable.class);
+		KeplerGenericException.FILTER_CLASS.add(RuntimeException.class);
 	}
 
+	/**
+	 * 用来保存原始异常属性
+	 */
 	private final Map<String, Object> fields;
 
+	/**
+	 * 用来保存原始异常类型
+	 */
 	private final List<String> classes;
 
+	/**
+	 * 文本错误
+	 */
 	private final String reason;
 
 	public KeplerGenericException(Throwable throwable) {
 		super(throwable);
 		this.fields = new HashMap<String, Object>();
 		this.classes = new ArrayList<String>();
-		this.initClasses(throwable.getClass());
-		this.initFields(throwable);
+		this.classes(throwable.getClass());
+		this.fields(throwable);
 		this.reason = null;
 	}
 
@@ -57,27 +73,38 @@ public class KeplerGenericException extends KeplerLocalException implements Clon
 		this.fields = null;
 	}
 
-	private void initClasses(Class<?> throwable) {
+	/**
+	 * 采集异常
+	 * 
+	 * @param throwable
+	 */
+	private void classes(Class<?> throwable) {
 		this.classes.add(throwable.getName());
-		// 没有父类并且到Throwable终止
-		if (throwable.getSuperclass() != null && !Throwable.class.equals(throwable)) {
-			this.initClasses(throwable.getSuperclass());
+		// 如果未被阻断则继续解析
+		if (!KeplerGenericException.FILTER_CLASS.contains(throwable.getSuperclass())) {
+			this.classes(throwable.getSuperclass());
 		}
 	}
 
-	private void initFields(Throwable throwable) {
+	/**
+	 * 解析异常属性
+	 * 
+	 * @param throwable
+	 */
+	private void fields(Throwable throwable) {
 		try {
-			PropertyDescriptor[] propertyDescriptors = Introspector.getBeanInfo(throwable.getClass()).getPropertyDescriptors();
-			for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
-				// 仅处理Get/Is
-				if (propertyDescriptor.getReadMethod() == null)
-					continue;
-				String fieldName = propertyDescriptor.getName();
-				// 忽略GetClass及过滤属性
-				if ("class".equals(fieldName) || KeplerGenericException.FILTER_FIELD.contains(fieldName)) {
+			PropertyDescriptor[] descriptors = Introspector.getBeanInfo(throwable.getClass()).getPropertyDescriptors();
+			for (PropertyDescriptor descriptor : descriptors) {
+				// Guard case1, 仅处理Get/Is
+				if (descriptor.getReadMethod() == null) {
 					continue;
 				}
-				this.fields.put(fieldName, propertyDescriptor.getReadMethod().invoke(throwable));
+				String field = descriptor.getName();
+				// Guard case2, 忽略GetClass及过滤属性
+				if ("class".equals(field) || KeplerGenericException.FILTER_FIELD.contains(field)) {
+					continue;
+				}
+				this.fields.put(field, descriptor.getReadMethod().invoke(throwable));
 			}
 		} catch (Exception e) {
 			KeplerGenericException.LOGGER.error(e.getMessage(), e);
