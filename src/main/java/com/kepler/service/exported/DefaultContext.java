@@ -32,8 +32,14 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 
 	private static final Log LOGGER = LogFactory.getLog(DefaultContext.class);
 
+	/**
+	 * 服务-执行
+	 */
 	private final Map<Service, Invoker> invokers = new HashMap<Service, Invoker>();
 
+	/**
+	 * 服务-实例
+	 */
 	private final Map<Service, Object> services = new HashMap<Service, Object>();
 
 	private final GenericDelegate delegate;
@@ -140,12 +146,12 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 		 * @return
 		 */
 		private Throwable throwable(Method method, Throwable throwable) {
-			// Guard case
+			// Guard case, 内置异常
 			if (throwable.getClass().getName().startsWith("java")) {
 				return throwable;
 			}
 			for (Class<?> exception : method.getExceptionTypes()) {
-				// 声明异常或JDK内置异常
+				// 声明异常
 				if (exception.isAssignableFrom(throwable.getClass())) {
 					return throwable;
 				}

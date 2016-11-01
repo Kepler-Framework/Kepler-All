@@ -8,9 +8,7 @@ import com.kepler.service.ServiceInstance;
 /**
  * ZK节点变更通知阻断器责任链
  * 
- * @author longyaokun
- * 
- * @date 2016年6月30日
+ * @author longyaokun 2016年6月30日
  */
 public class ChainedBlocker implements InstanceBlocker {
 

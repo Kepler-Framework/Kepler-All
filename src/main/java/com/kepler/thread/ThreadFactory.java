@@ -17,7 +17,7 @@ public class ThreadFactory implements FactoryBean<ThreadPoolExecutor> {
 
 	private static final Log LOGGER = LogFactory.getLog(ThreadFactory.class);
 
-	private static final int THREAD_CORE = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".core", Math.max(Runtime.getRuntime().availableProcessors() * 2, 8));
+	private static final int THREAD_CORE = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".core", Math.max(Runtime.getRuntime().availableProcessors() * 2, 16));
 
 	private static final int THREAD_MAX = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".max", ThreadFactory.THREAD_CORE * 2);
 

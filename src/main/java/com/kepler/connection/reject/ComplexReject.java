@@ -42,5 +42,4 @@ public class ComplexReject implements Reject {
 	public String name() {
 		return ComplexReject.NAME;
 	}
-
 }

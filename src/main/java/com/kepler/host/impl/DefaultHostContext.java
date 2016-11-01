@@ -9,7 +9,6 @@ import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.connection.Connects;
 import com.kepler.host.Host;
-import com.kepler.host.HostLocks;
 import com.kepler.host.Hosts;
 import com.kepler.host.HostsContext;
 import com.kepler.protocol.Request;
@@ -35,8 +34,6 @@ public class DefaultHostContext implements HostsContext, Router {
 	 * 服务 - 主机映射
 	 */
 	private final Map<Service, Hosts> hosts = new HashMap<Service, Hosts>();
-
-	private final HostLocks locks = new SegmentLocks();
 
 	private final HostFilter filter;
 
@@ -78,7 +75,7 @@ public class DefaultHostContext implements HostsContext, Router {
 
 	@Override
 	public void ban(Host host) {
-		synchronized (this.locks.get(host)) {
+		synchronized (this.hosts) {
 			boolean baned = false;
 			for (Hosts each : this.hosts.values()) {
 				// 任何一台Host Ban成功则标记Baned = True. 强先后顺序, each.ban(host)必须调用
@@ -92,7 +89,7 @@ public class DefaultHostContext implements HostsContext, Router {
 	}
 
 	public void active(Host host) {
-		synchronized (this.locks.get(host)) {
+		synchronized (this.hosts) {
 			for (Hosts each : this.hosts.values()) {
 				each.active(host);
 			}
@@ -100,7 +97,7 @@ public class DefaultHostContext implements HostsContext, Router {
 	}
 
 	public void remove(Host host, Service service) {
-		synchronized (this.locks.get(host)) {
+		synchronized (this.hosts) {
 			this.hosts.get(service).remove(host);
 		}
 	}

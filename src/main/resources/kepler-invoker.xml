@@ -39,6 +39,7 @@
 	<bean id="kepler.invoker.broadcast" class="com.kepler.invoker.impl.BroadcastInvoker">
 		<constructor-arg ref="kepler.id" />
 		<constructor-arg ref="kepler.router" />
+		<constructor-arg ref="kepler.methods" />
 		<constructor-arg ref="kepler.config.profile" />
 		<constructor-arg ref="kepler.channel.context" />
 		<constructor-arg ref="kepler.protocol.request" />
@@ -48,6 +49,7 @@
 		<constructor-arg ref="kepler.id" />
 		<constructor-arg ref="kepler.router" />
 		<constructor-arg ref="kepler.threads" />
+		<constructor-arg ref="kepler.methods" />
 		<constructor-arg ref="kepler.invoker.actual" />
 		<constructor-arg ref="kepler.config.profile" />
 		<constructor-arg ref="kepler.protocol.request" />

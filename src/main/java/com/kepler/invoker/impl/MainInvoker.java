@@ -31,9 +31,9 @@ public class MainInvoker implements Imported, Invoker {
 	 */
 	public static final String THRESHOLD_ENABLED_KEY = MainInvoker.class.getName().toLowerCase() + ".threshold_enabled";
 
-	private static final boolean THRESHOLD_ENABLED_DEF = PropertiesUtils.get(MainInvoker.THRESHOLD_ENABLED_KEY, false);
-
 	private static final int THRESHOLD_DEF = PropertiesUtils.get(MainInvoker.THRESHOLD_KEY, Integer.MAX_VALUE);
+
+	private static final boolean THRESHOLD_ENABLED_DEF = PropertiesUtils.get(MainInvoker.THRESHOLD_ENABLED_KEY, false);
 
 	/**
 	 * 取代Semaphore, Failed Fast

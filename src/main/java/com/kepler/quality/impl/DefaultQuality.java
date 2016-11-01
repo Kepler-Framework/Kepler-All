@@ -1,7 +1,10 @@
 package com.kepler.quality.impl;
 
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -14,19 +17,65 @@ import com.kepler.quality.Quality;
  * @author KimShen
  *
  */
-public class DefaultQuality implements Quality {
+public class DefaultQuality implements Quality, Runnable {
 
-	private static final int TIMES = PropertiesUtils.get(DefaultQuality.class.getName().toLowerCase() + ".times", Byte.MAX_VALUE);
+	/**
+	 * 队列长度
+	 */
+	private static final int QUEUE_SIZE = PropertiesUtils.get(DefaultQuality.class.getName().toLowerCase() + ".queue_size", Short.MAX_VALUE);
+
+	private static final int INTERVAL = PropertiesUtils.get(DefaultQuality.class.getName().toLowerCase() + ".interval", 60000);
 
 	private static final Log LOGGER = LogFactory.getLog(DefaultQuality.class);
 
-	private final AtomicReference<Long> waiting = new AtomicReference<Long>();
+	/**
+	 * 等待队列
+	 */
+	private final BlockingQueue<Long> waitings = new ArrayBlockingQueue<Long>(DefaultQuality.QUEUE_SIZE);
 
+	/**
+	 * 熔断
+	 */
 	private final AtomicLong breaking = new AtomicLong();
 
+	/**
+	 * 降级
+	 */
 	private final AtomicLong demoting = new AtomicLong();
 
+	/**
+	 * 闲置断开
+	 */
 	private final AtomicLong idle = new AtomicLong();
+
+	private final ThreadPoolExecutor threads;
+
+	volatile private boolean shutdown;
+
+	/**
+	 * 最大等待
+	 */
+	volatile private long waiting;
+
+	public DefaultQuality(ThreadPoolExecutor threads) {
+		super();
+		this.threads = threads;
+	}
+
+	/**
+	 * For Spring
+	 */
+	public void init() {
+		// 单线程操作
+		this.threads.execute(this);
+	}
+
+	/**
+	 * For Spring
+	 */
+	public void destroy() {
+		this.shutdown = true;
+	}
 
 	@Override
 	public void idle() {
@@ -52,19 +101,10 @@ public class DefaultQuality implements Quality {
 	@Override
 	public void waiting(long waiting) {
 		if (StatusTask.ENABLED) {
-			for (int index = 0; index < DefaultQuality.TIMES; index++) {
-				long current = this.waiting.get();
-				if (current < waiting) {
-					// CAS成功则返回. 失败则继续循环
-					if (this.waiting.compareAndSet(current, waiting)) {
-						return;
-					}
-				} else {
-					return;
-				}
+			if (!this.waitings.offer(waiting)) {
+				// 插入失败提示
+				DefaultQuality.LOGGER.warn("Collect waiting failed: " + waiting);
 			}
-			// 尝试TIMES失败后提示日志
-			DefaultQuality.LOGGER.warn("Max waiting update failed after " + DefaultQuality.TIMES + " times");
 		}
 	}
 
@@ -80,11 +120,31 @@ public class DefaultQuality implements Quality {
 
 	@Override
 	public long getWaitingAndReset() {
-		return StatusTask.ENABLED ? this.waiting.getAndSet(0L) : 0;
+		try {
+			return StatusTask.ENABLED ? this.waiting : 0;
+		} finally {
+			this.waiting = 0;
+		}
 	}
 
 	@Override
 	public long getIdleAndReset() {
 		return StatusTask.ENABLED ? this.idle.getAndSet(0) : 0;
+	}
+
+	@Override
+	public void run() {
+		while (!this.shutdown) {
+			try {
+				Long waiting = this.waitings.poll(DefaultQuality.INTERVAL, TimeUnit.MILLISECONDS);
+				// 存在且大于当前等待
+				if (waiting != null && (waiting > this.waiting)) {
+					this.waiting = waiting;
+				}
+			} catch (Throwable e) {
+				DefaultQuality.LOGGER.debug(e.getMessage(), e);
+			}
+		}
+		DefaultQuality.LOGGER.warn("Quailty shutdown ... ");
 	}
 }

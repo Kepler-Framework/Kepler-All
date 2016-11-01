@@ -64,6 +64,7 @@ public class DefaultCollector implements Runnable, Collector, Imported {
 	 * For Spring
 	 */
 	public void init() {
+		// 单线程操作
 		this.threads.execute(this);
 	}
 

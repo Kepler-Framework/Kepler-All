@@ -17,6 +17,7 @@ import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.id.IDGenerators;
 import com.kepler.invoker.Invoker;
+import com.kepler.method.Methods;
 import com.kepler.org.apache.commons.collections.map.MultiKeyMap;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.RequestFactory;
@@ -51,14 +52,17 @@ public class CompeteInvoker implements Imported, Invoker {
 
 	private final Invoker delegate;
 
+	private final Methods methods;
+
 	private final Profile profile;
 
 	private final Router router;
 
-	public CompeteInvoker(ThreadPoolExecutor threads, RequestFactory request, IDGenerators generators, Invoker delegate, Profile profile, Router router) {
+	public CompeteInvoker(ThreadPoolExecutor threads, RequestFactory request, IDGenerators generators, Methods methods, Invoker delegate, Profile profile, Router router) {
 		super();
 		this.generators = generators;
 		this.delegate = delegate;
+		this.methods = methods;
 		this.request = request;
 		this.profile = profile;
 		this.threads = threads;
@@ -88,7 +92,7 @@ public class CompeteInvoker implements Imported, Invoker {
 	@Override
 	public Object invoke(Request request) throws Throwable {
 		// 是否开启了Compete, 否则进入下一个Invoker
-		return this.competed.containsKey(request.service(), request.method()) ? this.compete(request) : Invoker.EMPTY;
+		return this.competed.containsKey(request.service(), this.methods.method(Service.clazz(request.service()), request.method(), request.types())) ? this.compete(request) : Invoker.EMPTY;
 	}
 
 	private Object compete(Request request) throws Throwable {

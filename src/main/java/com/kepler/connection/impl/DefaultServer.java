@@ -210,22 +210,13 @@ public class DefaultServer {
 
 		// 任何未捕获异常(如OOM)均需要终止通道
 		public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-			this.exceptionPrint(cause);
-			// 关闭通道, 并启动Inactive
-			ctx.close().addListener(ExceptionListener.TRACE);
-		}
-
-		/**
-		 * 框架异常使用Error日志
-		 * 
-		 * @param cause
-		 */
-		private void exceptionPrint(Throwable cause) {
 			if (KeplerException.class.isAssignableFrom(cause.getClass())) {
 				DefaultServer.LOGGER.error(cause.getMessage(), cause);
 			} else {
 				DefaultServer.LOGGER.debug(cause.getMessage(), cause);
 			}
+			// 关闭通道, 并启动Inactive
+			ctx.close().addListener(ExceptionListener.TRACE);
 		}
 
 		@Override
@@ -235,7 +226,7 @@ public class DefaultServer {
 
 		public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
 			if (DefaultServer.IDLE_CLOSE && evt instanceof IdleStateEvent) {
-				DefaultServer.LOGGER.warn("Idle (" + IdleStateEvent.class.cast(evt).state() + ") trigger closed. [local=" + ctx.channel().localAddress() + "][remote=" + ctx.channel().remoteAddress() + "]");
+				DefaultServer.LOGGER.warn("Idle (" + IdleStateEvent.class.cast(evt).state() + ") connection closed. [local=" + ctx.channel().localAddress() + "][remote=" + ctx.channel().remoteAddress() + "]");
 				DefaultServer.this.quality.idle();
 				ctx.close().addListener(ExceptionListener.TRACE);
 			}
@@ -262,7 +253,7 @@ public class DefaultServer {
 			 */
 			private long waiting;
 
-			public Reply(ChannelHandlerContext ctx, ByteBuf buffer) {
+			private Reply(ChannelHandlerContext ctx, ByteBuf buffer) {
 				super();
 				this.ctx = ctx;
 				this.buffer = buffer;

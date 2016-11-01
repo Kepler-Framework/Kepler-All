@@ -12,8 +12,7 @@ import org.apache.commons.logging.LogFactory;
 import com.kepler.KeplerLocalException;
 
 /**
- * 代理Future
- * Warning: 监视器使用this避免创建无用对象(协商)
+ * 代理Future. Warning: 监视器使用this避免创建无用对象(协商)
  * 
  * @author kim 2016年1月15日
  */
@@ -49,7 +48,7 @@ public class FutureDelegate implements Serializable, Future<Object> {
 	 */
 	private FutureDelegate check4exception() {
 		if (this.throwable != null) {
-			// 如果为Runtime则直接排除否则包装为KeplerLocalException
+			// 如果为Runtime则直接抛出否则包装为KeplerLocalException
 			if (RuntimeException.class.isAssignableFrom(this.throwable.getClass())) {
 				throw RuntimeException.class.cast(this.throwable);
 			}

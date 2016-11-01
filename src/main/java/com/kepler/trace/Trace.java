@@ -7,7 +7,7 @@ import com.kepler.protocol.Response;
 /**
  * 请求跟踪
  * 
- * @author kim 2015年12月24日
+ * @author zhangjiehao
  */
 public interface Trace {
 

@@ -10,5 +10,4 @@ import com.kepler.service.Service;
 public interface ExportedServices {
 
 	public Map<Service, Object> services();
-
 }

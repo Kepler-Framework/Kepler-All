@@ -52,7 +52,6 @@ public class DemoteInvoker implements Invoker {
 	private Object demote(Request request) {
 		Mocker mocker = this.mocker.get(request.service());
 		if (mocker != null) {
-			// 记录降级
 			this.quality.demoting();
 			return mocker.mock(request);
 		}

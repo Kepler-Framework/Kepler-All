@@ -63,10 +63,13 @@ public class CachedMethods implements Methods {
 	@Override
 	public Method method(Class<?> service, String method, Class<?>[] parameter) throws Exception {
 		ServiceAndMethod service_method = new ServiceAndMethod(method, service, parameter);
-		// 开启Cached则尝试从缓存获取, 否则通过反射获取
-		Method matched = CachedMethods.ENABLED ? Method.class.cast(this.cached.get(service_method)) : MethodUtils.getAccessibleMethod(service_method.service(), service_method.method(), service_method.classes());
-		// 如果缓存已存在则返回, 否则查找方法并加入缓存
-		return matched != null ? matched : this.cached(service_method);
+		if (CachedMethods.ENABLED) {
+			Method matched = Method.class.cast(this.cached.get(service_method));
+			// 如果缓存已存在则返回, 否则查找方法并加入缓存
+			return matched != null ? matched : this.cached(service_method);
+		} else {
+			return MethodUtils.getAccessibleMethod(service_method.service(), service_method.method(), service_method.classes());
+		}
 	}
 
 	/**

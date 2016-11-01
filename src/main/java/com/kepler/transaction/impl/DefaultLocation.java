@@ -31,6 +31,6 @@ public class DefaultLocation implements Location {
 	}
 
 	public String toString() {
-		return "[" + this.clazz() + "][" + this.method() + "]";
+		return "[class=" + this.clazz() + "][method=" + this.method() + "]";
 	}
 }

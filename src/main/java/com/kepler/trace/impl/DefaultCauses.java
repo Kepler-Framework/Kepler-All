@@ -2,6 +2,7 @@ package com.kepler.trace.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,6 +36,8 @@ public class DefaultCauses implements TraceCauses {
 
 	volatile private List<TraceCause> causes_two = new ArrayList<TraceCause>(DefaultCauses.MAX);
 
+	private final AtomicInteger index = new AtomicInteger();
+
 	private final Profile profile;
 
 	public DefaultCauses(Profile profile, Quiet quiet) {
@@ -50,17 +53,18 @@ public class DefaultCauses implements TraceCauses {
 		this.causes_two.clear();
 		this.causes_one = this.causes_two;
 		this.causes_two = current;
+		this.index.set(0);
 		return current;
 	}
 
 	@Override
 	public void put(Request request, Throwable throwable) {
-		// Guard case1, 超过索引立即返回
-		if (this.causes_one.size() > DefaultCauses.MAX) {
+		// Guard case, 超过限制则跳过
+		if (this.index.getAndIncrement() > DefaultCauses.MAX) {
 			DefaultCauses.LOGGER.warn("Array out of range. [max=" + DefaultCauses.MAX + "][index=" + this.causes_one.size() + "]");
 			return;
 		}
-		// 开启收集, 并且未非静默异常
+		// 开启收集, 并且为非静默异常
 		if (PropertiesUtils.profile(this.profile.profile(request.service()), TraceTask.ENABLED_KEY, TraceTask.ENABLED_DEF) && !this.quiet.quiet(request, throwable.getClass())) {
 			this.causes_one.add(new DefaultCause(throwable, request.service(), request.method(), TraceContext.get()));
 		}

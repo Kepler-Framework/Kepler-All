@@ -13,12 +13,11 @@ import com.kepler.service.Service;
 /**
  * MockerContext链
  * 
- * @author longyaokun
- * @date 2016年8月17日
+ * @author longyaokun 2016年8月17日
  */
 public class ChainedMockerContext implements Extension, MockerContext {
 
-	private List<MockerContext> context = new ArrayList<MockerContext>();
+	private final List<MockerContext> context = new ArrayList<MockerContext>();
 
 	private final DefaultComparator comparator = new DefaultComparator();
 

@@ -16,6 +16,7 @@ import com.kepler.config.PropertiesUtils;
 import com.kepler.host.Host;
 import com.kepler.id.IDGenerators;
 import com.kepler.invoker.Invoker;
+import com.kepler.method.Methods;
 import com.kepler.org.apache.commons.collections.map.MultiKeyMap;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.RequestFactory;
@@ -46,12 +47,15 @@ public class BroadcastInvoker implements Imported, Invoker {
 
 	private final IDGenerators generators;
 
+	private final Methods methods;
+
 	private final Profile profile;
 
 	private final Router router;
 
-	public BroadcastInvoker(Router router, Profile profile, RequestFactory request, ChannelContext context, IDGenerators generators) {
+	public BroadcastInvoker(Router router, Profile profile, Methods methods, RequestFactory request, ChannelContext context, IDGenerators generators) {
 		this.generators = generators;
+		this.methods = methods;
 		this.profile = profile;
 		this.request = request;
 		this.context = context;
@@ -71,7 +75,7 @@ public class BroadcastInvoker implements Imported, Invoker {
 				Broadcast broadcast = method.getAnnotation(Broadcast.class);
 				if (broadcast != null) {
 					Assert.state(method.getReturnType().equals(void.class), "Method must return void ... ");
-					this.broadcast.put(service, method.getName(), broadcast);
+					this.broadcast.put(service, method, broadcast);
 				}
 			}
 		} catch (ClassNotFoundException | NoClassDefFoundError e) {
@@ -82,7 +86,7 @@ public class BroadcastInvoker implements Imported, Invoker {
 	@Override
 	public Object invoke(Request request) throws Throwable {
 		// 是否开启了Broadcast, 否则进入下一个Invoker
-		return this.broadcast.containsKey(request.service(), request.method()) ? this.broadcast(request) : Invoker.EMPTY;
+		return this.broadcast.containsKey(request.service(), this.methods.method(Service.clazz(request.service()), request.method(), request.types())) ? this.broadcast(request) : Invoker.EMPTY;
 	}
 
 	/**

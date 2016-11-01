@@ -14,6 +14,7 @@ import org.springframework.util.Assert;
 import com.kepler.annotation.Async;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.invoker.Invoker;
+import com.kepler.method.Methods;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.RequestFactory;
 import com.kepler.service.Imported;
@@ -31,17 +32,20 @@ public class AsyncInvoker implements Imported, Invoker {
 	private static final Log LOGGER = LogFactory.getLog(AsyncInvoker.class);
 
 	/**
-	 * 已注册Service, Method
+	 * 已注册Service, Method(缓存)
 	 */
-	private final Map<Service, Set<String>> async = new HashMap<Service, Set<String>>();
+	private final Map<Service, Set<Method>> async = new HashMap<Service, Set<Method>>();
 
 	private final RequestFactory factory;
 
 	private final Invoker delegate;
 
-	public AsyncInvoker(RequestFactory factory, Invoker delegate) {
+	private final Methods methods;
+
+	public AsyncInvoker(RequestFactory factory, Methods methods, Invoker delegate) {
 		super();
 		this.factory = factory;
+		this.methods = methods;
 		this.delegate = delegate;
 	}
 
@@ -53,12 +57,12 @@ public class AsyncInvoker implements Imported, Invoker {
 	@Override
 	public void subscribe(Service service) throws Exception {
 		try {
-			Set<String> methods = new HashSet<String>();
+			Set<Method> methods = new HashSet<Method>();
 			for (Method method : Service.clazz(service).getMethods()) {
 				// 注册异步方法(@Async && return void)
 				if (method.getAnnotation(Async.class) != null) {
 					Assert.state(method.getReturnType().equals(void.class), "Method must return void ... ");
-					methods.add(method.getName());
+					methods.add(method);
 				}
 			}
 			this.async.put(service, methods);
@@ -70,8 +74,8 @@ public class AsyncInvoker implements Imported, Invoker {
 	@Override
 	public Object invoke(Request request) throws Throwable {
 		AsyncDelegate delegate = AsyncContext.release();
-		// 当前Request支持异步或使用异步上下文则尝试,否则继续下一个Invoker
-		return delegate != null || this.async.get(request.service()).contains(request.method()) ? this.invoke(request, delegate) : Invoker.EMPTY;
+		// 当前请求支持异步或使用异步上下文则尝试,否则继续下一个Invoker
+		return delegate != null || this.async.get(request.service()).contains(this.methods.method(Service.clazz(request.service()), request.method(), request.types())) ? this.invoke(request, delegate) : Invoker.EMPTY;
 	}
 
 	private Object invoke(Request request, AsyncDelegate delegate) throws Throwable {
@@ -104,7 +108,7 @@ public class AsyncInvoker implements Imported, Invoker {
 	@SuppressWarnings("unchecked")
 	private Object async(Request request, AsyncDelegate delegate) throws Throwable {
 		try {
-			// 修改Request为异步, 并发送后获取原始Future(AckFuture)
+			// 修改请求为异步, 并发送后获取原始Future(AckFuture)
 			delegate.future().binding(Future.class.cast(AsyncInvoker.this.delegate.invoke(AsyncInvoker.this.factory.request(request, request.ack(), true))));
 		} catch (Throwable throwable) {
 			// 任何异常释放delegate

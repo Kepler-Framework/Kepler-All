@@ -80,7 +80,7 @@ public final class Service implements Serializable {
 	}
 
 	public String toString() {
-		return "[Service](" + this.service + ")[VersionAndCatelog](" + this.versionAndCatalog() + ")";
+		return "[service=" + this.service + "][version=" + this.version + "][catalog=" + this.catalog + "]";
 	}
 
 	/**

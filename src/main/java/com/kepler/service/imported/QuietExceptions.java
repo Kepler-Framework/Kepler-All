@@ -14,7 +14,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 
 import com.kepler.annotation.QuietMethod;
 import com.kepler.annotation.QuietThrowable;
-import com.kepler.org.apache.commons.lang.reflect.MethodUtils;
+import com.kepler.method.Methods;
 import com.kepler.protocol.Request;
 import com.kepler.service.Exported;
 import com.kepler.service.Imported;
@@ -31,6 +31,13 @@ public class QuietExceptions implements Quiet, Imported, Exported {
 	private static final Log LOGGER = LogFactory.getLog(QuietExceptions.class);
 
 	private final Map<Service, QuietMethods> methods = new HashMap<Service, QuietMethods>();
+
+	private final Methods mehtods;
+
+	public QuietExceptions(Methods mehtods) {
+		super();
+		this.mehtods = mehtods;
+	}
 
 	/**
 	 * 获取服务对应QuietMethods
@@ -93,9 +100,8 @@ public class QuietExceptions implements Quiet, Imported, Exported {
 			if (AnnotationUtils.findAnnotation(throwable, QuietThrowable.class) != null) {
 				return true;
 			}
+			Method actual = this.mehtods.method(Service.clazz(request.service()), request.method(), request.types());
 			QuietMethods methods = this.methods.get(request.service());
-			// 获取真实方法(慢速)
-			Method actual = MethodUtils.getAccessibleMethod(Class.forName(request.service().service()), request.method(), request.types());
 			// 如果可以获取QuietMethods(非泛化)并且可以获取实际方法则尝试从QuietMethods解析, 如果QuietMethods或实际方法任一无法获得则尝试解析异常
 			return (methods != null && actual != null) ? methods.exceptions(actual).contains(throwable) : false;
 		} catch (Exception e) {

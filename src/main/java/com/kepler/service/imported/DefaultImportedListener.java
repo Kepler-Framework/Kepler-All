@@ -27,7 +27,7 @@ public class DefaultImportedListener implements ImportedListener {
 
 	@Override
 	public void add(ServiceInstance instance) throws Exception {
-		// 仅加载非黑名单节点
+		// 阻断
 		if (this.blocker.blocked(instance)) {
 			return;
 		}
@@ -42,7 +42,7 @@ public class DefaultImportedListener implements ImportedListener {
 
 	@Override
 	public void change(ServiceInstance current, ServiceInstance newInstance) throws Exception {
-		// 仅修改非黑名单节点
+		// 阻断
 		if (this.blocker.blocked(current)) {
 			return;
 		}

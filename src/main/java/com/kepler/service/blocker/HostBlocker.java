@@ -10,9 +10,7 @@ import com.kepler.service.ServiceInstance;
 /**
  * 根据IP地址进行阻断通知
  * 
- * @author longyaokun
- * 
- * @date 2016年6月30日
+ * @author longyaokun  2016年6月30日
  */
 public class HostBlocker implements InstanceBlocker {
 

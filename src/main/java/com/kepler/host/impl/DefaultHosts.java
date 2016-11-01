@@ -14,7 +14,6 @@ import org.apache.commons.logging.LogFactory;
 
 import com.kepler.KeplerLocalException;
 import com.kepler.host.Host;
-import com.kepler.host.HostLocks;
 import com.kepler.host.HostState;
 import com.kepler.host.Hosts;
 import com.kepler.service.Service;
@@ -42,8 +41,6 @@ public class DefaultHosts implements Hosts {
 
 	private final Set<Host> bans = new HashSet<Host>();
 
-	private final HostLocks locks = new SegmentLocks();
-
 	private final Tags tags = new Tags();
 
 	private final Service service;
@@ -68,7 +65,7 @@ public class DefaultHosts implements Hosts {
 	}
 
 	public void remove(Host host) {
-		synchronized (this.locks.get(host)) {
+		synchronized (this) {
 			// 从Host&&Tag&Address删除(运行时Host)或从Ban||Waiting删除(待连接Host)
 			if ((this.hosts.remove(host) && this.tags.remove(host) && (this.address.remove(host.address()) != null)) || (this.bans.remove(host) || this.waiting.remove(host))) {
 				DefaultHosts.LOGGER.warn(this.detail(host, "removed"));
@@ -77,7 +74,7 @@ public class DefaultHosts implements Hosts {
 	}
 
 	public void wait(Host host) {
-		synchronized (this.locks.get(host)) {
+		synchronized (this) {
 			// 不在任意列表
 			if (!this.contain(host)) {
 				this.waiting.add(host);
@@ -87,7 +84,7 @@ public class DefaultHosts implements Hosts {
 	}
 
 	public void active(Host host) {
-		synchronized (this.locks.get(host)) {
+		synchronized (this) {
 			// 从Ban&&Waiting(待连接Host)移除并加入到Tags&&Hosts&&Address(运行时Host)
 			if (this.bans.remove(host) || this.waiting.remove(host)) {
 				this.tags.put(host);
@@ -99,7 +96,7 @@ public class DefaultHosts implements Hosts {
 	}
 
 	public void replace(Host current, Host newone) {
-		synchronized (this.locks.get(current)) {
+		synchronized (this) {
 			this.remove(current);
 			this.tags.put(newone);
 			this.hosts.add(newone);
@@ -109,7 +106,7 @@ public class DefaultHosts implements Hosts {
 	}
 
 	public boolean ban(Host host) {
-		synchronized (this.locks.get(host)) {
+		synchronized (this) {
 			// 从Hosts&&Tags&Address移除或从Waiting(运行时Host)移除
 			if ((this.hosts.remove(host) && this.tags.remove(host) && (this.address.remove(host.address()) != null)) || this.waiting.remove(host)) {
 				this.bans.add(host);

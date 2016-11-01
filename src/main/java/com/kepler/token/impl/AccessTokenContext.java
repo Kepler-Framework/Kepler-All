@@ -23,14 +23,14 @@ public class AccessTokenContext implements TokenContext {
 	 */
 	public static final String TOKEN_PROFILE_KEY = AccessTokenContext.class.getName().toLowerCase() + ".token_profile";
 
+	private static final String TOKEN_PROFILE_DEF = PropertiesUtils.get(AccessTokenContext.TOKEN_PROFILE_KEY, null);
+
 	private static final boolean ENABLED = PropertiesUtils.get(AccessTokenContext.class.getName().toLowerCase() + ".enabled", false);
 
 	/**
 	 * 存放Header
 	 */
 	private static final String TOKEN_HEADER = PropertiesUtils.get(AccessTokenContext.class.getName().toLowerCase() + ".token_header", "token_header");
-
-	private static final String TOKEN_PROFILE_DEF = PropertiesUtils.get(AccessTokenContext.TOKEN_PROFILE_KEY, null);
 
 	private final Profile profile;
 
@@ -49,12 +49,9 @@ public class AccessTokenContext implements TokenContext {
 	 */
 	@Override
 	public Request set(Request request, ChannelInvoker invoker) {
-		if (Headers.ENABLED && AccessTokenContext.ENABLED) {
-			// 获取服务级别的访问Token
-			String token = PropertiesUtils.profile(this.profile.profile(request.service()), AccessTokenContext.TOKEN_PROFILE_KEY, AccessTokenContext.TOKEN_PROFILE_DEF);
-			request.put(AccessTokenContext.TOKEN_HEADER, token);
-		}
-		return request;
+		// 获取服务级别的访问Token
+		String token = PropertiesUtils.profile(this.profile.profile(request.service()), AccessTokenContext.TOKEN_PROFILE_KEY, AccessTokenContext.TOKEN_PROFILE_DEF);
+		return request.put(AccessTokenContext.TOKEN_HEADER, token);
 	}
 
 	@Override

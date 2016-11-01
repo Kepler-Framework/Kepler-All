@@ -16,7 +16,7 @@ public class DateConvertor extends SimpleConvertor {
 	/**
 	 * 日期格式化
 	 */
-	private static final String FORMAT = PropertiesUtils.get(DateConvertor.class.getName().toLowerCase() + ".format", "yyyy-MM-dd hh:mm:ss");
+	private static final String FORMAT = PropertiesUtils.get(DateConvertor.class.getName().toLowerCase() + ".format", "yyyy-MM-dd HH:mm:ss");
 
 	@Override
 	public Object doConvert(Object source, Class<?> expect, Class<?>[] extension, FieldsAnalyser analyser) throws Exception {

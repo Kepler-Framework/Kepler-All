@@ -124,7 +124,7 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 			// 释放事务
 			this.persistent.release(request.uuid());
 			return response;
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			DefaultTransaction.LOGGER.error(e.getMessage(), e);
 			// 如果激活回滚则执行失败则回滚事务
 			if (DefaultTransaction.ACTIVED) {
@@ -138,21 +138,6 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 	}
 
 	/**
-	 * 是否允许提交至延迟回滚队列
-	 * 
-	 * @param uuid 用于Log
-	 * @return
-	 */
-	private boolean allowed(String uuid) {
-		boolean allowed = this.threshold.get() <= DefaultTransaction.DELAY_MAX;
-		// 如果拒绝加入延迟队列则记录日志
-		if (!allowed) {
-			DefaultTransaction.LOGGER.warn("Delay queue not allowed this request: " + uuid + " ... ");
-		}
-		return allowed;
-	}
-
-	/**
 	 * 加入回滚任务队列
 	 * 
 	 * @param request
@@ -161,8 +146,6 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 		try {
 			// 如果延迟队列允许处理该任务
 			if (this.allowed(request.uuid())) {
-				// 增加阈值计数
-				this.threshold.incrementAndGet();
 				// 对于失败的事务推送至延迟回滚队列
 				this.queue.put(new DelayRollback(request));
 			}
@@ -170,6 +153,23 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 			// 如无法推送至延迟回滚队列则仅下次重启时才会读取持久化事务进行回滚
 			DefaultTransaction.LOGGER.error(e.getMessage(), e);
 		}
+	}
+
+	/**
+	 * 是否允许提交至延迟回滚队列
+	 * 
+	 * @param uuid 
+	 * @return
+	 */
+	private boolean allowed(String uuid) {
+		boolean allowed = this.threshold.incrementAndGet() <= DefaultTransaction.DELAY_MAX;
+		// 如果拒绝加入延迟队列则记录日志
+		if (!allowed) {
+			// 回滚计数器
+			this.threshold.decrementAndGet();
+			DefaultTransaction.LOGGER.warn("Delay queue not allowed this request: " + uuid + " ... ");
+		}
+		return allowed;
 	}
 
 	/**
@@ -228,9 +228,9 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 		 */
 		public boolean rollback() {
 			try {
+				Guid.set(this.request.uuid());
 				// 重置Headers
 				DefaultTransaction.this.headers.set(this.request.headers());
-				Guid.set(this.request.uuid());
 				Object service = DefaultTransaction.this.context.getBean(this.request.location().clazz());
 				// 如果为Invoker则执行Invoker, 否则执行特定Class
 				if (Invoker.class.isAssignableFrom(service.getClass())) {
@@ -246,9 +246,9 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 				DefaultTransaction.LOGGER.error("UUID: " + this.request.uuid() + " message: " + e.getMessage(), e);
 				return false;
 			} finally {
+				Guid.release();
 				// 删除Headers
 				DefaultTransaction.this.headers.release();
-				Guid.release();
 			}
 		}
 
@@ -294,8 +294,6 @@ public class DefaultTransaction implements Transaction, ApplicationContextAware 
 					DefaultTransaction.this.threshold.decrementAndGet();
 					// 尝试回滚, 如果失败并且允许允许继续尝试,则计算是否允许加入延迟回滚队列. 如果允许则放入延迟回滚队列
 					if (!rollback.rollback() && !rollback.terminate() && DefaultTransaction.this.allowed(rollback.uuid())) {
-						// 增加阈值计数
-						DefaultTransaction.this.threshold.incrementAndGet();
 						DefaultTransaction.this.queue.offer(rollback.prepare());
 					}
 				} catch (Throwable e) {

@@ -519,7 +519,7 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 
 		private final Extension extension;
 
-		public DefaultFields(Convertor convertor, Extension extension) {
+		private DefaultFields(Convertor convertor, Extension extension) {
 			super();
 			this.extension = extension;
 			this.convertor = convertor;
