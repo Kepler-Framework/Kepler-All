@@ -9,11 +9,18 @@ import com.kepler.invoker.Invoker;
 public interface ChannelInvoker extends Invoker {
 
 	/**
-	 * 获取绑定Host
+	 * 当前主机
 	 * 
 	 * @return
 	 */
-	public Host host();
+	public Host local();
+
+	/**
+	 * 远程主机
+	 * 
+	 * @return
+	 */
+	public Host remote();
 
 	/**
 	 * 关闭通道

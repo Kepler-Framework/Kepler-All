@@ -2,6 +2,7 @@ package com.kepler.admin.status;
 
 import java.util.Map;
 
+import com.kepler.annotation.Async;
 import com.kepler.annotation.Internal;
 import com.kepler.annotation.Service;
 import com.kepler.host.Host;
@@ -18,5 +19,6 @@ public interface Feeder {
 	 * @param local 主机
 	 * @param status 状态集合
 	 */
+	@Async
 	public void feed(long timestamp, Host local, Map<String, Point> status);
 }

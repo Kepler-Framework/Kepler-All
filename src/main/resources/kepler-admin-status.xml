@@ -37,7 +37,6 @@
 				<ref bean="kepler.admin.status.dynamic.thread" />
 				<ref bean="kepler.admin.status.dynamic.memory" />
 				<ref bean="kepler.admin.status.dynamic.quality" />
-				<ref bean="kepler.admin.status.dynamic.traffic" />
 			</util:list>
 		</constructor-arg>
 	</bean>
@@ -53,9 +52,4 @@
 	<bean id="kepler.admin.status.dynamic.quality" class="com.kepler.admin.status.impl.StatusQuality">
 		<constructor-arg ref="kepler.quality" />
 	</bean>
-
-	<bean id="kepler.admin.status.dynamic.traffic" class="com.kepler.admin.status.impl.StatusTraffic">
-		<constructor-arg ref="kepler.traffic" />
-	</bean>
-
 </beans>

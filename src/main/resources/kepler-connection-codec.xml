@@ -6,25 +6,21 @@
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
 	<bean id="kepler.codec.encoder.request" class="com.kepler.connection.codec.Encoder">
-		<constructor-arg ref="kepler.traffic" />
 		<constructor-arg ref="kepler.serials" />
 		<constructor-arg value="com.kepler.protocol.Request" />
 	</bean>
 
 	<bean id="kepler.codec.encoder.response" class="com.kepler.connection.codec.Encoder">
-		<constructor-arg ref="kepler.traffic" />
 		<constructor-arg ref="kepler.serials" />
 		<constructor-arg value="com.kepler.protocol.Response" />
 	</bean>
 
 	<bean id="kepler.codec.decoder.request" class="com.kepler.connection.codec.Decoder">
-		<constructor-arg ref="kepler.traffic" />
 		<constructor-arg ref="kepler.serials" />
 		<constructor-arg value="com.kepler.protocol.Request" />
 	</bean>
 
 	<bean id="kepler.codec.decoder.response" class="com.kepler.connection.codec.Decoder">
-		<constructor-arg ref="kepler.traffic" />
 		<constructor-arg ref="kepler.serials" />
 		<constructor-arg value="com.kepler.protocol.Response" />
 	</bean>

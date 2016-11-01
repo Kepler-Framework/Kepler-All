@@ -5,15 +5,15 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.util.Assert;
-
 import com.kepler.KeplerLocalException;
 import com.kepler.KeplerRemoteException;
 import com.kepler.KeplerTimeoutException;
 import com.kepler.ack.Ack;
+import com.kepler.ack.AckTimeOut;
+import com.kepler.ack.Acks;
 import com.kepler.ack.Status;
 import com.kepler.admin.transfer.Collector;
-import com.kepler.admin.transfer.impl.TransferTask;
+import com.kepler.channel.ChannelInvoker;
 import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.host.Host;
@@ -22,7 +22,7 @@ import com.kepler.protocol.Response;
 import com.kepler.service.Quiet;
 
 /**
- * Warning: 监视器使用this避免创建无用对象(协商)
+ * Warning: 监视器使用this避免创建无用对象
  * 
  * @author kim 2015年7月23日
  */
@@ -41,12 +41,28 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	private final long start = System.currentTimeMillis();
 
 	/**
-	 * ACK所有者线程
+	 * ACK持有线程
 	 */
 	private final Thread thread = Thread.currentThread();
 
+	/**
+	 * 执行通道
+	 */
+	private final ChannelInvoker invoker;
+
+	/**
+	 * 信息收集
+	 */
 	private final Collector collector;
 
+	/**
+	 * 超时处理
+	 */
+	private final AckTimeOut timeout;
+
+	/**
+	 * EventLoop
+	 */
 	private final Executor executor;
 
 	/**
@@ -65,19 +81,14 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	private final Quiet quiet;
 
 	/**
-	 * 目标主机
-	 */
-	private final Host target;
-
-	/**
-	 * 当前主机
-	 */
-	private final Host local;
-
-	/**
 	 * ACK状态, 默认WAITING
 	 */
 	volatile private Status stauts = Status.WAITING;
+
+	/**
+	 * 是否中断
+	 */
+	volatile private boolean interrupt;
 
 	/**
 	 * 服务响应(Callback)
@@ -85,18 +96,19 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	volatile private Response response;
 
 	/**
-	 * 是否中断
+	 * Ack集合
 	 */
-	volatile private boolean interrupt;
+	volatile private Acks acks;
 
-	public AckFuture(Collector collector, Executor executor, Host local, Host target, Request request, Profile profile, Quiet quiet) {
+	public AckFuture(ChannelInvoker invoker, AckTimeOut timeout, Collector collector, Executor executor, Request request, Profile profile, Quiet quiet) {
 		super();
-		this.local = local;
 		this.quiet = quiet;
-		this.target = target;
+		this.invoker = invoker;
+		this.timeout = timeout;
 		this.request = request;
 		this.executor = executor;
 		this.collector = collector;
+		// 计算Timeout最终时间
 		this.deadline = this.deadline(PropertiesUtils.profile(profile.profile(request.service()), AckFuture.TIMEOUT_KEY, AckFuture.TIMEOUT_DEF));
 	}
 
@@ -112,27 +124,27 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	}
 
 	/**
-	 * 构建当前Request状态消息(For exception or log)
+	 * 绑定
+	 * 
+	 * @param acks
+	 * @return
+	 */
+	public AckFuture acks(Acks acks) {
+		this.acks = acks;
+		return this;
+	}
+
+	/**
+	 * 过程日志
 	 * 
 	 * @return
 	 */
 	private String message4request(String reason) {
-		return "ACK(" + Arrays.toString(this.request.ack()) + " for " + this.request.service() + " to " + this.target.address() + " " + reason + " after: " + this.elapse();
+		return "Ack (" + Arrays.toString(this.request.ack()) + ") for " + this.request.service() + " to " + this.invoker.remote().address() + " " + reason + " after: " + this.elapse();
 	}
 
 	/**
-	 * 是否为静默异常(不会被Collect判断为异常)
-	 * 
-	 * @param throwable
-	 * @return
-	 */
-	private boolean quiet(Class<? extends Throwable> throwable) {
-		// 已注册静默的Service, Method或Exception标记为@QuietThrowable
-		return this.quiet.quiet(this.request, throwable);
-	}
-
-	/**
-	 * 是否已终端
+	 * 是否已中断
 	 * 
 	 * @return
 	 * @throws KeplerLocalException
@@ -158,7 +170,7 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	}
 
 	/**
-	 * 是否超时
+	 * 是否已超时
 	 * 
 	 * @return
 	 */
@@ -170,27 +182,26 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	}
 
 	/**
-	 * 服务抛出异常(远程服务异常)
+	 * 是否有异常
 	 * 
 	 * @return
 	 */
 	private AckFuture checkException() throws KeplerRemoteException {
-		Assert.notNull(this.response, "Response must not be null ... ");
 		if (!this.response.valid()) {
 			// 如果静默则保持Done状态
-			this.stauts = this.quiet(this.response.throwable().getClass()) ? Status.DONE : Status.EXCEPTION;
-			// 非KeplerRemoteException表示异常为声明异常, 需包装
+			this.stauts = this.quiet.quiet(this.request, this.response.throwable().getClass()) ? Status.DONE : Status.EXCEPTION;
+			// 非KeplerRemoteException需包装
 			throw KeplerRemoteException.class.isAssignableFrom(this.response.throwable().getClass()) ? KeplerRemoteException.class.cast(this.response.throwable()) : new KeplerRemoteException(this.response.throwable());
 		}
 		return this;
 	}
 
 	public Host local() {
-		return this.local;
+		return this.invoker.local();
 	}
 
-	public Host target() {
-		return this.target;
+	public Host remote() {
+		return this.invoker.remote();
 	}
 
 	public Status status() {
@@ -209,31 +220,42 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	public void response(Response response) {
 		synchronized (this) {
 			this.response = response;
-			this.stauts = Status.DONE;
-			this.notifyAll();
+			// 如果状态为等待则进行唤醒
+			if (this.stauts == Status.WAITING) {
+				this.stauts = Status.DONE;
+				this.notifyAll();
+			}
 		}
 	}
 
 	public boolean cancel(boolean interrupt) {
-		// 没有Done且没有Cancel则允许
-		if (!this.isDone() && this.isCancelled()) {
-			synchronized (this) {
-				// Guard condition
-				if (this.isCancelled()) {
-					return false;
-				}
-				this.stauts = Status.CANCEL;
-				// 赋值并获取this.interrupt
-				this.interrupt = interrupt;
-				if (this.interrupt) {
-					this.thread.interrupt();
-				} else {
-					this.notifyAll();
-				}
+		// Guard case1, 已完成则立即返回
+		if (this.isDone()) {
+			return false;
+		}
+		// Guard case2, 已取消则立即返回
+		if (this.isCancelled()) {
+			return true;
+		}
+		synchronized (this) {
+			// Guard case1, 同步校验
+			if (this.isDone()) {
+				return false;
+			}
+			// Guard case2, 同步校验
+			if (this.isCancelled()) {
 				return true;
 			}
-		} else {
-			return false;
+			// 切换状态
+			this.stauts = Status.CANCEL;
+			// 标记是否中断
+			this.interrupt = interrupt;
+			if (this.interrupt) {
+				this.thread.interrupt();
+			} else {
+				this.notifyAll();
+			}
+			return true;
 		}
 	}
 
@@ -244,7 +266,7 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 
 	@Override
 	public boolean isDone() {
-		// 完成, 超时或异常
+		// 完成, 超时或异常均表示为Done状态
 		return Status.DONE.equals(this.stauts) || Status.TIMEOUT.equals(this.stauts) || Status.EXCEPTION.equals(this.stauts);
 	}
 
@@ -256,47 +278,31 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 
 	@Override
 	public Object get(long timeout, TimeUnit unit) throws InterruptedException {
-		// Math.min(timeout, this.deadline), 取Timeout最小值(堵塞)
-		this.get4wait(Math.min(timeout, this.deadline));
-		return this.response();
-	}
-
-	private void get4wait(long timeout) throws InterruptedException {
-		synchronized (this) {
-			while (this.continued()) {
-				try {
-					this.wait(timeout);
-				} finally {
-					// 任意跳出Wait均计算超时
-					this.timeout(timeout);
-				}
-			}
-		}
-	}
-
-	private Object response() throws InterruptedException {
 		try {
-			// 是否中断, 是否超时, 是否取消, 是否抛出异常
-			return this.checkInterrupt().checkTimeout().checkCancel().checkException().response.response();
+			// 取Timeout最小值
+			this.waiting(Math.min(timeout, this.deadline));
+			return this.response();
 		} finally {
-			if (TransferTask.ENABLED) {
-				// 收集Response信息
-				this.executor.execute(this);
-			}
+			this.completed();
 		}
 	}
 
 	/**
-	 * Response尚未回调并且等待尚未取消
-	 * 
-	 * @return
+	 * 后续工作
 	 */
-	private boolean continued() {
-		return !this.isDone() && !this.isCancelled();
+	private void completed() {
+		// ACK移除
+		this.executor.execute(this);
+		// 收集信息
+		this.collector.collect(this);
+		// 超时处理
+		if (this.stauts.equals(Status.TIMEOUT)) {
+			this.timeout.timeout(this.invoker, this, this.collector.peek(this).timeout());
+		}
 	}
 
 	/**
-	 * 当前已消耗时间是否大于超时则标记
+	 * 已耗时大于指定超时则标记状态为超时
 	 * 
 	 * @param timeout
 	 * @return
@@ -305,6 +311,25 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 		if (this.elapse() > timeout) {
 			this.stauts = Status.TIMEOUT;
 		}
+	}
+
+	private void waiting(long timeout) throws InterruptedException {
+		synchronized (this) {
+			// 堵塞条件: 未完成且未取消
+			while (!this.isDone() && !this.isCancelled()) {
+				try {
+					this.wait(timeout);
+				} finally {
+					// 计算是否超时
+					this.timeout(timeout);
+				}
+			}
+		}
+	}
+
+	private Object response() throws InterruptedException {
+		// 是否中断, 是否超时, 是否取消, 是否抛出异常
+		return this.checkInterrupt().checkTimeout().checkCancel().checkException().response.response();
 	}
 
 	/**
@@ -318,7 +343,7 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 
 	@Override
 	public void run() {
-		// Host local, Host target对应唯一通道
-		this.collector.collect(this);
+		// 移除ACK
+		this.acks.remove(this.response.ack());
 	}
 }

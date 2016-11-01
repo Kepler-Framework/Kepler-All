@@ -27,11 +27,6 @@ public interface Transfers extends Serializable {
 	 */
 	public void reset();
 
-	/**
-	 * 多个Local -> Target
-	 * 
-	 * @return
-	 */
 	public Collection<Transfer> transfers();
 
 	public Transfer get(Host local, Host target);

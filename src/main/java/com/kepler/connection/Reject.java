@@ -12,6 +12,14 @@ import com.kepler.protocol.Request;
  */
 public interface Reject {
 
+	/**
+	 * 如果请求被拒绝则抛出KeplerValidateException
+	 * 
+	 * @param request
+	 * @param address
+	 * @return
+	 * @throws KeplerValidateException
+	 */
 	public Request reject(Request request, SocketAddress address) throws KeplerValidateException;
 
 	public String name();

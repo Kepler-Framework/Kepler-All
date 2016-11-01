@@ -13,7 +13,6 @@ import com.kepler.connection.Reject;
 import com.kepler.connection.codec.CodecHeader;
 import com.kepler.connection.codec.Decoder;
 import com.kepler.connection.codec.Encoder;
-import com.kepler.connection.codec.ResourceHandler;
 import com.kepler.header.HeadersContext;
 import com.kepler.host.impl.ServerHost;
 import com.kepler.protocol.Request;

@@ -5,7 +5,6 @@ import java.io.OutputStream;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.serial.SerialID;
 import com.kepler.serial.Serials;
-import com.kepler.traffic.Traffic;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -36,12 +35,12 @@ public class Encoder {
 	private static final boolean POOLED = PropertiesUtils.get(Encoder.class.getName().toLowerCase() + ".pooled", true);
 
 	/**
-	 * 是否预估计算分配大小
+	 * 是否预估分配大小
 	 */
 	private static final boolean ESTIMATE = PropertiesUtils.get(Encoder.class.getName().toLowerCase() + ".estimate", true);
 
 	/**
-	 * 分配计算
+	 * 分配计算器
 	 */
 	private final Handle estimate = AdaptiveRecvByteBufAllocator.DEFAULT.newHandle();
 
@@ -52,15 +51,12 @@ public class Encoder {
 
 	private final Serials serials;
 
-	private final Traffic traffic;
-
 	private final Class<?> clazz;
 
-	public Encoder(Traffic traffic, Serials serials, Class<?> clazz) {
+	public Encoder(Serials serials, Class<?> clazz) {
 		super();
 		this.clazz = clazz;
 		this.serials = serials;
-		this.traffic = traffic;
 	}
 
 	public ByteBuf encode(Object message) throws Exception {
@@ -70,7 +66,7 @@ public class Encoder {
 			// 获取序列化策略(如Request/Response)
 			byte serial = SerialID.class.cast(message).serial();
 			// 首字节为序列化策略
-			return BufferOutputStream.class.cast(this.serials.output(serial).output(message, this.clazz, new BufferOutputStream(buffer.writeByte(serial)), (int) (buffer.capacity() * Encoder.ADJUST))).record(this.traffic, this.estimate).buffer();
+			return WrapStream.class.cast(this.serials.output(serial).output(message, this.clazz, new WrapStream(buffer.writeByte(serial)), (int) (buffer.capacity() * Encoder.ADJUST))).record(this.estimate).buffer();
 		} catch (Exception exception) {
 			// 异常, 释放ByteBuf
 			if (buffer.refCnt() > 0) {
@@ -80,11 +76,11 @@ public class Encoder {
 		}
 	}
 
-	private class BufferOutputStream extends OutputStream {
+	private class WrapStream extends OutputStream {
 
-		private ByteBuf buffer;
+		private final ByteBuf buffer;
 
-		private BufferOutputStream(ByteBuf buffer) {
+		private WrapStream(ByteBuf buffer) {
 			this.buffer = buffer;
 		}
 
@@ -127,14 +123,11 @@ public class Encoder {
 		/**
 		 * 写入完毕, 回调写入信息
 		 * 
-		 * @param traffic
 		 * @param estimate
 		 * @return
 		 */
-		public BufferOutputStream record(Traffic traffic, Handle estimate) {
+		public WrapStream record(Handle estimate) {
 			int readable = this.buffer.readableBytes();
-			// 流量记录
-			traffic.output(readable);
 			// 预估大小更新(如果开启了预估)
 			if (Encoder.ESTIMATE) {
 				estimate.record(readable);

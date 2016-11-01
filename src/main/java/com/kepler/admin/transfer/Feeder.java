@@ -2,6 +2,7 @@ package com.kepler.admin.transfer;
 
 import java.util.Collection;
 
+import com.kepler.annotation.Async;
 import com.kepler.annotation.Internal;
 import com.kepler.annotation.Service;
 
@@ -12,5 +13,6 @@ import com.kepler.annotation.Service;
 @Internal
 public interface Feeder {
 
+	@Async
 	public void feed(Collection<Transfers> transfer);
 }

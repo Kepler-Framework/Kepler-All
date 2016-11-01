@@ -8,10 +8,10 @@ import com.kepler.ack.Ack;
  * @author kim 2015年7月21日
  */
 public interface Collector {
-	
+
+	public void collect(Ack ack);
+
 	public Transfer peek(Ack ack);
 
-	public Transfer collect(Ack ack);
-	
 	public Collection<Transfers> transfers();
 }

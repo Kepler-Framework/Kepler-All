@@ -18,6 +18,8 @@ import com.kepler.header.HeadersContext;
 import com.kepler.host.Host;
 
 /**
+ * HTTP工具, 自动填充Tag
+ * 
  * @author kim 2015年10月19日
  */
 public class TagFilter implements Filter {
@@ -41,15 +43,9 @@ public class TagFilter implements Filter {
 		chain.doFilter(request, response);
 	}
 
-	/**
-	 * 从Request获取Tag值并放入上下文
-	 * 
-	 */
 	private void tag(ServletRequest request) {
 		String tag = HttpServletRequest.class.cast(request).getParameter(TagFilter.KEY);
-		if (StringUtils.hasText(tag)) {
-			// 用于客户端服务调用时传递Header (In Client Threads, 客户端线程如Tomcat)
-			this.context.get().put(Host.TAG_KEY, tag);
-		}
+		// 每次请求均重置TAG
+		this.context.get().put(Host.TAG_KEY, StringUtils.hasText(tag) ? tag : Host.TAG_DEF);
 	}
 }

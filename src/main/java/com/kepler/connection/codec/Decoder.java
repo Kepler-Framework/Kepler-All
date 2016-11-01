@@ -4,7 +4,6 @@ import java.io.InputStream;
 
 import com.kepler.config.PropertiesUtils;
 import com.kepler.serial.Serials;
-import com.kepler.traffic.Traffic;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCountUtil;
@@ -22,32 +21,28 @@ public class Decoder {
 
 	private final Serials serials;
 
-	private final Traffic traffic;
-
 	private final Class<?> clazz;
 
-	public Decoder(Traffic traffic, Serials serials, Class<?> clazz) {
+	public Decoder(Serials serials, Class<?> clazz) {
 		super();
 		this.clazz = clazz;
-		this.traffic = traffic;
 		this.serials = serials;
 	}
 
 	public Object decode(ByteBuf buffer) throws Exception {
 		try {
-			// 流量统计(Input)
-			this.traffic.input(buffer.readableBytes());
 			// buffer.readByte(), 首个字节保存序列化策略
 			// buffer.readableBytes() * Decoder.ADJUST确定Buffer大小
-			return this.serials.input(buffer.readByte()).input(new BufferInputStream(buffer), (int) (buffer.readableBytes() * Decoder.ADJUST), this.clazz);
+			return this.serials.input(buffer.readByte()).input(new WrapStream(buffer), (int) (buffer.readableBytes() * Decoder.ADJUST), this.clazz);
 		} finally {
+			// 释放引用
 			if (buffer.refCnt() > 0) {
 				ReferenceCountUtil.release(buffer);
 			}
 		}
 	}
 
-	private class BufferInputStream extends InputStream {
+	private class WrapStream extends InputStream {
 
 		/**
 		 * 当前数据集
@@ -64,7 +59,7 @@ public class Decoder {
 		 */
 		private int position;
 
-		private BufferInputStream(ByteBuf buffer) {
+		private WrapStream(ByteBuf buffer) {
 			this.readable = (this.buffer = buffer).readableBytes();
 		}
 

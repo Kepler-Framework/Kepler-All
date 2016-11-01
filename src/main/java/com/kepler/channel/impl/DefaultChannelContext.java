@@ -7,8 +7,6 @@ import com.kepler.KeplerRoutingException;
 import com.kepler.channel.ChannelContext;
 import com.kepler.channel.ChannelInvoker;
 import com.kepler.host.Host;
-import com.kepler.host.HostLocks;
-import com.kepler.host.impl.SegmentLocks;
 
 /**
  * Host - 通道映射
@@ -18,8 +16,6 @@ import com.kepler.host.impl.SegmentLocks;
 public class DefaultChannelContext implements ChannelContext {
 
 	private final Map<Host, ChannelInvoker> channels = new HashMap<Host, ChannelInvoker>();
-
-	private final HostLocks lock = new SegmentLocks();
 
 	/**
 	 * 指定ChannelInvoker禁止为Null(必须存在)
@@ -50,20 +46,21 @@ public class DefaultChannelContext implements ChannelContext {
 	}
 
 	public ChannelInvoker del(Host host) {
-		synchronized (this.lock.get(host)) {
+		synchronized (this) {
 			return this.channels.remove(host);
 		}
 	}
 
 	public ChannelInvoker put(Host host, ChannelInvoker invoker) {
-		synchronized (this.lock.get(host)) {
+		synchronized (this) {
 			this.channels.put(host, invoker);
 		}
 		return invoker;
 	}
 
 	public boolean contain(Host host) {
-		synchronized (this.lock.get(host)) {
+		// 强一致
+		synchronized (this) {
 			return this.channels.containsKey(host);
 		}
 	}

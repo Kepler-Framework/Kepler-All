@@ -20,7 +20,7 @@ public interface Ack {
 	 * 
 	 * @return
 	 */
-	public Host target();
+	public Host remote();
 
 	/**
 	 * 已耗时

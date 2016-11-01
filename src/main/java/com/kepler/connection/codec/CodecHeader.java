@@ -22,15 +22,15 @@ public enum CodecHeader {
 	private static final Map<CodecHeader, Integer> MAPPING = new HashMap<CodecHeader, Integer>();
 
 	static {
-		MAPPING.put(ONE, 1);
-		MAPPING.put(TWO, 2);
-		MAPPING.put(FOUR, 4);
-		MAPPING.put(EIGHT, 8);
+		CodecHeader.MAPPING.put(ONE, 1);
+		CodecHeader.MAPPING.put(TWO, 2);
+		CodecHeader.MAPPING.put(FOUR, 4);
+		CodecHeader.MAPPING.put(EIGHT, 8);
 	}
 
 	public static final int DEFAULT = CodecHeader.CODEC.code();
 
 	public int code() {
-		return MAPPING.get(this).intValue();
+		return CodecHeader.MAPPING.get(this).intValue();
 	}
 }

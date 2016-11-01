@@ -56,7 +56,7 @@ public class DefaultTransfers implements Transfers {
 
 	public void clear() {
 		for (Transfer transfer : this.transfers.values()) {
-			// 如果为冻结状态则进行移除
+			// 如果为冻结状态则尝试移除
 			if (DefaultTransfer.class.cast(transfer).freezed() && (this.transfers.remove(new Hosts(transfer.local(), transfer.target())) != null)) {
 				DefaultTransfers.LOGGER.info("Clear " + transfer + " for " + this.service + " [method=" + this.method + "]");
 			}
@@ -125,9 +125,5 @@ public class DefaultTransfers implements Transfers {
 			// 完全相等
 			return this.local.equals(host.local) && this.target.equals(host.target);
 		}
-	}
-
-	public static void main(String[] args) {
-		System.out.println(byte[].class);
 	}
 }

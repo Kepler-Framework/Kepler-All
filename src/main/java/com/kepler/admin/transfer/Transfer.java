@@ -55,7 +55,7 @@ public interface Transfer extends Serializable {
 	public long timestamp();
 
 	/**
-	 * 是否处于激活状态
+	 * 是否处于激活状态(需要收集)
 	 * 
 	 * @return
 	 */

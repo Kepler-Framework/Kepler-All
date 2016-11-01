@@ -25,7 +25,6 @@
 	<import resource="kepler-generic.xml" />
 	<import resource="kepler-invoker.xml" />
 	<import resource="kepler-channel.xml" />
-	<import resource="kepler-traffic.xml" />
 	<import resource="kepler-profile.xml" />
 	<import resource="kepler-protocol.xml" />
 	<import resource="kepler-extension.xml" />

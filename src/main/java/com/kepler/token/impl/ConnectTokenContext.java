@@ -28,7 +28,7 @@ public class ConnectTokenContext implements TokenContext {
 	@Override
 	public Request set(Request request, ChannelInvoker invoker) {
 		if (Headers.ENABLED && ConnectTokenContext.ENABLED) {
-			request.put(Host.TOKEN_KEY, invoker.host().token());
+			request.put(Host.TOKEN_KEY, invoker.remote().token());
 		}
 		return request;
 	}

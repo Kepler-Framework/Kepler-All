@@ -1,7 +1,12 @@
 package com.kepler.admin.transfer.impl;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -10,6 +15,7 @@ import com.kepler.ack.Ack;
 import com.kepler.admin.transfer.Collector;
 import com.kepler.admin.transfer.Transfer;
 import com.kepler.admin.transfer.Transfers;
+import com.kepler.config.PropertiesUtils;
 import com.kepler.org.apache.commons.collections.map.MultiKeyMap;
 import com.kepler.service.Imported;
 import com.kepler.service.Service;
@@ -17,7 +23,14 @@ import com.kepler.service.Service;
 /**
  * @author kim 2015年7月22日
  */
-public class DefaultCollector implements Collector, Imported {
+public class DefaultCollector implements Runnable, Collector, Imported {
+
+	/**
+	 * 队列长度
+	 */
+	private static final int QUEUE_SIZE = PropertiesUtils.get(DefaultCollector.class.getName().toLowerCase() + ".queue_size", Short.MAX_VALUE);
+
+	private static final int INTERVAL = PropertiesUtils.get(DefaultCollector.class.getName().toLowerCase() + ".interval", 60000);
 
 	private static final Log LOGGER = LogFactory.getLog(DefaultCollector.class);
 
@@ -27,26 +40,56 @@ public class DefaultCollector implements Collector, Imported {
 	private final MultiKeyMap[] transfers = new MultiKeyMap[] { new MultiKeyMap(), new MultiKeyMap(), new MultiKeyMap() };
 
 	/**
-	 * Start from 1
+	 * 等待队列
 	 */
-	private int indexes = 1;
+	private final BlockingQueue<Ack> acks = new ArrayBlockingQueue<Ack>(DefaultCollector.QUEUE_SIZE);
+
+	private final ThreadPoolExecutor threads;
+
+	volatile private boolean shutdown;
 
 	/**
-	 * 指定服务, 指定方法加载Transfers
+	 * Start from 1
+	 */
+	volatile private int indexes;
+
+	public DefaultCollector(ThreadPoolExecutor threads) {
+		super();
+		this.threads = threads;
+		this.shutdown = false;
+		this.indexes = 1;
+	}
+
+	/**
+	 * For Spring
+	 */
+	public void init() {
+		this.threads.execute(this);
+	}
+
+	/**
+	 * For Spring
+	 */
+	public void destroy() {
+		this.shutdown = true;
+	}
+
+	/**
+	 * 加载指定服务Transfers
 	 * 
 	 * @param service 服务
 	 * @param method 方法名称
 	 * @return Current Transfers
 	 */
-	private Transfers methods(Service service, String method) {
+	private Transfers install(Service service, String method) {
 		// 泛化加载时的线程安全
 		synchronized (this) {
-			// Guard case, 如果已存在则返回
+			// Guard case, 同步检查
 			Transfers current = Transfers.class.cast(this.curr().get(service, method));
 			if (current != null) {
 				return current;
 			}
-			// 初始化并返回Current
+			// 初始化并返回
 			for (int index = 0; index < this.transfers.length; index++) {
 				this.transfers[index].put(service, method, new DefaultTransfers(service, method));
 			}
@@ -57,9 +100,8 @@ public class DefaultCollector implements Collector, Imported {
 	@Override
 	public void subscribe(Service service) throws Exception {
 		try {
-			// 获取所有Method并初始化DefaultTransfers
 			for (Method method : Service.clazz(service).getMethods()) {
-				this.methods(service, method.getName());
+				this.install(service, method.getName());
 			}
 		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			DefaultCollector.LOGGER.info("Class not found: " + service);
@@ -74,27 +116,29 @@ public class DefaultCollector implements Collector, Imported {
 	 */
 	private Transfers get(Ack ack) {
 		Transfers transfers = Transfers.class.cast(this.curr().get(ack.request().service(), ack.request().method()));
-		// 如果未加载到Transfers(如Generic)则加载后尝试重新获取
-		return transfers == null ? this.methods(ack.request().service(), ack.request().method()) : transfers;
+		return transfers == null ? this.install(ack.request().service(), ack.request().method()) : transfers;
 	}
 
 	public Transfer peek(Ack ack) {
-		return this.get(ack).get(ack.local(), ack.target());
+		return this.get(ack).get(ack.local(), ack.remote());
 	}
 
 	@Override
-	public Transfer collect(Ack ack) {
-		// 获取Transfers并判断是否为Generic
-		return this.get(ack).put(ack.local(), ack.target(), ack.status(), ack.elapse());
+	public void collect(Ack ack) {
+		if (!this.acks.offer(ack)) {
+			// 插入失败提示
+			DefaultCollector.LOGGER.warn("Collect ack failed: " + Arrays.toString(ack.request().ack()));
+		}
 	}
 
 	@SuppressWarnings("unchecked")
 	public Collection<Transfers> transfers() {
+		// 交换缓存区并获取本次收集结果
 		return this.exchange().values();
 	}
 
 	/**
-	 * 清理下次待使用所有DefaultTransfers
+	 * 清理下次待使用缓存区
 	 * 
 	 * @return
 	 */
@@ -106,7 +150,7 @@ public class DefaultCollector implements Collector, Imported {
 	}
 
 	/**
-	 * 重置下次待使用所有DefaultTransfers
+	 * 重置下次待使用缓存区
 	 * 
 	 * @return
 	 */
@@ -129,6 +173,12 @@ public class DefaultCollector implements Collector, Imported {
 		return this.index(1);
 	}
 
+	/**
+	 * 获取指定索引位置缓存区
+	 * 
+	 * @param index
+	 * @return
+	 */
 	private MultiKeyMap index(int index) {
 		return this.transfers[((this.indexes + index) & Byte.MAX_VALUE) % this.transfers.length];
 	}
@@ -140,5 +190,20 @@ public class DefaultCollector implements Collector, Imported {
 		this.indexes++;
 		// 清理下次使用缓存区并返回上次使用缓存区
 		return this.clear().prev();
+	}
+
+	@Override
+	public void run() {
+		while (!this.shutdown) {
+			try {
+				Ack ack = this.acks.poll(DefaultCollector.INTERVAL, TimeUnit.MILLISECONDS);
+				if (ack != null) {
+					this.get(ack).put(ack.local(), ack.remote(), ack.status(), ack.elapse());
+				}
+			} catch (Throwable e) {
+				DefaultCollector.LOGGER.debug(e.getMessage(), e);
+			}
+		}
+		DefaultCollector.LOGGER.warn("Collector shutdown ... ");
 	}
 }

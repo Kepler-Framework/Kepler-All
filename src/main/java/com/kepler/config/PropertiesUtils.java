@@ -48,7 +48,7 @@ public class PropertiesUtils {
 	/**
 	 * 是否在新配置生效前对当前配置备份
 	 */
-	private static final boolean BACKUP = Boolean.valueOf(System.getProperty("backup", "true"));
+	private static final boolean BACKUP = Boolean.valueOf(System.getProperty("backup", "false"));
 
 	/**
 	 * 当前配置数据(内存快照)
@@ -70,7 +70,7 @@ public class PropertiesUtils {
 	}
 
 	/**
-	 * 初始化配置, 主动
+	 * 初始化配置(手动预留)
 	 */
 	public static void init() {
 		if (!PropertiesUtils.INITED) {
@@ -149,6 +149,7 @@ public class PropertiesUtils {
 	 */
 	private static void merge2intersection(Map<String, String> config, Properties current) {
 		for (Object key : current.keySet()) {
+			// Not null, 包含Key并且Value为Null也将被忽略
 			if (config.get(key) != null) {
 				// Remove
 				current.put(key, config.remove(key));
@@ -157,6 +158,11 @@ public class PropertiesUtils {
 		}
 	}
 
+	/**
+	 * @param config
+	 * @param properties
+	 * @param intersection 本次操作为交集操作还是合并操作
+	 */
 	private static void merge(Map<String, String> config, Properties properties, boolean intersection) {
 		if (intersection) {
 			PropertiesUtils.merge2all(config, properties);

@@ -16,9 +16,6 @@ public class DefaultPoint implements Point {
 
 	private static final Log LOGGER = LogFactory.getLog(DefaultPoint.class);
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	private final List<Long> times;
@@ -26,9 +23,9 @@ public class DefaultPoint implements Point {
 	private final List<Long> datas;
 
 	/**
-	 * 最大上线(瞬时)
+	 * 上限
 	 */
-	private transient byte max;
+	transient private byte max;
 
 	/**
 	 * @param max 最大上线

@@ -1,5 +1,7 @@
 package com.kepler.ack.impl;
 
+import java.util.concurrent.ThreadPoolExecutor;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -26,24 +28,53 @@ public class AckTimeOutImpl implements AckTimeOut {
 
 	private static final Log LOGGER = LogFactory.getLog(AckTimeOutImpl.class);
 
+	private final ThreadPoolExecutor threads;
+
 	private final Quality quality;
 
 	private final Profile profile;
 
-	public AckTimeOutImpl(Profile profile, Quality quality) {
+	public AckTimeOutImpl(ThreadPoolExecutor threads, Profile profile, Quality quality) {
 		super();
 		this.profile = profile;
 		this.quality = quality;
+		this.threads = threads;
 	}
 
 	public void timeout(ChannelInvoker invoker, Ack ack, long times) {
+		// 如果需要熔断则启动异步熔断
 		int demotion = PropertiesUtils.profile(this.profile.profile(ack.request().service()), AckTimeOutImpl.DEMOTION_KEY, AckTimeOutImpl.DEMOTION_DEF);
-		// 当单位超时次数超过指定阀值则Ban(并重连)
 		if (times >= demotion) {
-			invoker.close();
-			// 记录降级
-			this.quality.breaking();
-			AckTimeOutImpl.LOGGER.warn("Host: " + invoker.host() + " baned after " + ack.request().service() + " ( " + ack.request().method() + " ) timeout " + times + " times ... ");
+			this.threads.execute(new DemotionRunnable(invoker, times, ack));
+		}
+	}
+
+	/**
+	 * 异步熔断任务
+	 * 
+	 * @author KimShen
+	 *
+	 */
+	private class DemotionRunnable implements Runnable {
+
+		private final ChannelInvoker invoker;
+
+		private final long times;
+
+		private final Ack ack;
+
+		private DemotionRunnable(ChannelInvoker invoker, long times, Ack ack) {
+			super();
+			this.invoker = invoker;
+			this.times = times;
+			this.ack = ack;
+		}
+
+		@Override
+		public void run() {
+			this.invoker.close();
+			AckTimeOutImpl.this.quality.breaking();
+			AckTimeOutImpl.LOGGER.warn("Host: " + this.invoker.remote() + " baned after " + this.ack.request().service() + " ( " + this.ack.request().method() + " ) timeout " + this.times + " times ... ");
 		}
 	}
 }

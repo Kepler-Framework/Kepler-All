@@ -12,9 +12,8 @@ import com.kepler.channel.ChannelInvoker;
 public interface AckTimeOut {
 
 	/**
-	 * @param service
-	 * @param method
-	 * @param invoker 
+	 * @param invoker 通道 
+	 * @param ack
 	 * @param times 当前周期ACK次数
 	 */
 	public void timeout(ChannelInvoker invoker, Ack ack, long times);

@@ -1,11 +1,7 @@
 package com.kepler.admin;
 
-import java.util.Date;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * @author kim
@@ -14,8 +10,6 @@ import org.apache.commons.logging.LogFactory;
  */
 abstract public class PeriodTask implements Delayed {
 
-	private static final Log LOGGER = LogFactory.getLog(PeriodTask.class);
-
 	protected long deadline;
 
 	/**
@@ -23,7 +17,6 @@ abstract public class PeriodTask implements Delayed {
 	 */
 	protected PeriodTask prepare() {
 		this.deadline = System.currentTimeMillis() + this.period();
-		PeriodTask.LOGGER.debug("Period prepare dealine to " + new Date(this.deadline) + " on " + this.toString() + " ... ");
 		return this;
 	}
 

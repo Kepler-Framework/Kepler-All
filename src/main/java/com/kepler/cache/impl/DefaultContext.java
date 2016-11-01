@@ -67,7 +67,6 @@ public class DefaultContext implements Imported, CacheContext, CacheExpired {
 
 	@Override
 	public void set(Service service, String method, Object response) {
-		// 获取对应Service-method的缓存
 		this.caches.get(service).get(method).set(response);
 	}
 
@@ -96,7 +95,6 @@ public class DefaultContext implements Imported, CacheContext, CacheExpired {
 
 		@Override
 		public boolean expired() {
-			// 强制超时
 			return true;
 		}
 
@@ -112,7 +110,6 @@ public class DefaultContext implements Imported, CacheContext, CacheExpired {
 	 */
 	private class DefaultCache implements Cache {
 
-		// 强制首次超时
 		private final AtomicLong count = new AtomicLong();
 
 		private final Service service;
@@ -121,13 +118,14 @@ public class DefaultContext implements Imported, CacheContext, CacheExpired {
 
 		private final long max;
 
-		private Object response;
+		volatile private Object response;
 
 		public DefaultCache(Service service, String method, long max) {
 			super();
 			this.max = max;
 			this.method = method;
 			this.service = service;
+			// 强制首次超时
 			this.invalid();
 		}
 

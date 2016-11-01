@@ -7,14 +7,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.kepler.KeplerException;
-import com.kepler.KeplerTimeoutException;
 import com.kepler.ack.AckTimeOut;
+import com.kepler.ack.Acks;
 import com.kepler.ack.impl.AckFuture;
 import com.kepler.admin.transfer.Collector;
 import com.kepler.channel.ChannelContext;
@@ -27,9 +28,7 @@ import com.kepler.connection.codec.CodecHeader;
 import com.kepler.connection.codec.Decoder;
 import com.kepler.connection.codec.Encoder;
 import com.kepler.host.Host;
-import com.kepler.host.HostLocks;
 import com.kepler.host.HostsContext;
-import com.kepler.host.impl.SegmentLocks;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.Response;
 import com.kepler.service.Quiet;
@@ -92,13 +91,18 @@ public class DefaultConnect implements Connect {
 	private static final boolean EVENTLOOP_SHARED = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".eventloop_shared", true);
 
 	/**
+	 * 是否使用EVENT_LOOP线程解码报文
+	 */
+	private static final boolean EVENTLOOP_DECODE = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".eventloop_decode", false);
+
+	/**
 	 * EventLoopGroup线程数量
 	 */
 	private static final int EVENTLOOP_THREAD = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".eventloop_thread", Runtime.getRuntime().availableProcessors() * 2);
 
 	private static final ChannelFactory<SocketChannel> FACTORY = new DefaultChannelFactory<SocketChannel>(NioSocketChannel.class);
 
-	private static final AttributeKey<Acks> ACK = AttributeKey.newInstance("ACKS");
+	private static final AttributeKey<AcksImpl> ACKS = AttributeKey.newInstance("ACKS");
 
 	private static final Log LOGGER = LogFactory.getLog(DefaultConnect.class);
 
@@ -113,8 +117,6 @@ public class DefaultConnect implements Connect {
 	 * 建立连接任务,无状态
 	 */
 	private final Runnable establish = new EstablishRunnable();
-
-	private final HostLocks locks = new SegmentLocks();
 
 	private final Host local;
 
@@ -174,6 +176,7 @@ public class DefaultConnect implements Connect {
 
 	/**
 	 * 关闭共享EventLoopGroup(如果开启)
+	 * 
 	 * @throws Exception
 	 */
 	private void release4shared() throws Exception {
@@ -198,13 +201,14 @@ public class DefaultConnect implements Connect {
 		}
 	}
 
-	private void banAndRelease(ChannelInvoker invoker) throws Exception {
-		this.context.ban(invoker.host());
-		invoker.releaseAtOnce();
-	}
-
-	private void banAndRelease(Host host) throws Exception {
-		// 如果多个请求(Request)同时出现故障并关闭导致再次返回Invoker为Null(与this.context.ban为强先后顺序)
+	/**
+	 * 释放通道(异步), 并将主机加入Ban名单后重连
+	 * 
+	 * @param host
+	 * @throws Exception
+	 */
+	private void release(Host host) throws Exception {
+		// 如果多个请求(Request)同时出现故障并关闭导致再次返回Invoker为Null
 		ChannelInvoker invoker = this.channels.del(host);
 		if (invoker != null) {
 			invoker.release();
@@ -214,11 +218,10 @@ public class DefaultConnect implements Connect {
 	}
 
 	public void connect(Host host) throws Exception {
-		// 与this.channels.contain内部锁不同, 该锁用于同步建立Host的过程
-		synchronized (this.locks.get(host)) {
-			// 1个Host仅允许建立1个连接
+		// IP锁. 1个Host仅允许建立1个连接
+		synchronized (host.host().intern()) {
 			if (!this.channels.contain(host)) {
-				this.connect(new InvokerHandler(new Bootstrap(), host));
+				this.connect(new InvokerHandler(new Bootstrap(), this.local, host));
 			} else {
 				DefaultConnect.LOGGER.warn("Host: " + host + " already connected ...");
 			}
@@ -239,14 +242,15 @@ public class DefaultConnect implements Connect {
 	private void connect(InvokerHandler invoker) throws Exception {
 		try {
 			// 是否为回路IP
-			SocketAddress remote = new InetSocketAddress(invoker.host().loop(this.local) && DefaultConnect.ESTABLISH_LOOP ? Host.LOOP : invoker.host().host(), invoker.host().port());
+			SocketAddress remote = new InetSocketAddress(invoker.remote().loop(this.local) && DefaultConnect.ESTABLISH_LOOP ? Host.LOOP : invoker.remote().host(), invoker.remote().port());
 			invoker.bootstrap().group(this.eventloop()).option(ChannelOption.CONNECT_TIMEOUT_MILLIS, DefaultConnect.TIMEOUT).channelFactory(DefaultConnect.FACTORY).handler(DefaultConnect.this.inits.factory(invoker)).remoteAddress(remote).connect().sync();
 			// 连接成功, 加入通道. 异常则跳过
-			this.channels.put(invoker.host(), invoker);
+			this.channels.put(invoker.remote(), invoker);
 		} catch (Throwable e) {
-			DefaultConnect.LOGGER.info("Connect " + invoker.host().address() + "[sid=" + invoker.host().sid() + "] failed ...", e);
+			DefaultConnect.LOGGER.info("Connect " + invoker.remote().address() + "[sid=" + invoker.remote().sid() + "] failed ...", e);
 			// 关闭并尝试重连
-			this.banAndRelease(invoker);
+			this.context.ban(invoker.remote());
+			invoker.releaseAtOnce();
 			throw e;
 		}
 	}
@@ -254,15 +258,18 @@ public class DefaultConnect implements Connect {
 	// 非共享
 	private class InvokerHandler extends ChannelInboundHandlerAdapter implements ChannelInvoker {
 
-		private final Host target;
+		private final Host local;
+
+		private final Host remote;
 
 		private final Bootstrap bootstrap;
 
-		private ChannelHandlerContext ctx;
+		volatile private ChannelHandlerContext ctx;
 
-		private InvokerHandler(Bootstrap bootstrap, Host target) {
+		private InvokerHandler(Bootstrap bootstrap, Host local, Host remote) {
 			super();
-			this.target = target;
+			this.local = local;
+			this.remote = remote;
 			this.bootstrap = bootstrap;
 		}
 
@@ -270,8 +277,12 @@ public class DefaultConnect implements Connect {
 			return this.bootstrap;
 		}
 
-		public Host host() {
-			return this.target;
+		public Host remote() {
+			return this.remote;
+		}
+
+		public Host local() {
+			return this.local;
 		}
 
 		public void close() {
@@ -282,14 +293,14 @@ public class DefaultConnect implements Connect {
 		}
 
 		public void release() {
-			// 禁止在EventLoop线程关闭Boostrap, 会造成死锁
-			DefaultConnect.this.threads.execute(new ReleaseRunnable(this.bootstrap, this.target));
+			// 异步关闭
+			DefaultConnect.this.threads.execute(new ReleaseRunnable(this.bootstrap, this.remote));
 		}
 
 		public void releaseAtOnce() {
 			try {
-				// 在当前线程中关闭
-				DefaultConnect.this.release4private(this.bootstrap, this.target);
+				// 同步关闭
+				DefaultConnect.this.release4private(this.bootstrap, this.remote);
 			} catch (Exception e) {
 				DefaultConnect.LOGGER.error(e.getMessage(), e);
 			}
@@ -301,89 +312,69 @@ public class DefaultConnect implements Connect {
 		}
 
 		public void channelActive(ChannelHandlerContext ctx) throws Exception {
-			DefaultConnect.LOGGER.info("Connect active (" + DefaultConnect.this.local + " to " + this.target + ") ...");
-			(this.ctx = ctx).channel().attr(DefaultConnect.ACK).set(new Acks());
+			DefaultConnect.LOGGER.info("Connect active (" + this.local + " to " + this.remote + ") ...");
 			// 初始化赋值
+			(this.ctx = ctx).channel().attr(DefaultConnect.ACKS).set(new AcksImpl());
 			this.ctx.fireChannelActive();
 		}
 
 		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-			DefaultConnect.LOGGER.info("Connect inactive (" + DefaultConnect.this.local + " to " + this.target + ") ...");
-			DefaultConnect.this.banAndRelease(this.target);
+			DefaultConnect.LOGGER.info("Connect inactive (" + this.local + " to " + this.remote + ") ...");
+			DefaultConnect.this.release(this.remote);
 			ctx.fireChannelInactive();
 		}
 
 		public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-			this.exceptionPrint(cause);
-			// 关闭通道, 并启动Inactive
-			ctx.close().addListener(ExceptionListener.TRACE);
-		}
-
-		/**
-		 * 框架异常使用Error日志
-		 * 
-		 * @param cause
-		 */
-		private void exceptionPrint(Throwable cause) {
+			// 框架异常使用Error日志
 			if (KeplerException.class.isAssignableFrom(cause.getClass())) {
 				DefaultConnect.LOGGER.error(cause.getMessage(), cause);
 			} else {
 				DefaultConnect.LOGGER.debug(cause.getMessage(), cause);
 			}
+			// 关闭通道, 并启动Inactive
+			ctx.close().addListener(ExceptionListener.TRACE);
 		}
 
 		public Object invoke(Request request) throws Throwable {
-			// DefaultConnect.this.token.set(request, this.target.token())增加Token
-			AckFuture future = new AckFuture(DefaultConnect.this.collector, this.ctx.channel().eventLoop(), DefaultConnect.this.local, this.target, DefaultConnect.this.token.set(request, this), DefaultConnect.this.profiles, DefaultConnect.this.quiet);
-			try {
-				// 编码
-				ByteBuf buffer = DefaultConnect.this.encoder.encode(future.request());
-				// 加入ACK -> 发送消息 -> 等待ACK
-				if (this.ctx.channel().eventLoop().inEventLoop()) {
-					this.ctx.channel().attr(DefaultConnect.ACK).get().put(future);
-					this.ctx.writeAndFlush(buffer).addListener(ExceptionListener.TRACE);
-				} else {
-					this.ctx.channel().eventLoop().execute(new InvokeRunnable(this.ctx, future, buffer));
-				}
-				// 如果为Future或@Async则立即返回, 负责线程等待
-				return future.request().async() ? future : future.get();
-			} catch (Throwable exception) {
-				// 任何异常均释放ACK
-				if (this.ctx.channel().eventLoop().inEventLoop()) {
-					this.ctx.channel().attr(DefaultConnect.ACK).get().remove(request.ack());
-				} else {
-					this.ctx.channel().eventLoop().execute(new RemovedRunnable(this.ctx, request));
-				}
-				// Timeout处理
-				this.timeout(future, exception);
-				throw exception;
+			// 增加Token Header
+			AckFuture future = new AckFuture(this, DefaultConnect.this.timeout, DefaultConnect.this.collector, this.ctx.channel().eventLoop(), DefaultConnect.this.token.set(request, this), DefaultConnect.this.profiles, DefaultConnect.this.quiet);
+			ByteBuf buffer = DefaultConnect.this.encoder.encode(future.request());
+			if (this.ctx.channel().eventLoop().inEventLoop()) {
+				this.ctx.channel().attr(DefaultConnect.ACKS).get().put(future);
+				this.ctx.writeAndFlush(buffer).addListener(ExceptionListener.TRACE);
+			} else {
+				this.ctx.channel().eventLoop().execute(new InvokeRunnable(this.ctx, future, buffer));
 			}
+			// 如果为Future或@Async则立即返回, 否则线程等待
+			return future.request().async() ? future : future.get();
 		}
 
 		/**
-		 * Timeout处理, DefaultConnect.this.collector.peek(ack).timeout()当前周期Timeout次数
+		 * 回调, 唤醒线程
 		 * 
-		 * @param request
-		 * @param ack
-		 * @param exception
+		 * @param executor
+		 * @param response
+		 * @param acks
 		 */
-		private void timeout(AckFuture ack, Throwable exception) {
-			// 仅处理KeplerTimeoutException
-			if (KeplerTimeoutException.class.isAssignableFrom(exception.getClass())) {
-				DefaultConnect.this.timeout.timeout(this, ack, DefaultConnect.this.collector.peek(ack).timeout());
+		private void response(Executor executor, Response response, AcksImpl acks) {
+			AckFuture future = acks.get(response.ack());
+			// 如获取不到ACK表示已超时
+			if (future != null) {
+				future.response(response);
+			} else {
+				DefaultConnect.LOGGER.warn("Missing ack for response: " + Arrays.toString(response.ack()) + " (" + this.remote.address() + "), may be timeout ...");
 			}
 		}
 
 		@Override
 		public void channelRead(ChannelHandlerContext ctx, Object message) throws Exception {
-			Response response = Response.class.cast(DefaultConnect.this.decoder.decode(ByteBuf.class.cast(message)));
-			// 移除ACK
-			AckFuture future = this.ctx.channel().attr(DefaultConnect.ACK).get().remove(response.ack());
-			// 如获取不到ACK表示已超时
-			if (future != null) {
-				future.response(response);
+			AcksImpl acks = this.ctx.channel().attr(DefaultConnect.ACKS).get();
+			ByteBuf buffer = ByteBuf.class.cast(message);
+			if (DefaultConnect.EVENTLOOP_DECODE) {
+				// 如果在EventLoop线程执行解码则立即执行
+				this.response(ctx.channel().eventLoop(), Response.class.cast(DefaultConnect.this.decoder.decode(buffer)), acks);
 			} else {
-				DefaultConnect.LOGGER.warn("Missing ack for response: " + Arrays.toString(response.ack()) + " (" + this.target.address() + "), may be timeout ...");
+				DefaultConnect.this.threads.execute(new ResponseRunnable(this, ctx.channel().eventLoop(), buffer, acks));
 			}
 		}
 	}
@@ -474,40 +465,60 @@ public class DefaultConnect implements Connect {
 
 		@Override
 		public void run() {
-			this.ctx.channel().attr(DefaultConnect.ACK).get().put(this.future);
+			this.ctx.channel().attr(DefaultConnect.ACKS).get().put(this.future);
 			this.ctx.writeAndFlush(this.buffer).addListener(ExceptionListener.TRACE);
 		}
 	}
 
-	private class RemovedRunnable implements Runnable {
+	private class ResponseRunnable implements Runnable {
 
-		private final ChannelHandlerContext ctx;
+		private final InvokerHandler invoker;
 
-		private final Request request;
+		private final Executor executor;
 
-		public RemovedRunnable(ChannelHandlerContext ctx, Request request) {
+		private final ByteBuf buffer;
+
+		private final AcksImpl acks;
+
+		private ResponseRunnable(InvokerHandler invoker, Executor executor, ByteBuf buffer, AcksImpl acks) {
 			super();
-			this.ctx = ctx;
-			this.request = request;
+			this.executor = executor;
+			this.invoker = invoker;
+			this.buffer = buffer;
+			this.acks = acks;
 		}
 
 		@Override
 		public void run() {
-			this.ctx.channel().attr(DefaultConnect.ACK).get().remove(this.request.ack());
+			try {
+				// 解析Response并回调
+				Response response = Response.class.cast(DefaultConnect.this.decoder.decode(this.buffer));
+				this.invoker.response(this.executor, response, this.acks);
+			} catch (Throwable e) {
+				DefaultConnect.LOGGER.error(e.getMessage(), e);
+			}
 		}
 	}
 
-	private class Acks {
+	private class AcksImpl implements Acks {
 
 		private final Map<Bytes, AckFuture> waitings = new HashMap<Bytes, AckFuture>();
 
 		public AckFuture put(AckFuture future) {
 			this.waitings.put(new Bytes(future.request().ack()), future);
-			return future;
+			return future.acks(this);
+		}
+
+		public AckFuture get(byte[] ack) {
+			return this.waitings.get(new Bytes(ack));
 		}
 
 		public AckFuture remove(byte[] ack) {
 			return this.waitings.remove(new Bytes(ack));
+		}
+
+		public String toString() {
+			return "[acks=" + this.waitings.size() + "]";
 		}
 	}
 

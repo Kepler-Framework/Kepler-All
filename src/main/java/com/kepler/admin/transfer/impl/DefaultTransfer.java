@@ -13,7 +13,7 @@ import com.kepler.org.apache.commons.lang.builder.ToStringBuilder;
 public class DefaultTransfer implements Transfer {
 
 	/**
-	 * 冻结状态阀值(127次默认)
+	 * 冻结状态阈值(127次默认)
 	 */
 	private static final int FREEZE = PropertiesUtils.get(DefaultTransfer.class.getName().toLowerCase() + ".freeze", Byte.MAX_VALUE);
 
@@ -54,7 +54,7 @@ public class DefaultTransfer implements Transfer {
 		if (this.total == 0) {
 			return (this.freeze++) > DefaultTransfer.FREEZE;
 		} else {
-			// 任一一次请求有效则重置计数
+			// 任一请求有效则重置计数
 			this.freeze = 0;
 			return false;
 		}
@@ -91,7 +91,6 @@ public class DefaultTransfer implements Transfer {
 	}
 
 	public boolean actived() {
-		// 没有任何请求则标记为非激活
 		return this.total != 0;
 	}
 
@@ -124,7 +123,6 @@ public class DefaultTransfer implements Transfer {
 		this.total = 0;
 		this.timeout = 0;
 		this.exception = 0;
-		// 更新时间
 		this.timestamp = System.currentTimeMillis();
 	}
 

@@ -34,12 +34,20 @@ public class DefaultConfig implements Config, BeanPostProcessor {
 	 */
 	private static final boolean ALL = PropertiesUtils.get(DefaultConfig.class.getName().toLowerCase() + ".all", true);
 
-	private static final Log LOGGER = LogFactory.getLog(DefaultConfig.class);
-
 	/**
 	 * 基础/包装类映射(byte -> Byte)
 	 */
-	private final Map<Class<?>, Class<?>> mapping = new HashMap<Class<?>, Class<?>>();
+	private static final Map<Class<?>, Class<?>> MAPPING = new HashMap<Class<?>, Class<?>>();
+
+	private static final Log LOGGER = LogFactory.getLog(DefaultConfig.class);
+
+	static {
+		DefaultConfig.MAPPING.put(boolean.class, Boolean.class);
+		DefaultConfig.MAPPING.put(short.class, Short.class);
+		DefaultConfig.MAPPING.put(int.class, Integer.class);
+		DefaultConfig.MAPPING.put(long.class, Long.class);
+		DefaultConfig.MAPPING.put(byte.class, Byte.class);
+	}
 
 	private final Invokers invokers = new Invokers();
 
@@ -54,17 +62,6 @@ public class DefaultConfig implements Config, BeanPostProcessor {
 		this.threads = threads;
 		this.parser = parser;
 		this.aware = aware;
-	}
-
-	/**
-	 * 加载映射
-	 */
-	public void init() {
-		this.mapping.put(boolean.class, Boolean.class);
-		this.mapping.put(short.class, Short.class);
-		this.mapping.put(int.class, Integer.class);
-		this.mapping.put(long.class, Long.class);
-		this.mapping.put(byte.class, Byte.class);
 	}
 
 	@Override
@@ -147,6 +144,7 @@ public class DefaultConfig implements Config, BeanPostProcessor {
 			super();
 			this.object = object;
 			this.method = method;
+			// 单参方法
 			Assert.state(this.method.getParameterTypes().length == 1, "Method: " + method + " must only one parameter ... ");
 		}
 
@@ -155,7 +153,7 @@ public class DefaultConfig implements Config, BeanPostProcessor {
 				// Method首个参数
 				Class<?> request = this.method.getParameterTypes()[0];
 				// 如果能使用ConfigParser解析则使用ConfigParser解析, 否则尝试使用基础类型静态ValueOf解析
-				this.method.invoke(this.object, DefaultConfig.this.parser.support(request) ? DefaultConfig.this.parser.parse(request, value) : MethodUtils.invokeStaticMethod(DefaultConfig.this.mapping.containsKey(request) ? DefaultConfig.this.mapping.get(request) : request, "valueOf", value));
+				this.method.invoke(this.object, DefaultConfig.this.parser.support(request) ? DefaultConfig.this.parser.parse(request, value) : MethodUtils.invokeStaticMethod(DefaultConfig.MAPPING.containsKey(request) ? DefaultConfig.MAPPING.get(request) : request, "valueOf", value));
 			} catch (Throwable throwable) {
 				DefaultConfig.LOGGER.error("Parameter only allowed byte, short, int, long, boolean, String or using ConfigParser ... ", throwable);
 			}
