@@ -5,6 +5,8 @@ import com.kepler.admin.transfer.Transfer;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.host.Host;
 import com.kepler.org.apache.commons.lang.builder.ToStringBuilder;
+import com.kepler.service.Service;
+import com.kepler.trace.TraceCauses;
 
 /**
  * @author KimShen
@@ -17,7 +19,21 @@ public class DefaultTransfer implements Transfer {
 	 */
 	private static final int FREEZE = PropertiesUtils.get(DefaultTransfer.class.getName().toLowerCase() + ".freeze", Byte.MAX_VALUE);
 
+	/**
+	 * 超过指定阈值则记录Max Trace
+	 */
+	private static final double THRESHOLD = PropertiesUtils.get(DefaultTransfer.class.getName().toLowerCase() + ".threshold", 1.25);
+
 	private static final long serialVersionUID = 1L;
+
+	/**
+	 * 不做序列化
+	 */
+	transient private final TraceCauses trace;
+
+	private final Service service;
+
+	private final String method;
 
 	private final Host target;
 
@@ -40,11 +56,23 @@ public class DefaultTransfer implements Transfer {
 	 */
 	volatile private long timestamp;
 
-	public DefaultTransfer(Host local, Host target) {
+	public DefaultTransfer(TraceCauses trace, Service service, String method, Host local, Host target) {
 		super();
+		this.trace = trace;
 		this.local = local;
 		this.target = target;
+		this.method = method;
+		this.service = service;
 		this.timestamp = System.currentTimeMillis();
+	}
+
+	/**
+	 * 如果当前Max大于平均耗时指定阈值则记录Trace
+	 */
+	private void max4trace() {
+		if (new Double(this.max) / this.rtt > DefaultTransfer.THRESHOLD) {
+			this.trace.put(this.service, this.method, "Max elapse request: " + this.max + "(ms)");
+		}
 	}
 
 	/**
@@ -110,6 +138,7 @@ public class DefaultTransfer implements Transfer {
 		// 更新最大耗时
 		if (this.max < this.rtt) {
 			this.max = this.rtt;
+			this.max4trace();
 		}
 		return this;
 	}
@@ -130,6 +159,7 @@ public class DefaultTransfer implements Transfer {
 
 	public void reset() {
 		this.rtt = 0;
+		this.max = 0;
 		this.total = 0;
 		this.timeout = 0;
 		this.exception = 0;

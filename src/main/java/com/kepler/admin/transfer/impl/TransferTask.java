@@ -71,9 +71,9 @@ public class TransferTask extends PeriodTask {
 
 		private Compress(Collection<Transfers> transfers) {
 			for (Transfers each : transfers) {
-				CompressTransfers simpled = new CompressTransfers(each.service(), each.version(), each.method(), each.transfers());
-				if (simpled.actived()) {
-					this.transfers.add(simpled);
+				CompressTransfers compressed = new CompressTransfers(each.service(), each.version(), each.method(), each.transfers());
+				if (compressed.actived()) {
+					this.transfers.add(compressed);
 				}
 			}
 		}

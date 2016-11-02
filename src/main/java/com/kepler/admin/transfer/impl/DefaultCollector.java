@@ -19,6 +19,7 @@ import com.kepler.config.PropertiesUtils;
 import com.kepler.org.apache.commons.collections.map.MultiKeyMap;
 import com.kepler.service.Imported;
 import com.kepler.service.Service;
+import com.kepler.trace.TraceCauses;
 
 /**
  * @author kim 2015年7月22日
@@ -46,6 +47,8 @@ public class DefaultCollector implements Runnable, Collector, Imported {
 
 	private final ThreadPoolExecutor threads;
 
+	private final TraceCauses trace;
+
 	volatile private boolean shutdown;
 
 	/**
@@ -53,10 +56,11 @@ public class DefaultCollector implements Runnable, Collector, Imported {
 	 */
 	volatile private int indexes;
 
-	public DefaultCollector(ThreadPoolExecutor threads) {
+	public DefaultCollector(TraceCauses trace, ThreadPoolExecutor threads) {
 		super();
 		this.threads = threads;
 		this.shutdown = false;
+		this.trace = trace;
 		this.indexes = 1;
 	}
 
@@ -92,7 +96,7 @@ public class DefaultCollector implements Runnable, Collector, Imported {
 			}
 			// 初始化并返回
 			for (int index = 0; index < this.transfers.length; index++) {
-				this.transfers[index].put(service, method, new DefaultTransfers(service, method));
+				this.transfers[index].put(service, method, new DefaultTransfers(this.trace, service, method));
 			}
 			return Transfers.class.cast(this.curr().get(service, method));
 		}

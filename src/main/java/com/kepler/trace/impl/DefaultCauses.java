@@ -13,6 +13,7 @@ import com.kepler.config.PropertiesUtils;
 import com.kepler.header.impl.TraceContext;
 import com.kepler.protocol.Request;
 import com.kepler.service.Quiet;
+import com.kepler.service.Service;
 import com.kepler.trace.TraceCause;
 import com.kepler.trace.TraceCauses;
 
@@ -57,11 +58,32 @@ public class DefaultCauses implements TraceCauses {
 		return current;
 	}
 
-	@Override
-	public void put(Request request, Throwable throwable) {
-		// Guard case, 超过限制则跳过
+	/**
+	 * 超过限制则跳过
+	 * 
+	 * @return
+	 */
+	private boolean allow() {
 		if (this.index.getAndIncrement() > DefaultCauses.MAX) {
 			DefaultCauses.LOGGER.warn("Array out of range. [max=" + DefaultCauses.MAX + "][index=" + this.causes_one.size() + "]");
+			return false;
+		}
+		return true;
+	}
+
+	public void put(Service service, String method, String cause) {
+		if (!this.allow()) {
+			return;
+		}
+		// 开启收集, 并且为非静默异常
+		if (PropertiesUtils.profile(this.profile.profile(service), TraceTask.ENABLED_KEY, TraceTask.ENABLED_DEF)) {
+			this.causes_one.add(new DefaultCause(cause, service, method, TraceContext.get()));
+		}
+	}
+
+	@Override
+	public void put(Request request, Throwable throwable) {
+		if (!this.allow()) {
 			return;
 		}
 		// 开启收集, 并且为非静默异常

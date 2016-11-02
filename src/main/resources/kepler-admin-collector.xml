@@ -8,6 +8,7 @@
 	<alias name="kepler.admin.transfer.collector" alias="kepler.service.imported.collector" />
 
 	<bean id="kepler.admin.transfer.collector" class="com.kepler.admin.transfer.impl.DefaultCollector" init-method="init" destroy-method="destroy">
+		<constructor-arg ref="kepler.trace.causes" />
 		<constructor-arg ref="kepler.threads" />
 	</bean>
 

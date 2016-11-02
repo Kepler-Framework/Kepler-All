@@ -13,6 +13,7 @@ import com.kepler.admin.transfer.Transfers;
 import com.kepler.host.Host;
 import com.kepler.org.apache.commons.lang.builder.ToStringBuilder;
 import com.kepler.service.Service;
+import com.kepler.trace.TraceCauses;
 
 /**
  * @author kim 2015年7月24日
@@ -28,12 +29,15 @@ public class DefaultTransfers implements Transfers {
 	 */
 	private final ConcurrentMap<Hosts, Transfer> transfers = new ConcurrentHashMap<Hosts, Transfer>();
 
+	private final TraceCauses trace;
+
 	private final Service service;
 
 	private final String method;
 
-	public DefaultTransfers(Service service, String method) {
+	public DefaultTransfers(TraceCauses trace, Service service, String method) {
 		super();
+		this.trace = trace;
 		this.method = method;
 		this.service = service;
 	}
@@ -89,7 +93,7 @@ public class DefaultTransfers implements Transfers {
 
 	public Transfer put(Host local, Host target, Status status, long rtt) {
 		Transfer transfer = this.transfers.get(new Hosts(local, target));
-		transfer = (transfer != null ? transfer : this.get(local, target, new DefaultTransfer(local, target)));
+		transfer = (transfer != null ? transfer : this.get(local, target, new DefaultTransfer(DefaultTransfers.this.trace, DefaultTransfers.this.service, DefaultTransfers.this.method, local, target)));
 		return DefaultTransfer.class.cast(transfer).touch().rtt(rtt).timeout(status).exception(status);
 	}
 

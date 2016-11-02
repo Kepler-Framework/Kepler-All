@@ -25,6 +25,14 @@ public class DefaultCause implements TraceCause {
 
 	private final String cause;
 
+	public DefaultCause(String cause, Service service, String method, String trace) {
+		super();
+		this.service = service;
+		this.method = method;
+		this.trace = trace;
+		this.cause = cause;
+	}
+
 	public DefaultCause(Throwable throwable, Service service, String method, String trace) {
 		super();
 		this.cause = this.cause(throwable).getMessage();
