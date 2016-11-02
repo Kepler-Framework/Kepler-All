@@ -13,6 +13,7 @@ import com.kepler.generic.impl.DefaultMarker;
 import com.kepler.generic.wrap.GenericArg;
 import com.kepler.org.apache.commons.lang.reflect.MethodUtils;
 import com.kepler.protocol.Request;
+import com.kepler.protocol.RequestValidation;
 
 /**
  * @author KimShen
@@ -31,7 +32,10 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 
 	private final GenericResponseFactory factory;
 
-	public DefaultDelegate(GenericResponseFactory factory) {
+	private final RequestValidation validation;
+
+	public DefaultDelegate(GenericResponseFactory factory, RequestValidation validation) {
+		this.validation = validation;
 		this.factory = factory;
 	}
 
@@ -65,7 +69,7 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 	private GenericResponse delegate(Object instance, String method, Object[] args) throws KeplerGenericException {
 		// 代理执行
 		try {
-			return this.factory.response(MethodUtils.invokeMethod(instance, method, new Args(args).args()));
+			return this.factory.response(MethodUtils.invokeMethod(instance, method, this.validation.valid(new Args(args).args())));
 		} catch (InvocationTargetException e) {
 			throw new KeplerGenericException(e.getTargetException());
 		} catch (Throwable e) {

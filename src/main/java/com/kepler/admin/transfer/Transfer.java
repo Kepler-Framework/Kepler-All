@@ -25,6 +25,14 @@ public interface Transfer extends Serializable {
 	 * @return
 	 */
 	public long rtt();
+	
+	
+	/**
+	 * 最大耗时
+	 * 
+	 * @return
+	 */
+	public long max();
 
 	/**
 	 * 累计数量

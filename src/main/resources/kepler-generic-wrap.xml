@@ -17,6 +17,7 @@
 	</bean>
 
 	<bean id="kepler.generic.wrap.delegate" class="com.kepler.generic.wrap.impl.DefaultDelegate">
+		<constructor-arg ref="kepler.protocol.validation4service" />
 		<constructor-arg ref="kepler.generic.response" />
 	</bean>
 

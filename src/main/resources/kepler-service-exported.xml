@@ -19,6 +19,7 @@
 	</bean>
 
 	<bean id="kepler.service.exported.context" class="com.kepler.service.exported.DefaultContext">
+		<constructor-arg ref="kepler.protocol.validation4service" />
 		<constructor-arg ref="kepler.generic.delegate" />
 		<constructor-arg ref="kepler.methods" />
 	</bean>
@@ -29,13 +30,8 @@
 	</bean>
 
 	<!-- For Example -->
-	<!-- 
-		<bean class="com.kepler.service.exported.ExportedDelegate" parent="kepler.service.exproted.abstract"> 
-			<constructor-arg index="0" value="Your Service Interface" /> 
-			<constructor-arg index="1" ref="Your Service Instance" /> 
-			<constructor-arg index="2" value="Your Service Profile" /> 
-		</bean> 
-	-->
+	<!-- <bean class="com.kepler.service.exported.ExportedDelegate" parent="kepler.service.exproted.abstract"> <constructor-arg index="0" value="Your Service Interface" /> <constructor-arg index="1" ref="Your Service Instance" /> <constructor-arg index="2" 
+		value="Your Service Profile" /> </bean> -->
 
 	<bean class="com.kepler.service.exported.ExportedDiscovery">
 		<constructor-arg ref="kepler.config.profile" />

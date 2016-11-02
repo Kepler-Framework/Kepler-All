@@ -19,7 +19,6 @@
 		<constructor-arg ref="kepler.codec.decoder.request" />
 		<constructor-arg ref="kepler.codec.encoder.response" />
 		<constructor-arg ref="kepler.service.exported.context" />
-		<constructor-arg ref="kepler.protocol.validation4service" />
 	</bean>
 
 	<!-- 优先启动Server -->

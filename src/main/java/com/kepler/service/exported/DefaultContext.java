@@ -16,6 +16,7 @@ import com.kepler.generic.GenericResponse;
 import com.kepler.invoker.Invoker;
 import com.kepler.method.Methods;
 import com.kepler.protocol.Request;
+import com.kepler.protocol.RequestValidation;
 import com.kepler.service.Exported;
 import com.kepler.service.ExportedContext;
 import com.kepler.service.Service;
@@ -42,11 +43,14 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 	 */
 	private final Map<Service, Object> services = new HashMap<Service, Object>();
 
+	private final RequestValidation validation;
+
 	private final GenericDelegate delegate;
 
 	private final Methods methods;
 
-	public DefaultContext(GenericDelegate delegate, Methods methods) {
+	public DefaultContext(RequestValidation validation, GenericDelegate delegate, Methods methods) {
+		this.validation = validation;
 		this.delegate = delegate;
 		this.methods = methods;
 	}
@@ -86,7 +90,7 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 			// 尝试解析泛化请求
 			GenericResponse generic = DefaultContext.this.delegate.delegate(DefaultContext.this.services.get(request.service()), request.method(), request);
 			// 如果为泛型请求则使用泛型处理否则使用常规调用
-			return generic.valid() ? generic.response() : this.invoke4method(request);
+			return generic.valid() ? generic.response() : this.invoke4method(DefaultContext.this.validation.valid(request));
 		}
 
 		/**

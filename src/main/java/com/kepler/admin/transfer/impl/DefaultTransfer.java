@@ -25,6 +25,8 @@ public class DefaultTransfer implements Transfer {
 
 	private long rtt;
 
+	private long max;
+
 	private long total;
 
 	private long freeze;
@@ -74,6 +76,10 @@ public class DefaultTransfer implements Transfer {
 		return this.rtt;
 	}
 
+	public long max() {
+		return this.max;
+	}
+
 	public long total() {
 		return this.total;
 	}
@@ -101,6 +107,10 @@ public class DefaultTransfer implements Transfer {
 
 	public DefaultTransfer rtt(long rtt) {
 		this.rtt += rtt;
+		// 更新最大耗时
+		if (this.max < this.rtt) {
+			this.max = this.rtt;
+		}
 		return this;
 	}
 

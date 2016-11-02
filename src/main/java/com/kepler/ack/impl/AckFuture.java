@@ -344,6 +344,6 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	@Override
 	public void run() {
 		// 移除ACK
-		this.acks.remove(this.response.ack());
+		this.acks.remove(this.request.ack());
 	}
 }

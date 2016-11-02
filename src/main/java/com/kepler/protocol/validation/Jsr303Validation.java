@@ -38,16 +38,27 @@ public class Jsr303Validation implements RequestValidation {
 		throw new KeplerValidateException(buffer.toString());
 	}
 
+	private void valid(Object arg) {
+		if (arg != null) {
+			Set<ConstraintViolation<Object>> exceptions = Jsr303Validation.VALIDATOR.validate(arg);
+			// 如果存在异常则开始拼装
+			if (!exceptions.isEmpty()) {
+				this.appendAndThrow(exceptions);
+			}
+		}
+	}
+
+	public Object[] valid(Object[] args) throws KeplerValidateException {
+		for (Object arg : args) {
+			this.valid(arg);
+		}
+		return args;
+	}
+
 	@Override
 	public Request valid(Request request) throws KeplerValidateException {
 		for (Object arg : request.args()) {
-			if (arg != null) {
-				Set<ConstraintViolation<Object>> exceptions = Jsr303Validation.VALIDATOR.validate(arg);
-				// 如果存在异常则开始拼装
-				if (!exceptions.isEmpty()) {
-					this.appendAndThrow(exceptions);
-				}
-			}
+			this.valid(arg);
 		}
 		return request;
 	}

@@ -21,6 +21,7 @@ import com.kepler.method.Methods;
 import com.kepler.org.apache.commons.collections.keyvalue.MultiKey;
 import com.kepler.org.apache.commons.collections.map.MultiKeyMap;
 import com.kepler.protocol.Request;
+import com.kepler.protocol.RequestValidation;
 
 /**
  * @author KimShen
@@ -46,6 +47,8 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 
 	private final GenericResponseFactory factory;
 
+	private final RequestValidation validation;
+
 	private final FieldsAnalyser analyser;
 
 	private final Methods methods;
@@ -55,7 +58,8 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 	 */
 	volatile private MultiKeyMap cached = new MultiKeyMap();
 
-	public DefaultDelegate(GenericResponseFactory factory, FieldsAnalyser analyser, Methods methods) {
+	public DefaultDelegate(GenericResponseFactory factory, RequestValidation validation, FieldsAnalyser analyser, Methods methods) {
+		this.validation = validation;
 		this.analyser = analyser;
 		this.factory = factory;
 		this.methods = methods;
@@ -102,7 +106,7 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 				args_actual[index] = args.args()[index] == null ? null : fields.actual(args.args()[index]);
 			}
 			// 代理执行
-			return this.factory.response(method_actual.invoke(instance, args_actual));
+			return this.factory.response(method_actual.invoke(instance, this.validation.valid(args_actual)));
 		} catch (InvocationTargetException e) {
 			// 处理Method实际错误
 			throw new KeplerGenericException(e.getTargetException());

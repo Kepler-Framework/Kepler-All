@@ -17,7 +17,6 @@ import com.kepler.header.HeadersContext;
 import com.kepler.host.impl.ServerHost;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.RequestProcessor;
-import com.kepler.protocol.RequestValidation;
 import com.kepler.protocol.Response;
 import com.kepler.protocol.ResponseFactory;
 import com.kepler.quality.Quality;
@@ -88,8 +87,6 @@ public class DefaultServer {
 
 	private final ServerBootstrap bootstrap = new ServerBootstrap();
 
-	private final RequestValidation validation;
-
 	private final ThreadPoolExecutor threads;
 
 	private final RequestProcessor processor;
@@ -116,9 +113,8 @@ public class DefaultServer {
 
 	private final Quiet quiet;
 
-	public DefaultServer(Trace trace, Reject reject, Encoder encoder, Decoder decoder, Quality quality, ServerHost local, TokenContext token, ExportedContext exported, ResponseFactory response, HeadersContext headers, ThreadPoolExecutor threads, RequestValidation validation, RequestProcessor processor, Quiet quiet) {
+	public DefaultServer(Trace trace, Reject reject, Encoder encoder, Decoder decoder, Quality quality, ServerHost local, TokenContext token, ExportedContext exported, ResponseFactory response, HeadersContext headers, ThreadPoolExecutor threads, RequestProcessor processor, Quiet quiet) {
 		super();
-		this.validation = validation;
 		this.processor = processor;
 		this.exported = exported;
 		this.response = response;
@@ -296,8 +292,6 @@ public class DefaultServer {
 					request = DefaultServer.this.reject.reject(request, this.ctx.channel().remoteAddress());
 					// 校验请求合法性
 					request = DefaultServer.this.token.valid(request);
-					// 校验请求参数(如JSR 303)
-					request = DefaultServer.this.validation.valid(request);
 					// 获取服务并执行
 					return DefaultServer.this.response.response(request.ack(), DefaultServer.this.exported.get(request.service()).invoke(request), request.serial());
 				} catch (Throwable e) {

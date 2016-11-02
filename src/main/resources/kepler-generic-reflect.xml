@@ -20,6 +20,7 @@
 	</bean>
 
 	<bean id="kepler.generic.reflect.delegate" class="com.kepler.generic.reflect.impl.DefaultDelegate">
+		<constructor-arg ref="kepler.protocol.validation4service" />
 		<constructor-arg ref="kepler.generic.analyse.analyser" />
 		<constructor-arg ref="kepler.generic.response" />
 		<constructor-arg ref="kepler.methods" />

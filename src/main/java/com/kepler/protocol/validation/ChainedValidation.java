@@ -23,11 +23,22 @@ public class ChainedValidation implements RequestValidation, Extension {
 	}
 
 	@Override
+	public Object[] valid(Object[] args) throws KeplerValidateException {
+		Object[] actual = args;
+		if (!this.validations.isEmpty()) {
+			for (RequestValidation each : this.validations) {
+				actual = each.valid(actual);
+			}
+		}
+		return actual;
+	}
+
+	@Override
 	public Request valid(Request request) throws KeplerValidateException {
 		Request actual = request;
 		if (!this.validations.isEmpty()) {
 			for (RequestValidation each : this.validations) {
-				actual = each.valid(request);
+				actual = each.valid(actual);
 			}
 		}
 		return actual;

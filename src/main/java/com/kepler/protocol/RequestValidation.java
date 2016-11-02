@@ -8,6 +8,8 @@ import com.kepler.KeplerValidateException;
  * @author kim 2015年10月30日
  */
 public interface RequestValidation {
+	
+	public Object[] valid(Object[] args) throws KeplerValidateException;
 
 	public Request valid(Request request) throws KeplerValidateException;
 
