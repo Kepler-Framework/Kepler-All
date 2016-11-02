@@ -70,13 +70,22 @@ public class TraceContext {
 	}
 
 	/**
-	 * 获取上下文相关Trace, 如果不存在则创建.
+	 * 获取上下文相关Trace, 如果不存在则返回Null.
 	 * 
 	 * @return
 	 */
 	public static String get() {
 		Headers headers = TraceContext.headers();
-		// TODO, 获取Trace, 0.0.7去除TRACE_COVER
+		return headers.get(Trace.TRACE_COVER);
+	}
+
+	/**
+	 * 获取上下文相关Trace, 如果不存在则创建.
+	 * 
+	 * @return
+	 */
+	public static String get4create() {
+		Headers headers = TraceContext.headers();
 		String trace = headers.get(Trace.TRACE_COVER);
 		return StringUtils.isEmpty(trace) ? TraceContext.trace(headers) : trace;
 	}

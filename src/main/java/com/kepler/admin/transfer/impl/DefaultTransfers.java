@@ -58,7 +58,7 @@ public class DefaultTransfers implements Transfers {
 		for (Transfer transfer : this.transfers.values()) {
 			// 如果为冻结状态则尝试移除
 			if (DefaultTransfer.class.cast(transfer).freezed() && (this.transfers.remove(new Hosts(transfer.local(), transfer.target())) != null)) {
-				DefaultTransfers.LOGGER.info("Clear " + transfer + " for " + this.service + " [method=" + this.method + "]");
+				DefaultTransfers.LOGGER.info("Clear transfer for " + this.service + " [method=" + this.method + "]");
 			}
 		}
 	}
