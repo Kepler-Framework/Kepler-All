@@ -21,12 +21,13 @@
 		<constructor-arg ref="kepler.connection.connect" />
 	</bean>
 
-	<bean id="kepler.zookeeper.context" class="com.kepler.zookeeper.ZkContext" destroy-method="destroy">
+	<bean id="kepler.zookeeper.context" class="com.kepler.zookeeper.ZkContext" init-method="init" destroy-method="destroy">
 		<constructor-arg ref="kepler.admin.status.static" />
 		<constructor-arg ref="kepler.zookeeper.listener" />
 		<constructor-arg ref="kepler.zookeeper.factory" />
 		<constructor-arg ref="kepler.config.profile" />
 		<constructor-arg ref="kepler.host.local" />
+		<constructor-arg ref="kepler.threads" />
 		<constructor-arg ref="kepler.serials" />
 		<constructor-arg ref="kepler.config" />
 	</bean>

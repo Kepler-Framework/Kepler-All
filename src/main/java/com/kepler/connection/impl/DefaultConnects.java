@@ -69,7 +69,7 @@ public class DefaultConnects implements Connects {
 		}
 
 		public String toString() {
-			return "[deadline=" + this.deadline + "][host=" + host + "]";
+			return "[deadline=" + this.deadline + "][host=" + this.host + "]";
 		}
 	}
 }

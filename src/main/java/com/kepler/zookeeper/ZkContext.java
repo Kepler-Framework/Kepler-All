@@ -7,7 +7,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -45,7 +50,11 @@ import com.kepler.service.imported.ImportedService;
 /**
  * @author zhangjiehao 2015年7月9日
  */
-public class ZkContext implements Demotion, Imported, Exported, ApplicationListener<ContextRefreshedEvent> {
+/**
+ * @author KimShen
+ *
+ */
+public class ZkContext implements Demotion, Imported, Exported, Runnable, ApplicationListener<ContextRefreshedEvent> {
 
 	/**
 	 * 保存依赖关系路径
@@ -71,6 +80,10 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	 * 保存状态信息路径, 如果失败是否抛出异常终止发布
 	 */
 	public static final boolean STATUS_FROCE = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".status_force", false);
+
+	private static final int INTERVAL = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".interval", 60000);
+
+	private static final int DELAY = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".delay", 5000);
 
 	/**
 	 * 保存服务信息路径
@@ -100,6 +113,11 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 
 	private static final Log LOGGER = LogFactory.getLog(ZkContext.class);
 
+	/**
+	 * 加载失败的服务
+	 */
+	private final BlockingQueue<DelayInstall> uninstalled = new DelayQueue<DelayInstall>();
+
 	private final ZkWatcher watcher = new ZkWatcher();
 
 	private final Snapshot snapshot = new Snapshot();
@@ -112,6 +130,8 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	 * 用于延迟发布
 	 */
 	private final Delay delay = new Delay();
+
+	private final ThreadPoolExecutor threads;
 
 	private final ImportedListener listener;
 
@@ -127,15 +147,39 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 
 	private final ZkClient zoo;
 
-	public ZkContext(ImportedListener listener, ServerHost local, Serials serials, Profile profile, Config config, Status status, ZkClient zoo) {
+	volatile private boolean shutdown;
+
+	public ZkContext(ThreadPoolExecutor threads, ImportedListener listener, ServerHost local, Serials serials, Profile profile, Config config, Status status, ZkClient zoo) {
 		super();
 		this.zoo = zoo.bind(this);
 		this.listener = listener;
 		this.profile = profile;
 		this.serials = serials;
+		this.threads = threads;
 		this.config = config;
 		this.status = status;
 		this.local = local;
+	}
+
+	/**
+	 * For Spring
+	 */
+	public void init() {
+		// 单线程操作
+		this.threads.execute(this);
+	}
+
+	/**
+	 * For Spring
+	 * 
+	 * @throws Exception
+	 */
+	public void destroy() throws Exception {
+		this.shutdown = true;
+		// 注销已发布服务
+		this.exports.destroy();
+		// 关闭ZK
+		this.zoo.close();
 	}
 
 	/**
@@ -237,18 +281,6 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	}
 
 	/**
-	 * For Spring
-	 * 
-	 * @throws Exception
-	 */
-	public void destroy() throws Exception {
-		// 注销已发布服务
-		this.exports.destroy();
-		// 关闭ZK
-		this.zoo.close();
-	}
-
-	/**
 	 * 重置/重连
 	 * 
 	 * @throws Exception
@@ -311,6 +343,22 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		} catch (Throwable throwable) {
 			throw new KeplerLocalException(throwable);
 		}
+	}
+
+	@Override
+	public void run() {
+		while (!this.shutdown) {
+			try {
+				// 获取未加载服务并尝试重新加载
+				DelayInstall service = this.uninstalled.poll(ZkContext.INTERVAL, TimeUnit.MILLISECONDS);
+				if (service != null) {
+					ZkContext.this.subscribe(service.service());
+				}
+			} catch (Throwable e) {
+				ZkContext.LOGGER.debug(e.getMessage(), e);
+			}
+		}
+		ZkContext.LOGGER.warn("ZkContext shutdown ... ");
 	}
 
 	private class Roadmap {
@@ -568,6 +616,8 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 				}
 			} catch (NoNodeException e) {
 				this.failedIfInternal(service, e);
+				// 尝试延迟加载
+				ZkContext.this.uninstalled.add(new DelayInstall(service));
 			} catch (Throwable e) {
 				ZkContext.LOGGER.error(e.getMessage(), e);
 			}
@@ -585,7 +635,7 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 				if (AnnotationUtils.findAnnotation(Class.forName(service.service()), Internal.class) != null) {
 					ZkContext.LOGGER.info("Instance can not be found for internal service: " + service);
 				} else {
-					ZkContext.LOGGER.info(exception.getMessage(), exception);
+					ZkContext.LOGGER.warn(exception.getMessage(), exception);
 				}
 			} catch (ClassNotFoundException e) {
 				// Generic
@@ -901,6 +951,37 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 
 		public V val() {
 			return val;
+		}
+	}
+
+	private class DelayInstall implements Delayed {
+
+		/**
+		 * 当前时间 + delay时间
+		 */
+		private final long deadline = TimeUnit.MILLISECONDS.convert(ZkContext.DELAY, TimeUnit.MILLISECONDS) + System.currentTimeMillis();
+
+		private final Service service;
+
+		private DelayInstall(Service service) {
+			super();
+			this.service = service;
+		}
+
+		public long getDelay(TimeUnit unit) {
+			return unit.convert(this.deadline - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+		}
+
+		public int compareTo(Delayed o) {
+			return this.getDelay(TimeUnit.SECONDS) >= o.getDelay(TimeUnit.SECONDS) ? 1 : -1;
+		}
+
+		public Service service() {
+			return this.service;
+		}
+
+		public String toString() {
+			return "[deadline=" + this.deadline + "][service=" + this.service + "]";
 		}
 	}
 }
