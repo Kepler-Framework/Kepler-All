@@ -29,7 +29,7 @@ public interface Transfers extends Serializable {
 
 	public Collection<Transfer> transfers();
 
-	public Transfer get(Host local, Host target);
+	public Transfer get(Host local, Host remote);
 
-	public Transfer put(Host local, Host target, Status status, long rtt);
+	public Transfer put(Host local, Host remote, Status status, long rtt);
 }

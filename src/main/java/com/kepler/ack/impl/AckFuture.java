@@ -13,6 +13,7 @@ import com.kepler.ack.AckTimeOut;
 import com.kepler.ack.Acks;
 import com.kepler.ack.Status;
 import com.kepler.admin.transfer.Collector;
+import com.kepler.admin.transfer.Transfer;
 import com.kepler.channel.ChannelInvoker;
 import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
@@ -307,7 +308,9 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 		this.collector.collect(this);
 		// 超时处理
 		if (this.stauts.equals(Status.TIMEOUT)) {
-			this.timeout.timeout(this.invoker, this, this.collector.peek(this).timeout());
+			// 首次访问即超时Transfer = null
+			Transfer transfer = this.collector.peek(this);
+			this.timeout.timeout(this.invoker, this, transfer != null ? transfer.timeout() : 1);
 		}
 	}
 

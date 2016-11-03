@@ -10,6 +10,7 @@ import com.kepler.ack.AckTimeOut;
 import com.kepler.channel.ChannelInvoker;
 import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
+import com.kepler.host.HostsContext;
 import com.kepler.quality.Quality;
 
 /**
@@ -30,15 +31,18 @@ public class AckTimeOutImpl implements AckTimeOut {
 
 	private final ThreadPoolExecutor threads;
 
+	private final HostsContext hosts;
+
 	private final Quality quality;
 
 	private final Profile profile;
 
-	public AckTimeOutImpl(ThreadPoolExecutor threads, Profile profile, Quality quality) {
+	public AckTimeOutImpl(ThreadPoolExecutor threads, HostsContext hosts, Profile profile, Quality quality) {
 		super();
 		this.profile = profile;
 		this.quality = quality;
 		this.threads = threads;
+		this.hosts = hosts;
 	}
 
 	public void timeout(ChannelInvoker invoker, Ack ack, long times) {
@@ -72,9 +76,9 @@ public class AckTimeOutImpl implements AckTimeOut {
 
 		@Override
 		public void run() {
-			this.invoker.close();
 			AckTimeOutImpl.this.quality.breaking();
-			AckTimeOutImpl.LOGGER.warn("Host: " + this.invoker.remote() + " baned after " + this.ack.request().service() + " ( " + this.ack.request().method() + " ) timeout " + this.times + " times ... ");
+			AckTimeOutImpl.this.hosts.ban(this.invoker.remote());
+			AckTimeOutImpl.LOGGER.warn("Host: " + this.invoker.remote() + " demotion after " + this.ack.request().service() + " ( " + this.ack.request().method() + " ) timeout " + this.times + " times ... ");
 		}
 	}
 }

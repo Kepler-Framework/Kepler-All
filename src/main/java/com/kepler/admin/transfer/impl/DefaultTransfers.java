@@ -11,7 +11,6 @@ import com.kepler.ack.Status;
 import com.kepler.admin.transfer.Transfer;
 import com.kepler.admin.transfer.Transfers;
 import com.kepler.host.Host;
-import com.kepler.org.apache.commons.lang.builder.ToStringBuilder;
 import com.kepler.service.Service;
 import com.kepler.trace.TraceCauses;
 
@@ -73,21 +72,21 @@ public class DefaultTransfers implements Transfers {
 		}
 	}
 
-	public Transfer get(Host local, Host target) {
-		return this.transfers.get(new Hosts(local, target));
+	public Transfer get(Host local, Host remote) {
+		return this.transfers.get(new Hosts(local, remote));
 	}
 
 	/**
 	 * 获取或创建
 	 * 
 	 * @param local
-	 * @param target
+	 * @param remote
 	 * @param transfer
 	 * @return
 	 */
-	private Transfer get(Host local, Host target, Transfer transfer) {
+	private Transfer get(Host local, Host remote, Transfer transfer) {
 		// 如果已存在则返回已存在否则返回新创建
-		Transfer actual = this.transfers.putIfAbsent(new Hosts(local, target), transfer);
+		Transfer actual = this.transfers.putIfAbsent(new Hosts(local, remote), transfer);
 		return actual != null ? actual : transfer;
 	}
 
@@ -98,26 +97,26 @@ public class DefaultTransfers implements Transfers {
 	}
 
 	public String toString() {
-		return ToStringBuilder.reflectionToString(this);
+		return "[hosts=" + this.transfers.keySet() + "]";
 	}
 
 	private class Hosts {
 
 		private Host local;
 
-		private Host target;
+		private Host remote;
 
 		private Hosts() {
 			super();
 		}
 
-		private Hosts(Host local, Host target) {
+		private Hosts(Host local, Host remote) {
 			this.local = local;
-			this.target = target;
+			this.remote = remote;
 		}
 
 		public int hashCode() {
-			return this.local.hashCode() ^ this.target.hashCode();
+			return this.local.hashCode() ^ this.remote.hashCode();
 		}
 
 		public boolean equals(Object ob) {
@@ -127,7 +126,11 @@ public class DefaultTransfers implements Transfers {
 			}
 			Hosts host = Hosts.class.cast(ob);
 			// 完全相等
-			return this.local.equals(host.local) && this.target.equals(host.target);
+			return this.local.equals(host.local) && this.remote.equals(host.remote);
+		}
+
+		public String toString() {
+			return "[local=" + this.local + "][remote=" + this.remote + "]";
 		}
 	}
 }
