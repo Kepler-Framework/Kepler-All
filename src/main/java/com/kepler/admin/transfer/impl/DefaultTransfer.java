@@ -20,9 +20,9 @@ public class DefaultTransfer implements Transfer {
 	private static final int FREEZE = PropertiesUtils.get(DefaultTransfer.class.getName().toLowerCase() + ".freeze", Byte.MAX_VALUE);
 
 	/**
-	 * 超过指定阈值则记录Max Trace(默认2倍)
+	 * 超过指定阈值则记录Max Trace(默认5倍)
 	 */
-	private static final double THRESHOLD = PropertiesUtils.get(DefaultTransfer.class.getName().toLowerCase() + ".threshold", 2);
+	private static final double THRESHOLD = PropertiesUtils.get(DefaultTransfer.class.getName().toLowerCase() + ".threshold", 5);
 
 	private static final long serialVersionUID = 1L;
 
@@ -70,8 +70,10 @@ public class DefaultTransfer implements Transfer {
 	 * 如果当前Max大于平均耗时指定阈值则记录Trace
 	 */
 	private void max4trace() {
-		if (new Double(this.max) / (this.rtt / this.total) > DefaultTransfer.THRESHOLD) {
-			this.trace.put(this.service, this.method, "Max elapse request: " + this.max + "(ms)");
+		double max = new Double(this.max);
+		double avg = this.rtt / this.total;
+		if (max / avg > DefaultTransfer.THRESHOLD) {
+			this.trace.put(this.service, this.method, "Warning request. [max=" + max + "(ms)][avg=" + avg + "]");
 		}
 	}
 
