@@ -23,8 +23,8 @@ import com.kepler.trace.TraceCauses;
  */
 public class DefaultCauses implements TraceCauses {
 
-	// Trace数量记录, 最多15条, 默认5条
-	private static final int MAX = Math.max(Integer.valueOf(PropertiesUtils.get(DefaultCauses.class.getName().toLowerCase() + ".max", "5")), 15);
+	// Trace数量记录, 最多30条, 默认15条
+	private static final int MAX = Math.max(Integer.valueOf(PropertiesUtils.get(DefaultCauses.class.getName().toLowerCase() + ".max", "15")), 30);
 
 	private static final Log LOGGER = LogFactory.getLog(DefaultCauses.class);
 
@@ -63,16 +63,16 @@ public class DefaultCauses implements TraceCauses {
 	 * 
 	 * @return
 	 */
-	private boolean allow() {
+	private boolean allow(Service service, String method, String cause) {
 		if (this.index.getAndIncrement() > DefaultCauses.MAX) {
-			DefaultCauses.LOGGER.warn("Array out of range. [max=" + DefaultCauses.MAX + "][index=" + this.causes_one.size() + "]");
+			DefaultCauses.LOGGER.warn("Array out of range. [max=" + DefaultCauses.MAX + "][index=" + this.causes_one.size() + "][service=" + service + "][method=" + method + "][cause=" + cause + "]");
 			return false;
 		}
 		return true;
 	}
 
 	public void put(Service service, String method, String cause) {
-		if (!this.allow()) {
+		if (!this.allow(service, method, cause)) {
 			return;
 		}
 		// 开启收集, 并且为非静默异常
@@ -83,7 +83,7 @@ public class DefaultCauses implements TraceCauses {
 
 	@Override
 	public void put(Request request, Throwable throwable) {
-		if (!this.allow()) {
+		if (!this.allow(request.service(), request.method(), throwable.toString())) {
 			return;
 		}
 		// 开启收集, 并且为非静默异常
