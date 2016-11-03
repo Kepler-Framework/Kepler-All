@@ -16,6 +16,7 @@ import com.kepler.admin.transfer.Collector;
 import com.kepler.admin.transfer.Transfer;
 import com.kepler.admin.transfer.Transfers;
 import com.kepler.config.PropertiesUtils;
+import com.kepler.header.impl.TraceContext;
 import com.kepler.org.apache.commons.collections.map.MultiKeyMap;
 import com.kepler.service.Imported;
 import com.kepler.service.Service;
@@ -203,10 +204,15 @@ public class DefaultCollector implements Runnable, Collector, Imported {
 			try {
 				Ack ack = this.acks.poll(DefaultCollector.INTERVAL, TimeUnit.MILLISECONDS);
 				if (ack != null) {
+					// 绑定ACK Trace
+					TraceContext.get4create(ack.trace());
 					this.get(ack).put(ack.local(), ack.remote(), ack.status(), ack.elapse());
 				}
 			} catch (Throwable e) {
 				DefaultCollector.LOGGER.debug(e.getMessage(), e);
+			} finally {
+				// 释放ACK Trace
+				TraceContext.release();
 			}
 		}
 		DefaultCollector.LOGGER.warn("Collector shutdown ... ");

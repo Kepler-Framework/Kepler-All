@@ -28,6 +28,13 @@ public interface Ack {
 	 * @return
 	 */
 	public long elapse();
+	
+	/**
+	 * Trace号
+	 * 
+	 * @return
+	 */
+	public String trace();
 
 	/**
 	 * ACK状态

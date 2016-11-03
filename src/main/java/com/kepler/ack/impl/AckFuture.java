@@ -16,6 +16,7 @@ import com.kepler.admin.transfer.Collector;
 import com.kepler.channel.ChannelInvoker;
 import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
+import com.kepler.header.impl.TraceContext;
 import com.kepler.host.Host;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.Response;
@@ -25,6 +26,10 @@ import com.kepler.service.Quiet;
  * Warning: 监视器使用this避免创建无用对象
  * 
  * @author kim 2015年7月23日
+ */
+/**
+ * @author KimShen
+ *
  */
 public class AckFuture implements Future<Object>, Runnable, Ack {
 
@@ -44,6 +49,11 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	 * ACK持有线程
 	 */
 	private final Thread thread = Thread.currentThread();
+
+	/**
+	 * Trace
+	 */
+	private final String trace = TraceContext.get();
 
 	/**
 	 * 执行通道
@@ -330,6 +340,10 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	private Object response() throws InterruptedException {
 		// 是否中断, 是否超时, 是否取消, 是否抛出异常
 		return this.checkInterrupt().checkTimeout().checkCancel().checkException().response.response();
+	}
+
+	public String trace() {
+		return this.trace;
 	}
 
 	/**

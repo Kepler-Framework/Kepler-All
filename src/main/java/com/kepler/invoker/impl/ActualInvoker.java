@@ -37,7 +37,7 @@ public class ActualInvoker implements Invoker {
 	private final ChannelContext channels;
 
 	private final MockerContext mocker;
-	
+
 	private final TraceCauses trace;
 
 	private final Router router;

@@ -62,9 +62,9 @@ public class TraceContext {
 	 * @param headers 当前上下文
 	 * @return 创建后的Trace
 	 */
-	private static String trace(Headers headers) {
-		// 使用UUID创建Trace
-		String trace = UUID.randomUUID().toString();
+	private static String trace(Headers headers, String trace) {
+		// 生成Trace
+		trace = StringUtils.isEmpty(trace) ? UUID.randomUUID().toString() : trace;
 		headers.put(Trace.TRACE_COVER, TraceContext.log4jmdc(trace));
 		return trace;
 	}
@@ -85,9 +85,14 @@ public class TraceContext {
 	 * @return
 	 */
 	public static String get4create() {
+		return TraceContext.get4create(null);
+	}
+
+	public static String get4create(String trace) {
 		Headers headers = TraceContext.headers();
-		String trace = headers.get(Trace.TRACE_COVER);
-		return StringUtils.isEmpty(trace) ? TraceContext.trace(headers) : trace;
+		String current = headers.get(Trace.TRACE_COVER);
+		// 如果当前不存在Trace则创建
+		return StringUtils.isEmpty(current) ? TraceContext.trace(headers, trace) : current;
 	}
 
 	/**
