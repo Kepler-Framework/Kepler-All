@@ -8,7 +8,7 @@
 	<alias name="kepler.service.quiet" alias="kepler.service.imported.quiet" />
 	<alias name="kepler.service.quiet" alias="kepler.service.exported.quiet" />
 
-	<bean id="kepler.service.quiet" class="com.kepler.service.imported.QuietExceptions">
+	<bean id="kepler.service.quiet" class="com.kepler.service.impl.QuietExceptions">
 		<constructor-arg ref="kepler.methods" />
 	</bean>
 

@@ -175,6 +175,10 @@ public class DefaultServer {
 					// 检查死连接
 					channel.pipeline().addLast(new IdleStateHandler(DefaultServer.IDLE_READ, DefaultServer.IDLE_WRITE, DefaultServer.IDLE_ALL));
 					channel.pipeline().addLast(new LengthFieldBasedFrameDecoder(DefaultServer.FRAGEMENT, 0, CodecHeader.DEFAULT, 0, CodecHeader.DEFAULT));
+					// 连接控制 new ResourceHandler()
+					// 黏包 new LengthFieldPrepender(CodecHeader.DEFAULT);
+					// 本地服务 new ExportedHandler();
+					// 服务配置(绑定端口,SO_REUSEADDR=true)
 					for (ChannelHandler each : InitializerFactory.this.handlers) {
 						channel.pipeline().addLast(each);
 					}
@@ -278,7 +282,7 @@ public class DefaultServer {
 					DefaultServer.this.headers.set(request.headers());
 					// 使用处理后Request
 					Response response = this.response(request);
-					this.ctx.writeAndFlush(DefaultServer.this.encoder.encode(response)).addListener(ExceptionListener.TRACE);
+					this.ctx.writeAndFlush(DefaultServer.this.encoder.encode(request.service(), request.method(), response)).addListener(ExceptionListener.TRACE);
 					// 记录调用栈 (使用原始Request)
 					DefaultServer.this.trace.trace(request, response, this.ctx.channel().localAddress().toString(), this.ctx.channel().remoteAddress().toString(), this.waiting, System.currentTimeMillis() - this.running, this.created);
 				} catch (Throwable throwable) {

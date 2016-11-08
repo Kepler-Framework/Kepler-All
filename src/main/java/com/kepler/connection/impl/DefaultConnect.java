@@ -338,7 +338,7 @@ public class DefaultConnect implements Connect {
 		public Object invoke(Request request) throws Throwable {
 			// 增加Token Header
 			AckFuture future = new AckFuture(this, DefaultConnect.this.timeout, DefaultConnect.this.collector, this.ctx.channel().eventLoop(), DefaultConnect.this.token.set(request, this), DefaultConnect.this.profiles, DefaultConnect.this.quiet);
-			ByteBuf buffer = DefaultConnect.this.encoder.encode(future.request());
+			ByteBuf buffer = DefaultConnect.this.encoder.encode(request.service(), request.method(), future.request());
 			if (this.ctx.channel().eventLoop().inEventLoop()) {
 				this.ctx.channel().attr(DefaultConnect.ACKS).get().put(future);
 				this.ctx.writeAndFlush(buffer).addListener(ExceptionListener.TRACE);
