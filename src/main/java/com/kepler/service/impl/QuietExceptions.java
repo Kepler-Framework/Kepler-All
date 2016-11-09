@@ -1,5 +1,6 @@
 package com.kepler.service.impl;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,17 +15,24 @@ import org.springframework.core.annotation.AnnotationUtils;
 
 import com.kepler.annotation.QuietMethod;
 import com.kepler.annotation.QuietThrowable;
+import com.kepler.config.PropertiesUtils;
 import com.kepler.method.Methods;
 import com.kepler.protocol.Request;
 import com.kepler.service.Exported;
 import com.kepler.service.Imported;
 import com.kepler.service.Quiet;
 import com.kepler.service.Service;
+import com.kepler.trace.Trace;
 
 /**
  * @author kim 2015年12月15日
  */
 public class QuietExceptions implements Quiet, Imported, Exported {
+
+	/**
+	 * 是否对静默异常本地提示
+	 */
+	private static final boolean WARNING = PropertiesUtils.get(QuietExceptions.class.getName().toLowerCase() + ".warning", false);
 
 	private static final List<Class<? extends Throwable>> EMPTY = Collections.unmodifiableList(new ArrayList<Class<? extends Throwable>>());
 
@@ -108,6 +116,22 @@ public class QuietExceptions implements Quiet, Imported, Exported {
 			QuietExceptions.LOGGER.info(e.getMessage(), e);
 			return false;
 		}
+	}
+
+	public boolean print(Request request, Throwable throwable) {
+		Throwable actual = InvocationTargetException.class.isAssignableFrom(throwable.getClass()) ? InvocationTargetException.class.cast(throwable).getTargetException() : throwable;
+		String message = "[trace=" + request.get(Trace.TRACE) + "][message=" + actual.getMessage() + "]";
+		boolean quiet = this.quiet(request, actual.getClass());
+		if (!quiet) {
+			// 非静默异常输出ERROR
+			QuietExceptions.LOGGER.error(message, actual);
+		} else {
+			// 静默异常根据配置输出WARN(默认关闭)
+			if (QuietExceptions.WARNING) {
+				QuietExceptions.LOGGER.warn(message, actual);
+			}
+		}
+		return quiet;
 	}
 
 	private class QuietMethods {

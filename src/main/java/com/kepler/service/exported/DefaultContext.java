@@ -19,6 +19,7 @@ import com.kepler.protocol.Request;
 import com.kepler.protocol.RequestValidation;
 import com.kepler.service.Exported;
 import com.kepler.service.ExportedContext;
+import com.kepler.service.Quiet;
 import com.kepler.service.Service;
 
 /**
@@ -49,10 +50,13 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 
 	private final Methods methods;
 
-	public DefaultContext(RequestValidation validation, GenericDelegate delegate, Methods methods) {
+	private final Quiet quiet;
+
+	public DefaultContext(RequestValidation validation, GenericDelegate delegate, Methods methods, Quiet quiet) {
 		this.validation = validation;
 		this.delegate = delegate;
 		this.methods = methods;
+		this.quiet = quiet;
 	}
 
 	public Invoker get(Service service) {
@@ -110,6 +114,8 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 				DefaultContext.LOGGER.error(exception.getMessage(), exception);
 				throw exception;
 			} catch (Throwable throwable) {
+				// 是否静默异常或本地输出
+				DefaultContext.this.quiet.print(request, throwable);
 				throw this.throwable(method, this.cause(throwable));
 			}
 		}

@@ -23,6 +23,7 @@
 		<constructor-arg ref="kepler.protocol.validation4service" />
 		<constructor-arg ref="kepler.generic.analyse.analyser" />
 		<constructor-arg ref="kepler.generic.response" />
+		<constructor-arg ref="kepler.service.quiet" />
 		<constructor-arg ref="kepler.methods" />
 	</bean>
 

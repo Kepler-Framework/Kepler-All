@@ -22,6 +22,7 @@ import com.kepler.org.apache.commons.collections.keyvalue.MultiKey;
 import com.kepler.org.apache.commons.collections.map.MultiKeyMap;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.RequestValidation;
+import com.kepler.service.Quiet;
 
 /**
  * @author KimShen
@@ -53,16 +54,19 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 
 	private final Methods methods;
 
+	private final Quiet quiet;
+
 	/**
 	 * 缓存推导方法
 	 */
 	volatile private MultiKeyMap cached = new MultiKeyMap();
 
-	public DefaultDelegate(GenericResponseFactory factory, RequestValidation validation, FieldsAnalyser analyser, Methods methods) {
+	public DefaultDelegate(GenericResponseFactory factory, RequestValidation validation, FieldsAnalyser analyser, Methods methods, Quiet quiet) {
 		this.validation = validation;
 		this.analyser = analyser;
 		this.factory = factory;
 		this.methods = methods;
+		this.quiet = quiet;
 	}
 
 	protected String key() {
@@ -89,10 +93,7 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 
 	@Override
 	public GenericResponse delegate(Object instance, String method, Request request) throws KeplerGenericException {
-		return this.delegate(instance, method, GenericArgs.class.cast(request.args()[0]));
-	}
-
-	private GenericResponse delegate(Object instance, String method, GenericArgs args) throws KeplerGenericException {
+		GenericArgs args = GenericArgs.class.cast(request.args()[0]);
 		try {
 			// 根据参数匹配的真实方法(使用Instance.class)
 			Method method_actual = this.method(instance.getClass(), method, args);
@@ -111,6 +112,7 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 			// 处理Method实际错误
 			throw new KeplerGenericException(e.getTargetException());
 		} catch (Throwable e) {
+			this.quiet.print(request, e);
 			// 泛化调用统一返回KeplerGenericException
 			throw new KeplerGenericException(e);
 		}

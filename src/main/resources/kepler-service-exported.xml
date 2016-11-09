@@ -13,6 +13,7 @@
 				<ref bean="kepler.service.exported.quiet" />
 				<ref bean="kepler.service.exported.context" />
 				<ref bean="kepler.service.exported.generic" />
+				<ref bean="kepler.service.exported.encoder" />
 				<ref bean="kepler.service.exported.zookeeper" />
 			</list>
 		</constructor-arg>
@@ -21,6 +22,7 @@
 	<bean id="kepler.service.exported.context" class="com.kepler.service.exported.DefaultContext">
 		<constructor-arg ref="kepler.protocol.validation4service" />
 		<constructor-arg ref="kepler.generic.delegate" />
+		<constructor-arg ref="kepler.service.quiet" />
 		<constructor-arg ref="kepler.methods" />
 	</bean>
 

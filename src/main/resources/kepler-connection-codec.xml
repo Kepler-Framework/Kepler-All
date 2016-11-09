@@ -5,6 +5,9 @@
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
+	<alias name="kepler.codec.encoder.request" alias="kepler.service.imported.encoder" />
+	<alias name="kepler.codec.encoder.response" alias="kepler.service.exported.encoder" />
+
 	<bean id="kepler.codec.encoder.request" class="com.kepler.connection.codec.Encoder">
 		<constructor-arg ref="kepler.serials" />
 		<constructor-arg value="com.kepler.protocol.Request" />

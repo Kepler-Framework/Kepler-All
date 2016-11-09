@@ -51,7 +51,7 @@ public class KeplerGenericException extends KeplerLocalException implements Clon
 	 * 用来保存原始异常类型
 	 */
 	private final List<String> classes;
-
+	
 	/**
 	 * 文本错误
 	 */

@@ -14,6 +14,7 @@
 				<ref bean="kepler.service.imported.invoker.async" />
 				<ref bean="kepler.service.imported.invoker.main" />
 				<ref bean="kepler.service.imported.collector" />
+				<ref bean="kepler.service.imported.encoder" />
 				<ref bean="kepler.service.imported.cache" />
 				<ref bean="kepler.service.imported.quiet" />
 				<!-- ZK as a final publish, need last -->

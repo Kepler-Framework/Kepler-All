@@ -14,6 +14,7 @@ import com.kepler.generic.wrap.GenericArg;
 import com.kepler.org.apache.commons.lang.reflect.MethodUtils;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.RequestValidation;
+import com.kepler.service.Quiet;
 
 /**
  * @author KimShen
@@ -34,9 +35,12 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 
 	private final RequestValidation validation;
 
-	public DefaultDelegate(GenericResponseFactory factory, RequestValidation validation) {
+	private final Quiet quiet;
+
+	public DefaultDelegate(GenericResponseFactory factory, RequestValidation validation, Quiet quiet) {
 		this.validation = validation;
 		this.factory = factory;
+		this.quiet = quiet;
 	}
 
 	protected String key() {
@@ -63,16 +67,14 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 
 	@Override
 	public GenericResponse delegate(Object instance, String method, Request request) throws KeplerGenericException {
-		return this.delegate(instance, method, request.args());
-	}
-
-	private GenericResponse delegate(Object instance, String method, Object[] args) throws KeplerGenericException {
 		// 代理执行
 		try {
-			return this.factory.response(MethodUtils.invokeMethod(instance, method, this.validation.valid(new Args(args).args())));
+			return this.factory.response(MethodUtils.invokeMethod(instance, method, this.validation.valid(new Args(request.args()).args())));
 		} catch (InvocationTargetException e) {
 			throw new KeplerGenericException(e.getTargetException());
 		} catch (Throwable e) {
+			// 尝试输出本地日志
+			this.quiet.print(request, e);
 			throw new KeplerGenericException(e);
 		}
 	}

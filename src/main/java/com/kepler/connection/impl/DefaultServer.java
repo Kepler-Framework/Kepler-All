@@ -21,7 +21,6 @@ import com.kepler.protocol.Response;
 import com.kepler.protocol.ResponseFactory;
 import com.kepler.quality.Quality;
 import com.kepler.service.ExportedContext;
-import com.kepler.service.Quiet;
 import com.kepler.token.TokenContext;
 import com.kepler.trace.Trace;
 
@@ -74,11 +73,6 @@ public class DefaultServer {
 	 */
 	private static final String BINDING = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".binding", "0.0.0.0");
 
-	/**
-	 * 是否对静默异常本地提示
-	 */
-	private static final boolean WARNING = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".warning", false);
-
 	private static final DefaultChannelFactory<ServerChannel> FACTORY = new DefaultChannelFactory<ServerChannel>(NioServerSocketChannel.class);
 
 	private static final Log LOGGER = LogFactory.getLog(DefaultServer.class);
@@ -111,9 +105,7 @@ public class DefaultServer {
 
 	private final Trace trace;
 
-	private final Quiet quiet;
-
-	public DefaultServer(Trace trace, Reject reject, Encoder encoder, Decoder decoder, Quality quality, ServerHost local, TokenContext token, ExportedContext exported, ResponseFactory response, HeadersContext headers, ThreadPoolExecutor threads, RequestProcessor processor, Quiet quiet) {
+	public DefaultServer(Trace trace, Reject reject, Encoder encoder, Decoder decoder, Quality quality, ServerHost local, TokenContext token, ExportedContext exported, ResponseFactory response, HeadersContext headers, ThreadPoolExecutor threads, RequestProcessor processor) {
 		super();
 		this.processor = processor;
 		this.exported = exported;
@@ -124,7 +116,6 @@ public class DefaultServer {
 		this.encoder = encoder;
 		this.decoder = decoder;
 		this.reject = reject;
-		this.quiet = quiet;
 		this.token = token;
 		this.trace = trace;
 		this.local = local;
@@ -299,16 +290,6 @@ public class DefaultServer {
 					// 获取服务并执行
 					return DefaultServer.this.response.response(request.ack(), DefaultServer.this.exported.get(request.service()).invoke(request), request.serial());
 				} catch (Throwable e) {
-					// 业务异常, 如果非静默异常使用Error,否则使用Warn
-					String message = "[trace=" + request.get(Trace.TRACE) + "][message=" + e.getMessage() + "]";
-					if (!DefaultServer.this.quiet.quiet(request, e.getClass())) {
-						DefaultServer.LOGGER.error(message, e);
-					} else {
-						// 本地报警(如果开启)
-						if (DefaultServer.WARNING) {
-							DefaultServer.LOGGER.warn(message, e);
-						}
-					}
 					return DefaultServer.this.response.throwable(request.ack(), e, request.serial());
 				} finally {
 					// 删除Header避免同线程的其他业务复用
