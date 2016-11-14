@@ -14,6 +14,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.kepler.KeplerException;
+import com.kepler.KeplerNetworkException;
 import com.kepler.ack.AckTimeOut;
 import com.kepler.ack.Acks;
 import com.kepler.ack.impl.AckFuture;
@@ -74,6 +75,10 @@ public class DefaultConnect implements Connect {
 	private static final int BUFFER_SEND = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".buffer_send", Integer.MAX_VALUE);
 
 	private static final int BUFFER_RECV = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".buffer_recv", Integer.MAX_VALUE);
+
+	private static final int WATER_LOW = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".water_low", Integer.MAX_VALUE);
+
+	private static final int WATER_HIGH = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".water_high", Integer.MAX_VALUE);
 
 	/**
 	 * 监听待重连线程数量
@@ -315,6 +320,8 @@ public class DefaultConnect implements Connect {
 			DefaultConnect.LOGGER.info("Connect active (" + this.local + " to " + this.remote + ") ...");
 			// 初始化赋值
 			(this.ctx = ctx).channel().attr(DefaultConnect.ACKS).set(new AcksImpl());
+			this.ctx.channel().config().setWriteBufferLowWaterMark(DefaultConnect.WATER_LOW);
+			this.ctx.channel().config().setWriteBufferHighWaterMark(DefaultConnect.WATER_HIGH);
 			this.ctx.fireChannelActive();
 		}
 
@@ -339,6 +346,10 @@ public class DefaultConnect implements Connect {
 			// 增加Token Header
 			AckFuture future = new AckFuture(this, DefaultConnect.this.timeout, DefaultConnect.this.collector, this.ctx.channel().eventLoop(), DefaultConnect.this.token.set(request, this), DefaultConnect.this.profiles, DefaultConnect.this.quiet);
 			ByteBuf buffer = DefaultConnect.this.encoder.encode(request.service(), request.method(), future.request());
+			// 通道可读检查, 窗口关闭则抛出异常
+			if (!this.ctx.channel().isWritable()) {
+				throw new KeplerNetworkException("Channel can not writable. [from=" + this.ctx.channel().localAddress() + "][to=" + this.ctx.channel().remoteAddress() + "]");
+			}
 			if (this.ctx.channel().eventLoop().inEventLoop()) {
 				this.ctx.channel().attr(DefaultConnect.ACKS).get().put(future);
 				this.ctx.writeAndFlush(buffer).addListener(ExceptionListener.TRACE);

@@ -8,6 +8,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.kepler.KeplerException;
+import com.kepler.KeplerNetworkException;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.connection.Reject;
 import com.kepler.connection.codec.CodecHeader;
@@ -54,6 +55,10 @@ public class DefaultServer {
 	private static final int BUFFER_SEND = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".buffer_send", Integer.MAX_VALUE);
 
 	private static final int BUFFER_RECV = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".buffer_recv", Integer.MAX_VALUE);
+
+	private static final int WATER_LOW = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".water_low", Integer.MAX_VALUE);
+
+	private static final int WATER_HIGH = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".water_high", Integer.MAX_VALUE);
 
 	private static final boolean IDLE_CLOSE = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".idle_close", true);
 
@@ -188,6 +193,8 @@ public class DefaultServer {
 
 		public void channelActive(ChannelHandlerContext ctx) throws Exception {
 			DefaultServer.LOGGER.info("Connect active (" + ctx.channel().localAddress().toString() + " to " + ctx.channel().remoteAddress().toString() + ") ...");
+			ctx.channel().config().setWriteBufferLowWaterMark(DefaultServer.WATER_LOW);
+			ctx.channel().config().setWriteBufferHighWaterMark(DefaultServer.WATER_HIGH);
 			ctx.fireChannelActive();
 		}
 
@@ -273,6 +280,10 @@ public class DefaultServer {
 					DefaultServer.this.headers.set(request.headers());
 					// 使用处理后Request
 					Response response = this.response(request);
+					// 通道可读检查, 窗口关闭则抛出异常
+					if (!this.ctx.channel().isWritable()) {
+						throw new KeplerNetworkException("Channel can not writable. [from=" + this.ctx.channel().localAddress() + "][to=" + this.ctx.channel().remoteAddress() + "]");
+					}
 					this.ctx.writeAndFlush(DefaultServer.this.encoder.encode(request.service(), request.method(), response)).addListener(ExceptionListener.TRACE);
 					// 记录调用栈 (使用原始Request)
 					DefaultServer.this.trace.trace(request, response, this.ctx.channel().localAddress().toString(), this.ctx.channel().remoteAddress().toString(), this.waiting, System.currentTimeMillis() - this.running, this.created);
