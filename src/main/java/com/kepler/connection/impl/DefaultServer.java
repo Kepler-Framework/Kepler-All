@@ -56,10 +56,6 @@ public class DefaultServer {
 
 	private static final int BUFFER_RECV = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".buffer_recv", Integer.MAX_VALUE);
 
-	private static final int WATER_LOW = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".water_low", Integer.MAX_VALUE);
-
-	private static final int WATER_HIGH = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".water_high", Integer.MAX_VALUE);
-
 	private static final boolean IDLE_CLOSE = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".idle_close", true);
 
 	private static final short IDLE_ALL = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".idle_all", Short.MAX_VALUE);
@@ -77,6 +73,15 @@ public class DefaultServer {
 	 * 服务绑定的本地IP
 	 */
 	private static final String BINDING = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".binding", "0.0.0.0");
+
+	/**
+	 * 可写测试
+	 */
+	private static final boolean WRITE_WATER = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".write_water", false);
+
+	private static final int WRITE_WATERWATER_LOW = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".write_water_low", 32768);
+
+	private static final int WRITE_WATERWATER_HIGH = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".write_water_high", 65536);
 
 	private static final DefaultChannelFactory<ServerChannel> FACTORY = new DefaultChannelFactory<ServerChannel>(NioServerSocketChannel.class);
 
@@ -191,10 +196,21 @@ public class DefaultServer {
 	@Sharable
 	private class ExportedHandler extends ChannelInboundHandlerAdapter {
 
+		/**
+		 * 通道写入水位配置
+		 * 
+		 * @param ctx
+		 */
+		private void water4config(ChannelHandlerContext ctx) {
+			if (DefaultServer.WRITE_WATER) {
+				ctx.channel().config().setWriteBufferLowWaterMark(DefaultServer.WRITE_WATERWATER_LOW);
+				ctx.channel().config().setWriteBufferHighWaterMark(DefaultServer.WRITE_WATERWATER_HIGH);
+			}
+		}
+
 		public void channelActive(ChannelHandlerContext ctx) throws Exception {
 			DefaultServer.LOGGER.info("Connect active (" + ctx.channel().localAddress().toString() + " to " + ctx.channel().remoteAddress().toString() + ") ...");
-			ctx.channel().config().setWriteBufferLowWaterMark(DefaultServer.WATER_LOW);
-			ctx.channel().config().setWriteBufferHighWaterMark(DefaultServer.WATER_HIGH);
+			this.water4config(ctx);
 			ctx.fireChannelActive();
 		}
 
@@ -269,6 +285,16 @@ public class DefaultServer {
 				DefaultServer.this.quality.waiting(this.waiting = this.running - this.created);
 			}
 
+			/**
+			 * 通道写入水位检查
+			 */
+			private void water4check() {
+				// 通道可读检查, 窗口关闭则抛出异常
+				if (DefaultServer.WRITE_WATER && !this.ctx.channel().isWritable()) {
+					throw new KeplerNetworkException("Channel can not writable. [from=" + this.ctx.channel().localAddress() + "][to=" + this.ctx.channel().remoteAddress() + "]");
+				}
+			}
+
 			@Override
 			public void run() {
 				try {
@@ -280,10 +306,7 @@ public class DefaultServer {
 					DefaultServer.this.headers.set(request.headers());
 					// 使用处理后Request
 					Response response = this.response(request);
-					// 通道可读检查, 窗口关闭则抛出异常
-					if (!this.ctx.channel().isWritable()) {
-						throw new KeplerNetworkException("Channel can not writable. [from=" + this.ctx.channel().localAddress() + "][to=" + this.ctx.channel().remoteAddress() + "]");
-					}
+					this.water4check();
 					this.ctx.writeAndFlush(DefaultServer.this.encoder.encode(request.service(), request.method(), response)).addListener(ExceptionListener.TRACE);
 					// 记录调用栈 (使用原始Request)
 					DefaultServer.this.trace.trace(request, response, this.ctx.channel().localAddress().toString(), this.ctx.channel().remoteAddress().toString(), this.waiting, System.currentTimeMillis() - this.running, this.created);

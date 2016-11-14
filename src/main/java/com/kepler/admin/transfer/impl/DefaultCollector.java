@@ -12,6 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.kepler.ack.Ack;
+import com.kepler.admin.status.impl.StatusTask;
 import com.kepler.admin.transfer.Collector;
 import com.kepler.admin.transfer.Transfer;
 import com.kepler.admin.transfer.Transfers;
@@ -135,7 +136,7 @@ public class DefaultCollector implements Runnable, Collector, Imported {
 
 	@Override
 	public void collect(Ack ack) {
-		if (!this.acks.offer(ack)) {
+		if (StatusTask.ENABLED && !this.acks.offer(ack)) {
 			// 插入失败提示
 			DefaultCollector.LOGGER.warn("Collect ack failed: " + Arrays.toString(ack.request().ack()));
 		}

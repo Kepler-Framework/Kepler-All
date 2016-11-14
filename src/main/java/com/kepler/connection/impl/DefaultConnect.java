@@ -76,10 +76,6 @@ public class DefaultConnect implements Connect {
 
 	private static final int BUFFER_RECV = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".buffer_recv", Integer.MAX_VALUE);
 
-	private static final int WATER_LOW = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".water_low", Integer.MAX_VALUE);
-
-	private static final int WATER_HIGH = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".water_high", Integer.MAX_VALUE);
-
 	/**
 	 * 监听待重连线程数量
 	 */
@@ -104,6 +100,15 @@ public class DefaultConnect implements Connect {
 	 * EventLoopGroup线程数量
 	 */
 	private static final int EVENTLOOP_THREAD = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".eventloop_thread", Runtime.getRuntime().availableProcessors() * 2);
+
+	/**
+	 * 可写测试
+	 */
+	private static final boolean WRITE_WATER = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".write_water", false);
+
+	private static final int WRITE_WATERWATER_LOW = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".write_water_low", 32768);
+
+	private static final int WRITE_WATERWATER_HIGH = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".write_water_high", 65536);
 
 	private static final ChannelFactory<SocketChannel> FACTORY = new DefaultChannelFactory<SocketChannel>(NioSocketChannel.class);
 
@@ -316,12 +321,32 @@ public class DefaultConnect implements Connect {
 			return true;
 		}
 
+		/**
+		 * 通道写入水位检查
+		 */
+		private void water4check() {
+			// 通道可读检查, 窗口关闭则抛出异常
+			if (DefaultConnect.WRITE_WATER && !this.ctx.channel().isWritable()) {
+				throw new KeplerNetworkException("Channel can not writable. [from=" + this.ctx.channel().localAddress() + "][to=" + this.ctx.channel().remoteAddress() + "]");
+			}
+		}
+
+		/**
+		 * 通道写入水位配置
+		 */
+		private void water4config() {
+			// 指定写入流量上下限
+			if (DefaultConnect.WRITE_WATER) {
+				this.ctx.channel().config().setWriteBufferLowWaterMark(DefaultConnect.WRITE_WATERWATER_LOW);
+				this.ctx.channel().config().setWriteBufferHighWaterMark(DefaultConnect.WRITE_WATERWATER_HIGH);
+			}
+		}
+
 		public void channelActive(ChannelHandlerContext ctx) throws Exception {
 			DefaultConnect.LOGGER.info("Connect active (" + this.local + " to " + this.remote + ") ...");
 			// 初始化赋值
 			(this.ctx = ctx).channel().attr(DefaultConnect.ACKS).set(new AcksImpl());
-			this.ctx.channel().config().setWriteBufferLowWaterMark(DefaultConnect.WATER_LOW);
-			this.ctx.channel().config().setWriteBufferHighWaterMark(DefaultConnect.WATER_HIGH);
+			this.water4config();
 			this.ctx.fireChannelActive();
 		}
 
@@ -346,10 +371,7 @@ public class DefaultConnect implements Connect {
 			// 增加Token Header
 			AckFuture future = new AckFuture(this, DefaultConnect.this.timeout, DefaultConnect.this.collector, this.ctx.channel().eventLoop(), DefaultConnect.this.token.set(request, this), DefaultConnect.this.profiles, DefaultConnect.this.quiet);
 			ByteBuf buffer = DefaultConnect.this.encoder.encode(request.service(), request.method(), future.request());
-			// 通道可读检查, 窗口关闭则抛出异常
-			if (!this.ctx.channel().isWritable()) {
-				throw new KeplerNetworkException("Channel can not writable. [from=" + this.ctx.channel().localAddress() + "][to=" + this.ctx.channel().remoteAddress() + "]");
-			}
+			this.water4check();
 			if (this.ctx.channel().eventLoop().inEventLoop()) {
 				this.ctx.channel().attr(DefaultConnect.ACKS).get().put(future);
 				this.ctx.writeAndFlush(buffer).addListener(ExceptionListener.TRACE);
