@@ -42,6 +42,11 @@ public interface Host extends Serializable {
 	public static final String NAME = PropertiesUtils.get(Host.class.getName().toLowerCase() + ".name", "unknow");
 
 	/**
+	 * 物理位置
+	 */
+	public static final String LOCATION = PropertiesUtils.get(Host.class.getName().toLowerCase() + ".location", "").toLowerCase();
+
+	/**
 	 * 主机默认分组
 	 */
 	public static final String GROUP_DEF = "unknow";
@@ -85,6 +90,13 @@ public interface Host extends Serializable {
 	 * @return
 	 */
 	public String address();
+
+	/**
+	 * 物理位置
+	 * 
+	 * @return
+	 */
+	public String location();
 
 	/**
 	 * 是否为本地回路

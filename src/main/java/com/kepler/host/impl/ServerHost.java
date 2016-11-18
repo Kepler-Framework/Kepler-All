@@ -76,7 +76,7 @@ public class ServerHost implements Serializable, Host {
 	}
 
 	public ServerHost(Pid pid) throws Exception {
-		this.local = new DefaultHost(Host.GROUP_VAL, Host.TOKEN_VAL, Host.NAME, Host.TAG_VAL, pid.pid(), this.ip(), ServerHost.STABLE ? ServerHost.PORT : this.available(), Host.PRIORITY_DEF);
+		this.local = new DefaultHost(Host.LOCATION, Host.GROUP_VAL, Host.TOKEN_VAL, Host.NAME, Host.TAG_VAL, pid.pid(), this.ip(), ServerHost.STABLE ? ServerHost.PORT : this.available(), Host.PRIORITY_DEF);
 		this.sid = ServerHost.SID;
 	}
 
@@ -164,6 +164,10 @@ public class ServerHost implements Serializable, Host {
 		return this.local.address();
 	}
 
+	public String location() {
+		return this.local.location();
+	}
+
 	@Override
 	public int priority() {
 		return this.local.priority();
@@ -235,16 +239,23 @@ public class ServerHost implements Serializable, Host {
 
 		private String group;
 
+		private String location;
+
 		private int port;
 
 		private int priority;
 
 		public Builder(ServerHost that) {
-			this.setGroup(that.group()).setToken(that.token()).setName(that.name()).setHost(that.host()).setPid(that.pid()).setPort(that.port()).setPriority(that.priority()).setSid(that.sid()).setTag(that.tag());
+			this.setLocation(that.location()).setGroup(that.group()).setToken(that.token()).setName(that.name()).setHost(that.host()).setPid(that.pid()).setPort(that.port()).setPriority(that.priority()).setSid(that.sid()).setTag(that.tag());
 		}
 
 		public Builder setPriority(int priority) {
 			this.priority = priority;
+			return this;
+		}
+
+		public Builder setLocation(String location) {
+			this.location = location;
 			return this;
 		}
 
@@ -289,7 +300,7 @@ public class ServerHost implements Serializable, Host {
 		}
 
 		public ServerHost toServerHost() {
-			return new ServerHost(new DefaultHost(this.group, this.token, this.name, this.tag, this.pid, this.host, this.port, this.priority), this.sid);
+			return new ServerHost(new DefaultHost(this.location, this.group, this.token, this.name, this.tag, this.pid, this.host, this.port, this.priority), this.sid);
 		}
 	}
 }

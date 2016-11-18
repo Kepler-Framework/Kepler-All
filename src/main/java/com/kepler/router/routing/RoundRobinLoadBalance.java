@@ -2,6 +2,8 @@ package com.kepler.router.routing;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.kepler.config.Profile;
+
 /**
  * @author zhangjiehao 2015年9月7日
  */
@@ -10,6 +12,10 @@ public class RoundRobinLoadBalance extends LoadBalance {
 	public static final String NAME = "roundrobin";
 
 	private final AtomicInteger indexes = new AtomicInteger(-1);
+
+	public RoundRobinLoadBalance(Profile profile) {
+		super(profile);
+	}
 
 	@Override
 	public String name() {

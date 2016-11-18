@@ -26,7 +26,9 @@ public class DefaultHost implements Host {
 
 	private final String group;
 
-	public DefaultHost(String group, String token, String name, String tag, String pid, String host, int port, int priority) {
+	private final String location;
+
+	public DefaultHost(String location, String group, String token, String name, String tag, String pid, String host, int port, int priority) {
 		this.tag = tag;
 		this.pid = pid;
 		this.name = name;
@@ -34,6 +36,7 @@ public class DefaultHost implements Host {
 		this.port = port;
 		this.token = token;
 		this.group = group;
+		this.location = location;
 		this.priority = priority;
 	}
 
@@ -44,6 +47,10 @@ public class DefaultHost implements Host {
 	@Override
 	public int priority() {
 		return this.priority;
+	}
+
+	public String location() {
+		return this.location;
 	}
 
 	@Override

@@ -7,8 +7,12 @@
 
 	<bean id="kepler.router.routings" class="com.kepler.router.routing.Routings" />
 
-	<bean class="com.kepler.router.routing.RoundRobinLoadBalance" />
-	
-	<bean class="com.kepler.router.routing.RandomLoadBalance" />
+	<bean class="com.kepler.router.routing.RoundRobinLoadBalance">
+		<constructor-arg ref="kepler.config.profile" />
+	</bean>
+
+	<bean class="com.kepler.router.routing.RandomLoadBalance">
+		<constructor-arg ref="kepler.config.profile" />
+	</bean>
 
 </beans>
