@@ -151,7 +151,7 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	 * @return
 	 */
 	private String message4request(String reason) {
-		return "Ack (" + Arrays.toString(this.request.ack()) + ") for " + this.request.service() + " to " + this.invoker.remote().address() + " " + reason + " after: " + this.elapse();
+		return "Ack (" + Arrays.toString(this.request.ack()) + ") for " + this.request.service() + "[method=" + this.request.method() + "] to " + this.invoker.remote().address() + " " + reason + " after: " + this.elapse();
 	}
 
 	/**
