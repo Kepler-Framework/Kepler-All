@@ -15,6 +15,8 @@ public interface HostStatus extends Serializable {
 	public String getPid();
 
 	public String getHost();
+	
+	public String getPort();
 
 	public String getGroup();
 	

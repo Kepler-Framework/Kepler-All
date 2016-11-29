@@ -20,6 +20,8 @@ public class DefaultHostStatus implements HostStatus {
 
 	private final String host;
 
+	private final String port;
+
 	private final String group;
 
 	private final String application;
@@ -28,12 +30,13 @@ public class DefaultHostStatus implements HostStatus {
 
 	public DefaultHostStatus(Host host, Map<String, Object> status) {
 		super();
+		this.status = status;
 		this.sid = host.sid();
 		this.pid = host.pid();
 		this.host = host.host();
 		this.group = host.group();
 		this.application = host.name();
-		this.status = status;
+		this.port = String.valueOf(host.port());
 	}
 
 	@Override
@@ -49,6 +52,10 @@ public class DefaultHostStatus implements HostStatus {
 	@Override
 	public String getHost() {
 		return this.host;
+	}
+
+	public String getPort() {
+		return this.port;
 	}
 
 	@Override
