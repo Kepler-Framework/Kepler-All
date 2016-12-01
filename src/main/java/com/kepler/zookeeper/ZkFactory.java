@@ -20,7 +20,7 @@ public class ZkFactory implements FactoryBean<ZkClient> {
 
 	private static final int RETRY_INTERVAL = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".retry_interval", 20000);
 
-	private static final int TIMEOUT_SESSION = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".timeout_session", 10000);
+	private static final int TIMEOUT_SESSION = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".timeout_session", 30000);
 
 	private static final int TIMEOUT_CONNECT = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".timeout_connect", 120000);
 
