@@ -36,15 +36,13 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 	 */
 	private static final int BUFFER = PropertiesUtils.get(JacksonSerial.class.getName().toLowerCase() + ".buffer", 0x4 << 6);
 
-	private static final ObjectMapper MAPPER = new ObjectMapper();
+	private ObjectReader reqderRequest;
 
-	private static final ObjectReader READER_REQUEST = JacksonSerial.MAPPER.reader(Request.class);
+	private ObjectReader readerResponse;
 
-	private static final ObjectReader READER_RESPONSE = JacksonSerial.MAPPER.reader(Response.class);
+	private ObjectWriter writerRequest;
 
-	private static final ObjectWriter WRITER_REQUEST = JacksonSerial.MAPPER.writerWithType(Request.class);
-
-	private static final ObjectWriter WRITER_RESPONSE = JacksonSerial.MAPPER.writerWithType(Response.class);
+	private ObjectWriter writerResponse;
 
 	private final Serializers serializers = new Serializers();
 
@@ -55,7 +53,28 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 	private static final byte SERIAL = 1;
 
 	public JacksonSerial() {
-		JacksonSerial.MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		{
+			ObjectMapper requestMapper = prepareRequestMapper();
+			reqderRequest = requestMapper.reader(Request.class);
+			writerRequest = requestMapper.writerWithType(Request.class);
+		} 
+		{
+			ObjectMapper responseMapper = prepareResponseMapper();
+			readerResponse = responseMapper.reader(Response.class);
+			writerResponse = responseMapper.writerWithType(Response.class);
+		}
+	}
+	
+	protected ObjectMapper prepareRequestMapper() {
+		ObjectMapper om = new ObjectMapper();
+		om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		return om;
+	}
+	
+	protected ObjectMapper prepareResponseMapper() {
+		ObjectMapper om = new ObjectMapper();
+		om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		return om;
 	}
 
 	@Override
@@ -199,14 +218,16 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 
 	private class ObjectSerializer implements Serializer {
 
+		ObjectMapper om = new ObjectMapper();
+		
 		@Override
 		public void write(OutputStream output, Object ob) throws Exception {
-			JacksonSerial.MAPPER.writeValue(output, ob);
+			om.writeValue(output, ob);
 		}
 
 		@Override
 		public <T> T read(InputStream input, Class<T> clazz) throws Exception {
-			return JacksonSerial.MAPPER.readValue(input, clazz);
+			return om.readValue(input, clazz);
 		}
 	}
 
@@ -214,12 +235,12 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 
 		@Override
 		public void write(OutputStream output, Object ob) throws Exception {
-			JacksonSerial.WRITER_REQUEST.writeValue(output, ob);
+			writerRequest.writeValue(output, ob);
 		}
 
 		@Override
 		public <T> T read(InputStream input, Class<T> clazz) throws Exception {
-			return JacksonSerial.READER_REQUEST.readValue(input);
+			return reqderRequest.readValue(input);
 		}
 	}
 
@@ -227,12 +248,13 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 
 		@Override
 		public void write(OutputStream output, Object ob) throws Exception {
-			JacksonSerial.WRITER_RESPONSE.writeValue(output, ob);
+			writerResponse.writeValue(output, ob);
+			System.out.println(writerResponse.writeValueAsString(ob));
 		}
 
 		@Override
 		public <T> T read(InputStream input, Class<T> clazz) throws Exception {
-			return JacksonSerial.READER_RESPONSE.readValue(input);
+			return readerResponse.readValue(input);
 		}
 	}
 }

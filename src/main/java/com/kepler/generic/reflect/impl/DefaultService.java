@@ -11,6 +11,7 @@ import com.kepler.id.IDGenerators;
 import com.kepler.invoker.Invoker;
 import com.kepler.protocol.RequestFactory;
 import com.kepler.serial.Serials;
+import com.kepler.serial.generic.GenericSerial;
 import com.kepler.service.Imported;
 import com.kepler.service.Service;
 
@@ -25,6 +26,8 @@ public class DefaultService extends DefaultImported implements GenericService {
 	 */
 	private static final boolean AUTOMATIC = PropertiesUtils.get(DefaultService.class.getName().toLowerCase() + ".automatic", true);
 
+	private static final boolean USE_JSON = PropertiesUtils.get(DefaultService.class.getName().toLowerCase() + ".json", false);
+	
 	/**
 	 * 泛化恒定Class
 	 */
@@ -44,6 +47,10 @@ public class DefaultService extends DefaultImported implements GenericService {
 		}
 		// 仅支持默认序列化(兼容性)
 		byte serial = super.serials.def4output().serial();
+		if (USE_JSON) {
+			serial = GenericSerial.SERIAL;
+		}
+		
 		// 获取Header并标记为泛型(隐式开启Header)
 		Headers headers = super.marker.mark(super.processor.process(service, super.header.get()));
 		// 强制同步调用
