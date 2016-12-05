@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.kepler.KeplerRoutingException;
 import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
@@ -29,6 +32,8 @@ public class DefaultHostContext implements HostsContext, Router {
 	 * 默认路由策略
 	 */
 	private static final String ROUTING_DEF = PropertiesUtils.get(DefaultHostContext.ROUTING_KEY, Routing.NAME);
+
+	private static final Log LOGGER = LogFactory.getLog(DefaultHostContext.class);
 
 	/**
 	 * 服务 - 主机映射
@@ -76,13 +81,17 @@ public class DefaultHostContext implements HostsContext, Router {
 	@Override
 	public void ban(Host host) {
 		synchronized (this.hosts) {
-			boolean baned = false;
-			for (Hosts each : this.hosts.values()) {
-				// 任何一台Host Ban成功则标记Baned = True. 强先后顺序, each.ban(host)必须调用
-				baned = each.ban(host) || baned;
+			boolean baned_all = false;
+			for (Service service : this.hosts.keySet()) {
+				Hosts hosts = this.hosts.get(service);
+				// 强先后顺序, hosts.ban(host)必须调用
+				boolean baned_each = hosts.ban(host);
+				// 任何一台Host Ban成功则标记Baned = True.
+				baned_all = baned_each || baned_all;
+				DefaultHostContext.LOGGER.info("Ban. [service=" + service + "][host=" + host.address() + "][baned_each=" + baned_each + "][baned_all=" + baned_all + "]");
 			}
 			// Hosts中任意服务Ban成功均尝试重连
-			if (baned) {
+			if (baned_all) {
 				this.connects.put(host);
 			}
 		}
@@ -90,8 +99,10 @@ public class DefaultHostContext implements HostsContext, Router {
 
 	public void active(Host host) {
 		synchronized (this.hosts) {
-			for (Hosts each : this.hosts.values()) {
-				each.active(host);
+			for (Service service : this.hosts.keySet()) {
+				Hosts hosts = this.hosts.get(service);
+				hosts.active(host);
+				DefaultHostContext.LOGGER.info("Active. [service=" + service + "][host=" + host.address() + "]");
 			}
 		}
 	}
@@ -99,6 +110,7 @@ public class DefaultHostContext implements HostsContext, Router {
 	public void remove(Host host, Service service) {
 		synchronized (this.hosts) {
 			this.hosts.get(service).remove(host);
+			DefaultHostContext.LOGGER.info("Remove. [service=" + service + "][host=" + host.address() + "]");
 		}
 	}
 

@@ -83,7 +83,7 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 
 	private static final int INTERVAL = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".interval", 60000);
 
-	private static final int DELAY = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".delay", 5000);
+	private static final int DELAY = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".delay", 30000);
 
 	/**
 	 * 保存服务信息路径
@@ -304,12 +304,13 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 			return;
 		}
 		// 订阅服务并启动Watcher监听
-		this.watcher.watch(service, this.road.road(ZkContext.ROOT, service.service(), service.versionAndCatalog()));
-		// 加入本地快照
-		this.snapshot.subscribe(service);
-		// 发布服务依赖
-		this.dependency(service);
-		ZkContext.LOGGER.info("Import service: " + service);
+		if (this.watcher.watch(service, this.road.road(ZkContext.ROOT, service.service(), service.versionAndCatalog()))) {
+			// 加入本地快照
+			this.snapshot.subscribe(service);
+			// 发布服务依赖
+			this.dependency(service);
+			ZkContext.LOGGER.info("Import service: " + service);
+		}
 	}
 
 	@Override
@@ -608,18 +609,29 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 
 	private class ZkWatcher {
 
-		public void watch(Service service, String path) throws Exception {
+		/**
+		 * @param service
+		 * @param path
+		 * @return 是否初始化成功
+		 * @throws Exception 
+		 */
+		public boolean watch(Service service, String path) throws Exception {
 			try {
 				// 获取所有Children Path, 并监听路径变化
 				for (String child : new PathWatcher(path).snapshot()) {
 					this.init(path, child);
 				}
-			} catch (NoNodeException e) {
-				this.failedIfInternal(service, e);
-				// 尝试延迟加载
-				ZkContext.this.uninstalled.add(new DelayInstall(service));
+				return true;
 			} catch (Throwable e) {
-				ZkContext.LOGGER.error(e.getMessage(), e);
+				// 如果为NoNodeException则进行重试
+				if (e.getClass().equals(NoNodeException.class)) {
+					this.failedIfInternal(service);
+					// 尝试延迟加载
+					ZkContext.this.uninstalled.add(new DelayInstall(service));
+				} else {
+					ZkContext.LOGGER.error(e.getMessage(), e);
+				}
+				return false;
 			}
 		}
 
@@ -627,15 +639,15 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 		 * Internal 服务节点处理
 		 * 
 		 * @param service
-		 * @param exception
+		 * @param path
 		 */
-		private void failedIfInternal(Service service, NoNodeException exception) {
+		private void failedIfInternal(Service service) {
 			try {
 				// 标记为Internal的服务仅提示
 				if (AnnotationUtils.findAnnotation(Class.forName(service.service()), Internal.class) != null) {
-					ZkContext.LOGGER.info("Instance can not be found for internal service: " + service);
+					ZkContext.LOGGER.info("Instances can not be found for internal service: " + service);
 				} else {
-					ZkContext.LOGGER.warn(exception.getMessage(), exception);
+					ZkContext.LOGGER.info("Instances can not be found for service: " + service);
 				}
 			} catch (ClassNotFoundException e) {
 				// Generic
