@@ -41,7 +41,7 @@ public class DelegateArgs implements GenericArgs {
 	@JsonProperty
 	private final Object[] args;
 
-	public DelegateArgs(@JsonProperty("classes") String[] classes, @JsonProperty("args")Object... args) {
+	public DelegateArgs(@JsonProperty("classes") String[] classes, @JsonProperty("args") Object... args) {
 		super();
 		this.classes = classes;
 		this.args = args;

@@ -36,14 +36,6 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 	 */
 	private static final int BUFFER = PropertiesUtils.get(JacksonSerial.class.getName().toLowerCase() + ".buffer", 0x4 << 6);
 
-	private ObjectReader reqderRequest;
-
-	private ObjectReader readerResponse;
-
-	private ObjectWriter writerRequest;
-
-	private ObjectWriter writerResponse;
-
 	private final Serializers serializers = new Serializers();
 
 	private static final byte[] EMPTY = new byte[] {};
@@ -52,29 +44,27 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 
 	private static final byte SERIAL = 1;
 
+	private final ObjectReader reader_request;
+
+	private final ObjectReader reader_response;
+
+	private final ObjectWriter writer_request;
+
+	private final ObjectWriter writer_response;
+
+	private final ObjectMapper mapper;
+
 	public JacksonSerial() {
-		{
-			ObjectMapper requestMapper = prepareRequestMapper();
-			reqderRequest = requestMapper.reader(Request.class);
-			writerRequest = requestMapper.writerWithType(Request.class);
-		} 
-		{
-			ObjectMapper responseMapper = prepareResponseMapper();
-			readerResponse = responseMapper.reader(Response.class);
-			writerResponse = responseMapper.writerWithType(Response.class);
-		}
+		this.mapper = this.prepare(new ObjectMapper());
+		this.reader_request = this.mapper.reader(Request.class);
+		this.reader_response = this.mapper.reader(Response.class);
+		this.writer_request = this.mapper.writerWithType(Request.class);
+		this.writer_response = this.mapper.writerWithType(Response.class);
 	}
-	
-	protected ObjectMapper prepareRequestMapper() {
-		ObjectMapper om = new ObjectMapper();
-		om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		return om;
-	}
-	
-	protected ObjectMapper prepareResponseMapper() {
-		ObjectMapper om = new ObjectMapper();
-		om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		return om;
+
+	protected ObjectMapper prepare(ObjectMapper mapper) {
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		return mapper;
 	}
 
 	@Override
@@ -218,16 +208,14 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 
 	private class ObjectSerializer implements Serializer {
 
-		ObjectMapper om = new ObjectMapper();
-		
 		@Override
 		public void write(OutputStream output, Object ob) throws Exception {
-			om.writeValue(output, ob);
+			JacksonSerial.this.mapper.writeValue(output, ob);
 		}
 
 		@Override
 		public <T> T read(InputStream input, Class<T> clazz) throws Exception {
-			return om.readValue(input, clazz);
+			return JacksonSerial.this.mapper.readValue(input, clazz);
 		}
 	}
 
@@ -235,12 +223,12 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 
 		@Override
 		public void write(OutputStream output, Object ob) throws Exception {
-			writerRequest.writeValue(output, ob);
+			JacksonSerial.this.writer_request.writeValue(output, ob);
 		}
 
 		@Override
 		public <T> T read(InputStream input, Class<T> clazz) throws Exception {
-			return reqderRequest.readValue(input);
+			return JacksonSerial.this.reader_request.readValue(input);
 		}
 	}
 
@@ -248,13 +236,12 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 
 		@Override
 		public void write(OutputStream output, Object ob) throws Exception {
-			writerResponse.writeValue(output, ob);
-			System.out.println(writerResponse.writeValueAsString(ob));
+			JacksonSerial.this.writer_response.writeValue(output, ob);
 		}
 
 		@Override
 		public <T> T read(InputStream input, Class<T> clazz) throws Exception {
-			return readerResponse.readValue(input);
+			return JacksonSerial.this.reader_response.readValue(input);
 		}
 	}
 }
