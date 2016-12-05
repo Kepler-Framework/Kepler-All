@@ -13,6 +13,10 @@
 
 	<alias name="kepler.zookeeper.context" alias="kepler.service.imported.zookeeper" />
 
+	<bean class="com.kepler.zookeeper.ZkFactoryConfig">
+		<constructor-arg ref="&amp;kepler.zookeeper.factory" />
+	</bean>
+
 	<bean id="kepler.zookeeper.factory" class="com.kepler.zookeeper.ZkFactory" init-method="init" />
 
 	<bean id="kepler.zookeeper.listener" class="com.kepler.service.imported.DefaultImportedListener">

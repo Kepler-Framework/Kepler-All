@@ -94,10 +94,10 @@ public class ZkFactory implements FactoryBean<ZkClient> {
 	/**
 	 * 最大重试次数内重试
 	 */
-	private void reset() {
+	public void reset(String operator) {
 		for (int times = 0; times < ZkFactory.RETRY_TIMES; times++) {
 			try {
-				this.reset(times);
+				this.reset(operator, times);
 				// 成功(无异常)则返回否则继续重试
 				return;
 			} catch (Throwable e) {
@@ -106,9 +106,9 @@ public class ZkFactory implements FactoryBean<ZkClient> {
 		}
 	}
 
-	private void reset(int times) throws Exception {
+	private void reset(String operator, int times) throws Exception {
 		Thread.sleep(ZkFactory.RETRY_INTERVAL);
-		ZkFactory.LOGGER.info("ZooKeeper reset " + times + " times ...");
+		ZkFactory.LOGGER.info("ZooKeeper reset " + times + " times [operator=" + operator + "]");
 		this.zoo.close();
 		this.init();
 		this.zoo.reset();
@@ -124,11 +124,11 @@ public class ZkFactory implements FactoryBean<ZkClient> {
 				return;
 			case Expired:
 				ZkFactory.LOGGER.fatal("ZooKeeper Expired: " + event + " ...");
-				ZkFactory.this.reset();
+				ZkFactory.this.reset("Connection Watcher");
 				return;
 			case Disconnected:
 				ZkFactory.LOGGER.fatal("ZooKeeper Disconnected: " + event + " ...");
-				ZkFactory.this.reset();
+				ZkFactory.this.reset("Connection Watcher");
 				return;
 			default:
 				return;
