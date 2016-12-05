@@ -15,6 +15,12 @@ import com.kepler.annotation.Internal;
 @Internal
 public class ThreadFactoryConfig {
 
+	public static final String MAX_KEY = "com.kepler.thread.threadfactory.max";
+
+	public static final String CORE_KEY = "com.kepler.thread.threadfactory.core";
+
+	public static final String KEEPALIVE_KEY = "com.kepler.thread.threadfactory.keepalive";
+
 	private final ThreadPoolExecutor threads;
 
 	public ThreadFactoryConfig(ThreadPoolExecutor threads) {
@@ -22,17 +28,17 @@ public class ThreadFactoryConfig {
 		this.threads = threads;
 	}
 
-	@Config(value = "com.kepler.thread.threadfactory.max")
+	@Config(value = ThreadFactoryConfig.MAX_KEY)
 	public void max(int size) {
 		this.threads.setMaximumPoolSize(size);
 	}
 
-	@Config(value = "com.kepler.thread.threadfactory.core")
+	@Config(value = ThreadFactoryConfig.CORE_KEY)
 	public void core(int size) {
 		this.threads.setCorePoolSize(size);
 	}
 
-	@Config(value = "com.kepler.thread.threadfactory.keepalive")
+	@Config(value = ThreadFactoryConfig.KEEPALIVE_KEY)
 	public void keepalive(long keepalive) {
 		this.threads.setKeepAliveTime(keepalive, TimeUnit.MILLISECONDS);
 	}

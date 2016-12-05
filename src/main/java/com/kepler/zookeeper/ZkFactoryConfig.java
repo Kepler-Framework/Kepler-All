@@ -10,6 +10,8 @@ import com.kepler.annotation.Internal;
 @Internal
 public class ZkFactoryConfig {
 
+	public static final String RESET_KEY = "com.kepler.zookeeper.zkfactoryconfig.reset";
+
 	private final ZkFactory factory;
 
 	public ZkFactoryConfig(ZkFactory factory) {
@@ -20,7 +22,7 @@ public class ZkFactoryConfig {
 	/**
 	 * 最大重试次数内重试
 	 */
-	@Config(value = "com.kepler.zookeeper.zkfactoryconfig.reset")
+	@Config(value = ZkFactoryConfig.RESET_KEY)
 	public void reset(String operator) {
 		this.factory.reset(operator);
 	}
