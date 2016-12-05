@@ -41,7 +41,7 @@ public abstract class SimpleConvertor implements Convertor {
 			if (source_collection.isEmpty()) {
 				throw new KeplerValidateException("Invalid data for arg: " + expect);
 			} else {
-				source_collection.iterator().next();
+				return source_collection.iterator().next();
 			}
 		}
 		return source;
