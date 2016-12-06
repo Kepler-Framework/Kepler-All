@@ -3,6 +3,7 @@ package com.kepler.invoker.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.kepler.KeplerErrorException;
 import com.kepler.KeplerRemoteException;
 import com.kepler.KeplerRoutingException;
 import com.kepler.annotation.Config;
@@ -21,6 +22,11 @@ import com.kepler.trace.TraceCauses;
  */
 @Internal
 public class ActualInvoker implements Invoker {
+
+	/**
+	 * 如果抛出Error异常是否转换为Exception
+	 */
+	private static final boolean ERROR_TO_EXCEPTION = PropertiesUtils.get(ActualInvoker.class.getName().toLowerCase() + ".error_to_exception", true);
 
 	/**
 	 * None Service重试间隔
@@ -74,7 +80,8 @@ public class ActualInvoker implements Invoker {
 		try {
 			return this.invoker(request, System.currentTimeMillis());
 		} catch (KeplerRemoteException exception) {
-			throw exception.cause();
+			Throwable cause = exception.cause();
+			throw ActualInvoker.ERROR_TO_EXCEPTION && Error.class.isAssignableFrom(cause.getClass()) ? new KeplerErrorException(Error.class.cast(cause)) : exception.cause();
 		}
 	}
 
