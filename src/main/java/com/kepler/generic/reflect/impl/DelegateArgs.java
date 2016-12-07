@@ -3,6 +3,7 @@ package com.kepler.generic.reflect.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kepler.generic.reflect.GenericArgs;
 
 /**
@@ -34,11 +35,13 @@ public class DelegateArgs implements GenericArgs {
 		DelegateArgs.PRIMITIVE.put(boolean.class.getName(), boolean.class);
 	}
 
+	@JsonProperty
 	private final String[] classes;
 
+	@JsonProperty
 	private final Object[] args;
 
-	public DelegateArgs(String[] classes, Object... args) {
+	public DelegateArgs(@JsonProperty("classes") String[] classes, @JsonProperty("args") Object... args) {
 		super();
 		this.classes = classes;
 		this.args = args;

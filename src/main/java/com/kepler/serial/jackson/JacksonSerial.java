@@ -36,16 +36,6 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 	 */
 	private static final int BUFFER = PropertiesUtils.get(JacksonSerial.class.getName().toLowerCase() + ".buffer", 0x4 << 6);
 
-	private static final ObjectMapper MAPPER = new ObjectMapper();
-
-	private static final ObjectReader READER_REQUEST = JacksonSerial.MAPPER.reader(Request.class);
-
-	private static final ObjectReader READER_RESPONSE = JacksonSerial.MAPPER.reader(Response.class);
-
-	private static final ObjectWriter WRITER_REQUEST = JacksonSerial.MAPPER.writerWithType(Request.class);
-
-	private static final ObjectWriter WRITER_RESPONSE = JacksonSerial.MAPPER.writerWithType(Response.class);
-
 	private final Serializers serializers = new Serializers();
 
 	private static final byte[] EMPTY = new byte[] {};
@@ -54,8 +44,27 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 
 	private static final byte SERIAL = 1;
 
+	private final ObjectReader reader_request;
+
+	private final ObjectReader reader_response;
+
+	private final ObjectWriter writer_request;
+
+	private final ObjectWriter writer_response;
+
+	private final ObjectMapper mapper;
+
 	public JacksonSerial() {
-		JacksonSerial.MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		this.mapper = this.prepare(new ObjectMapper());
+		this.reader_request = this.mapper.reader(Request.class);
+		this.reader_response = this.mapper.reader(Response.class);
+		this.writer_request = this.mapper.writerWithType(Request.class);
+		this.writer_response = this.mapper.writerWithType(Response.class);
+	}
+
+	protected ObjectMapper prepare(ObjectMapper mapper) {
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		return mapper;
 	}
 
 	@Override
@@ -201,12 +210,12 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 
 		@Override
 		public void write(OutputStream output, Object ob) throws Exception {
-			JacksonSerial.MAPPER.writeValue(output, ob);
+			JacksonSerial.this.mapper.writeValue(output, ob);
 		}
 
 		@Override
 		public <T> T read(InputStream input, Class<T> clazz) throws Exception {
-			return JacksonSerial.MAPPER.readValue(input, clazz);
+			return JacksonSerial.this.mapper.readValue(input, clazz);
 		}
 	}
 
@@ -214,12 +223,12 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 
 		@Override
 		public void write(OutputStream output, Object ob) throws Exception {
-			JacksonSerial.WRITER_REQUEST.writeValue(output, ob);
+			JacksonSerial.this.writer_request.writeValue(output, ob);
 		}
 
 		@Override
 		public <T> T read(InputStream input, Class<T> clazz) throws Exception {
-			return JacksonSerial.READER_REQUEST.readValue(input);
+			return JacksonSerial.this.reader_request.readValue(input);
 		}
 	}
 
@@ -227,12 +236,12 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 
 		@Override
 		public void write(OutputStream output, Object ob) throws Exception {
-			JacksonSerial.WRITER_RESPONSE.writeValue(output, ob);
+			JacksonSerial.this.writer_response.writeValue(output, ob);
 		}
 
 		@Override
 		public <T> T read(InputStream input, Class<T> clazz) throws Exception {
-			return JacksonSerial.READER_RESPONSE.readValue(input);
+			return JacksonSerial.this.reader_response.readValue(input);
 		}
 	}
 }

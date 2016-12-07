@@ -13,6 +13,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.kepler.config.PropertiesUtils;
 
 /**
@@ -20,6 +22,7 @@ import com.kepler.config.PropertiesUtils;
  * 
  * @author zhangjiehao 2016年8月16日
  */
+@JsonAutoDetect(fieldVisibility=Visibility.ANY, getterVisibility=Visibility.NONE, isGetterVisibility=Visibility.NONE)
 public class KeplerGenericException extends KeplerLocalException implements Cloneable {
 
 	private static final String FILTER = PropertiesUtils.get(KeplerGenericException.class.getName().toLowerCase() + ".filter", "cause;message;stackTrace;suppressed;localizedMessage;");
@@ -45,17 +48,21 @@ public class KeplerGenericException extends KeplerLocalException implements Clon
 	/**
 	 * 用来保存原始异常属性
 	 */
-	private final Map<String, Object> fields;
+	private Map<String, Object> fields;
 
 	/**
 	 * 用来保存原始异常类型
 	 */
-	private final List<String> classes;
+	private List<String> classes;
 	
 	/**
 	 * 文本错误
 	 */
-	private final String reason;
+	private String reason;
+	
+	public KeplerGenericException() {
+		this("");
+	}
 
 	public KeplerGenericException(Throwable throwable) {
 		super(throwable);
