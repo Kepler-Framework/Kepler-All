@@ -97,7 +97,7 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 	private void analyse4interface(Service service, Object instance) throws Exception {
 		for (Method method_interface : Class.forName(service.service()).getMethods()) {
 			// 通过接口反向查找实现类对应方法并尝试自动分析
-			Method proxy_before = MethodUtils.getAccessibleMethod(AdvisedFinder.get(instance.getClass()), method_interface.getName(), method_interface.getParameterTypes());
+			Method proxy_before = MethodUtils.getAccessibleMethod(AdvisedFinder.get(instance), method_interface.getName(), method_interface.getParameterTypes());
 			Method proxy_after = MethodUtils.getAccessibleMethod(instance.getClass(), method_interface.getName(), method_interface.getParameterTypes());
 			this.analyse(proxy_after, proxy_before, DefaultAnalyser.AUTOMATIC);
 		}
