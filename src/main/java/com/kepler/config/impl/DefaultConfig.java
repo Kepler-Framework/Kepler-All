@@ -9,12 +9,12 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.aop.framework.Advised;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.Assert;
 
+import com.kepler.advised.AdvisedFinder;
 import com.kepler.annotation.Async;
 import com.kepler.annotation.Internal;
 import com.kepler.annotation.Service;
@@ -71,7 +71,7 @@ public class DefaultConfig implements Config, BeanPostProcessor {
 
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		return this.binding(bean, Advised.class.isAssignableFrom(bean.getClass()) ? Advised.class.cast(bean).getTargetClass() : bean.getClass());
+		return this.binding(bean, AdvisedFinder.get(bean));
 	}
 
 	/**

@@ -13,9 +13,9 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.aop.framework.Advised;
 import org.springframework.core.annotation.AnnotationUtils;
 
+import com.kepler.advised.AdvisedFinder;
 import com.kepler.annotation.Generic;
 import com.kepler.annotation.GenericElement;
 import com.kepler.annotation.GenericParam;
@@ -97,7 +97,7 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 	private void analyse4interface(Service service, Object instance) throws Exception {
 		for (Method method_interface : Class.forName(service.service()).getMethods()) {
 			// 通过接口反向查找实现类对应方法并尝试自动分析
-			Method proxy_before = MethodUtils.getAccessibleMethod(Advised.class.isAssignableFrom(instance.getClass()) ? Advised.class.cast(instance).getTargetClass() : instance.getClass(), method_interface.getName(), method_interface.getParameterTypes());
+			Method proxy_before = MethodUtils.getAccessibleMethod(AdvisedFinder.get(instance.getClass()), method_interface.getName(), method_interface.getParameterTypes());
 			Method proxy_after = MethodUtils.getAccessibleMethod(instance.getClass(), method_interface.getName(), method_interface.getParameterTypes());
 			this.analyse(proxy_after, proxy_before, DefaultAnalyser.AUTOMATIC);
 		}
@@ -111,7 +111,7 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 	 */
 	private void analyse4instance(Object instance) throws Exception {
 		// 获取实际方法(代理后)并分析
-		for (Method method : (Advised.class.isAssignableFrom(instance.getClass()) ? Advised.class.cast(instance).getTargetClass() : instance.getClass()).getMethods()) {
+		for (Method method : AdvisedFinder.get(instance).getMethods()) {
 			// 关闭自动分析
 			this.analyse(method, method, false);
 		}

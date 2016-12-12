@@ -3,12 +3,12 @@ package com.kepler.service.exported;
 import java.util.Collection;
 import java.util.HashSet;
 
-import org.springframework.aop.framework.Advised;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationUtils;
 
 import com.kepler.KeplerLocalException;
+import com.kepler.advised.AdvisedFinder;
 import com.kepler.annotation.Autowired;
 import com.kepler.annotation.Service;
 import com.kepler.config.Profile;
@@ -39,7 +39,7 @@ public class ExportedDiscovery implements BeanPostProcessor {
 
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		Autowired autowired = AnnotationUtils.findAnnotation(Advised.class.isAssignableFrom(bean.getClass()) ? Advised.class.cast(bean).getTargetClass() : bean.getClass(), Autowired.class);
+		Autowired autowired = AdvisedFinder.get(bean, Autowired.class);
 		// 标记@Autowired表示自动发布
 		if (autowired != null) {
 			this.exported(bean, autowired.catalog(), autowired.profile(), autowired.version());
