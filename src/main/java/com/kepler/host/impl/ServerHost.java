@@ -1,24 +1,18 @@
 package com.kepler.host.impl;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
-import java.net.Socket;
-import java.util.Enumeration;
-import java.util.UUID;
-import java.util.regex.Pattern;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.kepler.KeplerLocalException;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.host.Host;
 import com.kepler.main.Pid;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.net.*;
+import java.util.Enumeration;
+import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * @author zhangjiehao 2015年7月8日
@@ -190,6 +184,12 @@ public class ServerHost implements Serializable, Host {
 	public boolean equals(Object ob) {
 		// Not null point security
 		return this.local.equals(ob);
+	}
+
+	public boolean propertyChanged(ServerHost that) {
+		return (this.priority() != that.priority()) ||
+				(this.tag() == null && that.tag() != null) ||
+				(this.tag() != null && !this.tag().equals(that.tag()));
 	}
 
 	public String toString() {
