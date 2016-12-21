@@ -336,7 +336,7 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 					// new node
 					added.add(current.get(currentNode));
 				} else {
-					if (!current.get(currentNode).host().propertyChanged(snapshot.get(currentNode).host())) {
+					if (current.get(currentNode).host().propertyChanged(snapshot.get(currentNode).host())) {
 						modified.add(new ServiceInstance[]{snapshot.get(currentNode), current.get(currentNode)});
 					}
 				}
