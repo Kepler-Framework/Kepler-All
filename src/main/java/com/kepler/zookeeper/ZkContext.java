@@ -306,7 +306,7 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 						final List<String> serviceNodeList = ZkContext.this.zoo.getChildren(zkPath, null);
 						for (String serviceNode : serviceNodeList) {
 							try {
-								final byte[] data = ZkContext.this.zoo.getData(serviceNode, false, null);
+								final byte[] data = ZkContext.this.zoo.getData(zkPath + "/" + serviceNode, false, null);
 								final ServiceInstance serviceInstance = ZkContext.this.serials.def4input().input(data, ServiceInstance.class);
 								current.put(serviceNode, serviceInstance);
 							} catch (NodeExistsException e) {
