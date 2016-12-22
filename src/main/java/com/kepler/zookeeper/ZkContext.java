@@ -156,7 +156,7 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 	public void init() {
 		// 单线程操作
 		this.threads.execute(this);
-		this.scheduledExecutorService.schedule(new RefreshRunnable(), REFRESH_INTERVAL, TimeUnit.SECONDS);
+		this.scheduledExecutorService.schedule(new RefreshRunnable(), REFRESH_INTERVAL, TimeUnit.MILLISECONDS);
 	}
 
 	/**
@@ -353,18 +353,21 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 
 		private void handleAdded(List<ServiceInstance> added) throws Exception {
 			for (ServiceInstance serviceInstance : added) {
+				LOGGER.info("[new node found]" + serviceInstance);
 				ZkContext.this.listener.add(serviceInstance);
 			}
 		}
 
 		private void handleRemoved(List<ServiceInstance> removed) throws Exception {
 			for (ServiceInstance serviceInstance : removed) {
+				LOGGER.info("[node removed]" + serviceInstance);
 				ZkContext.this.listener.delete(serviceInstance);
 			}
 		}
 
 		private void handleModified(List<ServiceInstance[]> modified) throws Exception {
 			for (ServiceInstance[] serviceInstance : modified) {
+				LOGGER.info("[node update]" + serviceInstance[0]);
 				ServiceInstance oldSrvInst = serviceInstance[0], newSrvInst = serviceInstance[1];
 				ZkContext.this.listener.change(oldSrvInst, newSrvInst);
 			}
