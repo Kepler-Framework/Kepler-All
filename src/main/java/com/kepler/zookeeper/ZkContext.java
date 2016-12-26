@@ -172,6 +172,7 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 		this.exports.destroy();
 		// 关闭ZK
 		this.zoo.close();
+		this.scheduledExecutorService.awaitTermination(1000, TimeUnit.MILLISECONDS);
 	}
 
 	/**
@@ -310,7 +311,7 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 							try {
 								final byte[] data = ZkContext.this.zoo.getData(zkPath + "/" + serviceNode, false, null);
 								final ServiceInstance serviceInstance = ZkContext.this.serials.def4input().input(data, ServiceInstance.class);
-								current.put(serviceNode, serviceInstance);
+								current.put(zkPath + "/" + serviceNode, serviceInstance);
 							} catch (NodeExistsException e) {
 								LOGGER.warn("Concurrent case. Node not exists");
 							}
