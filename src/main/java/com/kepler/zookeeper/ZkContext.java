@@ -122,6 +122,8 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 
 	private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();;
 
+	private final RefreshRunnable refreshRunnable = new RefreshRunnable();
+
 	private final ImportedListener listener;
 
 	private final ServerHost local;
@@ -156,7 +158,7 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 	public void init() {
 		// 单线程操作
 		this.threads.execute(this);
-		this.scheduledExecutorService.schedule(new RefreshRunnable(), REFRESH_INTERVAL, TimeUnit.MILLISECONDS);
+		this.scheduledExecutorService.schedule(this.refreshRunnable, REFRESH_INTERVAL, TimeUnit.MILLISECONDS);
 	}
 
 	/**
@@ -319,6 +321,7 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 					}
 				}
 				handle(current, snapshot);
+				ZkContext.this.snapshot.instances = current;
 			} catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);
 			} finally {
@@ -331,18 +334,23 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 			List<ServiceInstance> removed = new ArrayList<>();
 			List<ServiceInstance[]> modified = new ArrayList<>();
 
+            LOGGER.info("Begin handling change.");
+			LOGGER.info("Now: " + current.keySet() + " Before: " + snapshot.keySet());
 			for (String currentNode : current.keySet()) {
 				if (!snapshot.containsKey(currentNode)) {
 					// new node
+                    LOGGER.info("Add node " + currentNode + ", " + current.get(currentNode));
 					added.add(current.get(currentNode));
 				} else {
 					if (current.get(currentNode).host().propertyChanged(snapshot.get(currentNode).host())) {
+                        LOGGER.info("Modify node " + currentNode + ", " + current.get(currentNode));
 						modified.add(new ServiceInstance[]{snapshot.get(currentNode), current.get(currentNode)});
 					}
 				}
 			}
 			for (String snapshotNode : snapshot.keySet()) {
 				if (!current.containsKey(snapshotNode)) {
+                    LOGGER.info("Remove node " + snapshotNode + ", " + snapshot.get(snapshotNode));
 					removed.add(snapshot.get(snapshotNode));
 				}
 			}
@@ -383,12 +391,18 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 			return;
 		}
 		// 订阅服务并启动Watcher监听
-		if (this.watcher.watch(service, this.road.road(ZkContext.ROOT, service.service(), service.versionAndCatalog()))) {
-			// 加入本地快照
-			this.snapshot.subscribe(service);
-			// 发布服务依赖
-			this.dependency(service);
-			ZkContext.LOGGER.info("Import service: " + service);
+
+		refreshRunnable.isRunning = true;
+		try {
+			if (this.watcher.watch(service, this.road.road(ZkContext.ROOT, service.service(), service.versionAndCatalog()))) {
+				// 加入本地快照
+				this.snapshot.subscribe(service);
+				// 发布服务依赖
+				this.dependency(service);
+				ZkContext.LOGGER.info("Import service: " + service);
+			}
+		} finally {
+			refreshRunnable.isRunning = false;
 		}
 	}
 
@@ -648,7 +662,7 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 		/**
 		 * 已导入实例(多线程竞争)
 		 */
-		private final Map<String, ServiceInstance> instances = new ConcurrentHashMap<String, ServiceInstance>();
+		private volatile Map<String, ServiceInstance> instances = new ConcurrentHashMap<String, ServiceInstance>();
 
 		/**
 		 * 已发布服务
