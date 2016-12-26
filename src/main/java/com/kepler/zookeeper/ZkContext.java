@@ -158,7 +158,8 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 	public void init() {
 		// 单线程操作
 		this.threads.execute(this);
-		this.scheduledExecutorService.schedule(this.refreshRunnable, REFRESH_INTERVAL, TimeUnit.MILLISECONDS);
+		this.scheduledExecutorService.scheduleAtFixedRate(this.refreshRunnable, REFRESH_INTERVAL, REFRESH_INTERVAL,
+				TimeUnit.MILLISECONDS);
 	}
 
 	/**
