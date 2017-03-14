@@ -28,7 +28,7 @@ public class UserContext {
 
 	public static String get(String def) {
 		Headers headers = ThreadHeaders.HEADERS.get();
-		return headers != null ? headers.get(UserContext.KEY) : def;
+		return headers != null ? headers.get(UserContext.KEY, def) : def;
 	}
 
 	public static void set(String user) {
