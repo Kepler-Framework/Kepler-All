@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.kepler</groupId>
 	<artifactId>kepler-all</artifactId>
-	<version>0.0.8-SNAPSHOT</version>
+	<version>0.0.8-patch-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>kepler</name>
 	<url>http://maven.apache.org</url>
@@ -131,5 +131,6 @@
 				</executions>
 			</plugin>
 		</plugins>
-	</build>
+    </build>
+
 </project>

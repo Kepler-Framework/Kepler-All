@@ -1,32 +1,5 @@
 package com.kepler.zookeeper;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.DelayQueue;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException.NoNodeException;
-import org.apache.zookeeper.KeeperException.NodeExistsException;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooDefs.Ids;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.util.StringUtils;
-
 import com.kepler.KeplerLocalException;
 import com.kepler.admin.status.Status;
 import com.kepler.annotation.Internal;
@@ -40,12 +13,23 @@ import com.kepler.host.impl.ServerHost;
 import com.kepler.host.impl.ServerHost.Builder;
 import com.kepler.main.Demotion;
 import com.kepler.serial.Serials;
-import com.kepler.service.Exported;
-import com.kepler.service.Imported;
-import com.kepler.service.ImportedListener;
-import com.kepler.service.Service;
-import com.kepler.service.ServiceInstance;
+import com.kepler.service.*;
 import com.kepler.service.imported.ImportedService;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException.NoNodeException;
+import org.apache.zookeeper.KeeperException.NodeExistsException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooDefs.Ids;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.util.StringUtils;
+
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * @author zhangjiehao 2015年7月9日
@@ -111,6 +95,9 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 
 	public static final boolean IMPORT_VAL = PropertiesUtils.get(ZkContext.IMPORT_KEY, true);
 
+	public static final long REFRESH_INTERVAL = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + "" +
+			".refresh_interval", 60 * 1000);
+
 	private static final Log LOGGER = LogFactory.getLog(ZkContext.class);
 
 	/**
@@ -132,6 +119,10 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 	private final Delay delay = new Delay();
 
 	private final ThreadPoolExecutor threads;
+
+	private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();;
+
+	private final RefreshRunnable refreshRunnable = new RefreshRunnable();
 
 	private final ImportedListener listener;
 
@@ -167,6 +158,8 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 	public void init() {
 		// 单线程操作
 		this.threads.execute(this);
+		this.scheduledExecutorService.scheduleAtFixedRate(this.refreshRunnable, REFRESH_INTERVAL, REFRESH_INTERVAL,
+				TimeUnit.MILLISECONDS);
 	}
 
 	/**
@@ -180,6 +173,7 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 		this.exports.destroy();
 		// 关闭ZK
 		this.zoo.close();
+		this.scheduledExecutorService.awaitTermination(1000, TimeUnit.MILLISECONDS);
 	}
 
 	/**
@@ -296,6 +290,101 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 		this.config();
 	}
 
+	class RefreshRunnable implements Runnable {
+
+		volatile boolean isRunning = false;
+
+		@Override
+		public void run() {
+			if (isRunning) {
+				return;
+			}
+			try {
+				isRunning = true;
+				final Map<String, ServiceInstance> snapshot = new HashMap<>(ZkContext.this.snapshot.instances);
+				final Map<String, ServiceInstance> current = new HashMap<>();
+				final Set<Service> imported = ZkContext.this.snapshot.imported;
+				for (Service service : imported) {
+					final String zkPath = ZkContext.this.road.road(ZkContext.ROOT, service.service(), service.versionAndCatalog());
+					try {
+						final List<String> serviceNodeList = ZkContext.this.zoo.getChildren(zkPath, null);
+						for (String serviceNode : serviceNodeList) {
+							try {
+								final byte[] data = ZkContext.this.zoo.getData(zkPath + "/" + serviceNode, false, null);
+								final ServiceInstance serviceInstance = ZkContext.this.serials.def4input().input(data, ServiceInstance.class);
+								current.put(zkPath + "/" + serviceNode, serviceInstance);
+							} catch (NodeExistsException e) {
+								LOGGER.warn("Concurrent case. Node not exists");
+							}
+
+						}
+					} catch (Exception e) {
+						LOGGER.error("Zk operation error. " + e.getMessage(), e);
+					}
+				}
+				handle(current, snapshot);
+				ZkContext.this.snapshot.instances = current;
+			} catch (Exception e) {
+				LOGGER.error(e.getMessage(), e);
+			} finally {
+				isRunning = false;
+			}
+		}
+
+		private void handle(Map<String, ServiceInstance> current, Map<String, ServiceInstance> snapshot) throws Exception {
+			List<ServiceInstance> added = new ArrayList<>();
+			List<ServiceInstance> removed = new ArrayList<>();
+			List<ServiceInstance[]> modified = new ArrayList<>();
+
+            LOGGER.info("Begin handling change.");
+			LOGGER.info("Now: " + current.keySet() + " Before: " + snapshot.keySet());
+			for (String currentNode : current.keySet()) {
+				if (!snapshot.containsKey(currentNode)) {
+					// new node
+                    LOGGER.info("Add node " + currentNode + ", " + current.get(currentNode));
+					added.add(current.get(currentNode));
+				} else {
+					if (current.get(currentNode).host().propertyChanged(snapshot.get(currentNode).host())) {
+                        LOGGER.info("Modify node " + currentNode + ", " + current.get(currentNode));
+						modified.add(new ServiceInstance[]{snapshot.get(currentNode), current.get(currentNode)});
+					}
+				}
+			}
+			for (String snapshotNode : snapshot.keySet()) {
+				if (!current.containsKey(snapshotNode)) {
+                    LOGGER.info("Remove node " + snapshotNode + ", " + snapshot.get(snapshotNode));
+					removed.add(snapshot.get(snapshotNode));
+				}
+			}
+			handleAdded(added);
+			handleRemoved(removed);
+			handleModified(modified);
+		}
+
+		private void handleAdded(List<ServiceInstance> added) throws Exception {
+			for (ServiceInstance serviceInstance : added) {
+				LOGGER.info("[new node found]" + serviceInstance);
+				ZkContext.this.listener.add(serviceInstance);
+			}
+		}
+
+		private void handleRemoved(List<ServiceInstance> removed) throws Exception {
+			for (ServiceInstance serviceInstance : removed) {
+				LOGGER.info("[node removed]" + serviceInstance);
+				ZkContext.this.listener.delete(serviceInstance);
+			}
+		}
+
+		private void handleModified(List<ServiceInstance[]> modified) throws Exception {
+			for (ServiceInstance[] serviceInstance : modified) {
+				LOGGER.info("[node update]" + serviceInstance[0]);
+				ServiceInstance oldSrvInst = serviceInstance[0], newSrvInst = serviceInstance[1];
+				ZkContext.this.listener.change(oldSrvInst, newSrvInst);
+			}
+		}
+
+	}
+
 	@Override
 	public void subscribe(Service service) throws Exception {
 		// 是否加载远程服务
@@ -304,12 +393,18 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 			return;
 		}
 		// 订阅服务并启动Watcher监听
-		if (this.watcher.watch(service, this.road.road(ZkContext.ROOT, service.service(), service.versionAndCatalog()))) {
-			// 加入本地快照
-			this.snapshot.subscribe(service);
-			// 发布服务依赖
-			this.dependency(service);
-			ZkContext.LOGGER.info("Import service: " + service);
+
+		refreshRunnable.isRunning = true;
+		try {
+			if (this.watcher.watch(service, this.road.road(ZkContext.ROOT, service.service(), service.versionAndCatalog()))) {
+				// 加入本地快照
+				this.snapshot.subscribe(service);
+				// 发布服务依赖
+				this.dependency(service);
+				ZkContext.LOGGER.info("Import service: " + service);
+			}
+		} finally {
+			refreshRunnable.isRunning = false;
 		}
 	}
 
@@ -569,7 +664,7 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 		/**
 		 * 已导入实例(多线程竞争)
 		 */
-		private final Map<String, ServiceInstance> instances = new ConcurrentHashMap<String, ServiceInstance>();
+		private volatile Map<String, ServiceInstance> instances = new ConcurrentHashMap<String, ServiceInstance>();
 
 		/**
 		 * 已发布服务
@@ -639,7 +734,6 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 		 * Internal 服务节点处理
 		 * 
 		 * @param service
-		 * @param path
 		 */
 		private void failedIfInternal(Service service) {
 			try {
