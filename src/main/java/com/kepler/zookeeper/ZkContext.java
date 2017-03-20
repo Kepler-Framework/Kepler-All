@@ -1057,23 +1057,17 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 			List<ServiceInstance> added = new ArrayList<ServiceInstance>();
 			List<ServiceInstance> removed = new ArrayList<ServiceInstance>();
 			List<ServiceInstance[]> modified = new ArrayList<ServiceInstance[]>();
-			ZkContext.LOGGER.info("Begin handling change.");
-			ZkContext.LOGGER.info("Now: " + current.keySet() + " Before: " + snapshot.keySet());
 			for (String currentNode : current.keySet()) {
 				if (!snapshot.containsKey(currentNode)) {
-					// new node
-					ZkContext.LOGGER.info("Add node " + currentNode + ", " + current.get(currentNode));
 					added.add(current.get(currentNode));
 				} else {
 					if (current.get(currentNode).host().propertyChanged(snapshot.get(currentNode).host())) {
-						ZkContext.LOGGER.info("Modify node " + currentNode + ", " + current.get(currentNode));
 						modified.add(new ServiceInstance[] { snapshot.get(currentNode), current.get(currentNode) });
 					}
 				}
 			}
 			for (String snapshotNode : snapshot.keySet()) {
 				if (!current.containsKey(snapshotNode)) {
-					ZkContext.LOGGER.info("Remove node " + snapshotNode + ", " + snapshot.get(snapshotNode));
 					removed.add(snapshot.get(snapshotNode));
 				}
 			}
