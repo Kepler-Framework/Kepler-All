@@ -1,18 +1,24 @@
 package com.kepler.host.impl;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.Socket;
+import java.util.Enumeration;
+import java.util.UUID;
+import java.util.regex.Pattern;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.kepler.KeplerLocalException;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.host.Host;
 import com.kepler.main.Pid;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.*;
-import java.util.Enumeration;
-import java.util.UUID;
-import java.util.regex.Pattern;
 
 /**
  * @author zhangjiehao 2015年7月8日
@@ -79,9 +85,10 @@ public class ServerHost implements Serializable, Host {
 		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
 		while (interfaces.hasMoreElements()) {
 			NetworkInterface intr = interfaces.nextElement();
-			String intrName = intr.getName();
 			// 网卡名称是否符合
-			if (Pattern.matches(ServerHost.PATTERN, intrName)) {
+			Boolean intr_matched = Pattern.matches(ServerHost.PATTERN, intr.getName());
+			ServerHost.LOGGER.info("Binding interface name: " + intr.getName() + (intr_matched ? "[matched]" : "[unmatched]"));
+			if (intr_matched) {
 				Enumeration<InetAddress> addresses = intr.getInetAddresses();
 				while (addresses.hasMoreElements()) {
 					InetAddress address = addresses.nextElement();
@@ -187,9 +194,7 @@ public class ServerHost implements Serializable, Host {
 	}
 
 	public boolean propertyChanged(ServerHost that) {
-		return (this.priority() != that.priority()) ||
-				(this.tag() == null && that.tag() != null) ||
-				(this.tag() != null && !this.tag().equals(that.tag()));
+		return (this.priority() != that.priority()) || (this.tag() == null && that.tag() != null) || (this.tag() != null && !this.tag().equals(that.tag()));
 	}
 
 	public String toString() {
