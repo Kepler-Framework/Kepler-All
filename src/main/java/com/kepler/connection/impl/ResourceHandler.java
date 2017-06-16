@@ -1,15 +1,15 @@
 package com.kepler.connection.impl;
 
-import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.kepler.config.PropertiesUtils;
+
+import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 
 /**
  * @author kim
@@ -32,7 +32,7 @@ public class ResourceHandler extends ChannelInboundHandlerAdapter {
 			ctx.fireChannelActive();
 		} else {
 			ResourceHandler.LOGGER.warn("Too many open connection ... (" + ctx.channel().remoteAddress() + ") (" + this.resources + ")");
-			ctx.close().addListener(ExceptionListener.TRACE);
+			ctx.close().addListener(ExceptionListener.listener(ctx));
 		}
 	}
 

@@ -230,7 +230,7 @@ public class DefaultServer {
 				DefaultServer.LOGGER.debug(cause.getMessage(), cause);
 			}
 			// 关闭通道, 并启动Inactive
-			ctx.close().addListener(ExceptionListener.TRACE);
+			ctx.close().addListener(ExceptionListener.listener(ctx));
 		}
 
 		@Override
@@ -242,7 +242,7 @@ public class DefaultServer {
 			if (DefaultServer.IDLE_CLOSE && evt instanceof IdleStateEvent) {
 				DefaultServer.LOGGER.warn("Idle (" + IdleStateEvent.class.cast(evt).state() + ") connection closed. [local=" + ctx.channel().localAddress() + "][remote=" + ctx.channel().remoteAddress() + "]");
 				DefaultServer.this.quality.idle();
-				ctx.close().addListener(ExceptionListener.TRACE);
+				ctx.close().addListener(ExceptionListener.listener(ctx));
 			}
 		}
 
@@ -307,7 +307,7 @@ public class DefaultServer {
 					// 使用处理后Request
 					Response response = this.response(request);
 					this.water4check();
-					this.ctx.writeAndFlush(DefaultServer.this.encoder.encode(request.service(), request.method(), response)).addListener(ExceptionListener.TRACE);
+					this.ctx.writeAndFlush(DefaultServer.this.encoder.encode(request.service(), request.method(), response)).addListener(ExceptionListener.listener(this.ctx));
 					// 记录调用栈 (使用原始Request)
 					DefaultServer.this.trace.trace(request, response, this.ctx.channel().localAddress().toString(), this.ctx.channel().remoteAddress().toString(), this.waiting, System.currentTimeMillis() - this.running, this.created);
 				} catch (Throwable throwable) {

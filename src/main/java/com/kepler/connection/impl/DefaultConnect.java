@@ -298,7 +298,7 @@ public class DefaultConnect implements Connect {
 		public void close() {
 			// 仅在通道尚处激活状态时关闭
 			if (this.ctx != null && this.ctx.channel().isActive()) {
-				this.ctx.close().addListener(ExceptionListener.TRACE);
+				this.ctx.close().addListener(ExceptionListener.listener(this.ctx));
 			}
 		}
 
@@ -364,7 +364,7 @@ public class DefaultConnect implements Connect {
 				DefaultConnect.LOGGER.debug(cause.getMessage(), cause);
 			}
 			// 关闭通道, 并启动Inactive
-			ctx.close().addListener(ExceptionListener.TRACE);
+			ctx.close().addListener(ExceptionListener.listener(this.ctx));
 		}
 
 		public Object invoke(Request request) throws Throwable {
@@ -374,7 +374,7 @@ public class DefaultConnect implements Connect {
 			this.water4check();
 			if (this.ctx.channel().eventLoop().inEventLoop()) {
 				this.ctx.channel().attr(DefaultConnect.ACKS).get().put(future);
-				this.ctx.writeAndFlush(buffer).addListener(ExceptionListener.TRACE);
+				this.ctx.writeAndFlush(buffer).addListener(ExceptionListener.listener(this.ctx));
 			} else {
 				this.ctx.channel().eventLoop().execute(new InvokeRunnable(this.ctx, future, buffer));
 			}
@@ -499,7 +499,7 @@ public class DefaultConnect implements Connect {
 		@Override
 		public void run() {
 			this.ctx.channel().attr(DefaultConnect.ACKS).get().put(this.future);
-			this.ctx.writeAndFlush(this.buffer).addListener(ExceptionListener.TRACE);
+			this.ctx.writeAndFlush(this.buffer).addListener(ExceptionListener.listener(this.ctx));
 		}
 	}
 
