@@ -57,6 +57,11 @@ public class ServerHost implements Serializable, Host {
 	private static final String PATTERN = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".pattern", ".*");
 
 	/**
+	 * 是否使用主机名替代IP
+	 */
+	private static final boolean HOSTNAME = PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".use_hostname", false);
+
+	/**
 	 * IP选择策略
 	 */
 	private static final Policy POLICY = Policy.valueOf(PropertiesUtils.get(ServerHost.class.getName().toLowerCase() + ".policy", "V4"));
@@ -76,32 +81,38 @@ public class ServerHost implements Serializable, Host {
 	}
 
 	public ServerHost(Pid pid) throws Exception {
-		this.local = new DefaultHost(Host.LOCATION, Host.GROUP_VAL, Host.TOKEN_VAL, Host.NAME, Host.TAG_VAL, pid.pid(), this.ip(), ServerHost.STABLE ? ServerHost.PORT : this.available(), Host.PRIORITY_DEF);
+		this.local = new DefaultHost(Host.LOCATION, Host.GROUP_VAL, Host.TOKEN_VAL, Host.NAME, Host.TAG_VAL, pid.pid(), this.hostname(), ServerHost.STABLE ? ServerHost.PORT : this.available(), Host.PRIORITY_DEF);
 		this.sid = ServerHost.SID;
 	}
 
-	private String ip() throws Exception {
-		ServerHost.LOGGER.info("ServerHost check mode: " + (ServerHost.CHECK ? "[check]" : "[uncheck]"));
-		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-		while (interfaces.hasMoreElements()) {
-			NetworkInterface intr = interfaces.nextElement();
-			// 网卡名称是否符合
-			Boolean intr_matched = Pattern.matches(ServerHost.PATTERN, intr.getName());
-			ServerHost.LOGGER.info("Binding interface name: " + intr.getName() + (intr_matched ? "[matched]" : "[unmatched]"));
-			if (intr_matched) {
-				Enumeration<InetAddress> addresses = intr.getInetAddresses();
-				while (addresses.hasMoreElements()) {
-					InetAddress address = addresses.nextElement();
-					if (ServerHost.POLICY.allowed(address) && (!ServerHost.CHECK || (address.isSiteLocalAddress() && !address.isLoopbackAddress() && !address.isLinkLocalAddress()))) {
-						ServerHost.LOGGER.info("ServerHost using adress: " + address);
-						return address.getHostAddress();
+	private String hostname() throws Exception {
+		if (ServerHost.HOSTNAME) {
+			String hostname = InetAddress.getLocalHost().getHostName();
+			ServerHost.LOGGER.info("ServerHost using address: " + hostname);
+			return hostname;
+		} else {
+			ServerHost.LOGGER.info("ServerHost check mode: " + (ServerHost.CHECK ? "[check]" : "[uncheck]"));
+			Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+			while (interfaces.hasMoreElements()) {
+				NetworkInterface intr = interfaces.nextElement();
+				// 网卡名称是否符合
+				Boolean intr_matched = Pattern.matches(ServerHost.PATTERN, intr.getName());
+				ServerHost.LOGGER.info("Binding interface name: " + intr.getName() + (intr_matched ? "[matched]" : "[unmatched]"));
+				if (intr_matched) {
+					Enumeration<InetAddress> addresses = intr.getInetAddresses();
+					while (addresses.hasMoreElements()) {
+						InetAddress address = addresses.nextElement();
+						if (ServerHost.POLICY.allowed(address) && (!ServerHost.CHECK || (address.isSiteLocalAddress() && !address.isLoopbackAddress() && !address.isLinkLocalAddress()))) {
+							ServerHost.LOGGER.info("ServerHost using address: " + address);
+							return address.getHostAddress();
+						}
 					}
 				}
+				continue;
 			}
-			continue;
+			ServerHost.LOGGER.warn("Using localhost mode for current service ... ");
+			return Host.LOOP;
 		}
-		ServerHost.LOGGER.warn("Using localhost mode for current service ... ");
-		return Host.LOOP;
 	}
 
 	/**
