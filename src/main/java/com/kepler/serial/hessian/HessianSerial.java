@@ -70,28 +70,35 @@ public class HessianSerial implements SerialOutput, SerialInput {
 		return SerialID.SERIAL_DEF;
 	}
 
-	public byte[] output(Object data, Class<?> clazz) throws Exception {
+	public byte[] output(Object data, Class<?> clazz) throws KeplerSerialException {
 		try (SegmentOutput output = new SegmentOutput(clazz)) {
 			return output.writeObject(data).arrays();
+		} catch (Exception e) {
+			throw new KeplerSerialException(e.getMessage());
 		}
 	}
 
-	public OutputStream output(Object data, Class<?> clazz, OutputStream stream, int buffer) throws Exception {
+	public void output(Object data, Class<?> clazz, OutputStream stream, int buffer) throws KeplerSerialException {
 		try (SegmentOutput output = new SegmentOutput(clazz, stream, buffer)) {
 			output.writeObject(data);
+		} catch (Exception e) {
+			throw new KeplerSerialException(e.getMessage());
 		}
-		return stream;
 	}
 
-	public <T> T input(byte[] data, Class<T> clazz) throws Exception {
+	public <T> T input(byte[] data, Class<T> clazz) throws KeplerSerialException {
 		try (SegmentInput input = new SegmentInput(data, clazz)) {
 			return this.adapter.adpater(clazz, input.readObject());
+		} catch (Exception e) {
+			throw new KeplerSerialException(e.getMessage());
 		}
 	}
 
-	public <T> T input(InputStream input, int buffer, Class<T> clazz) throws Exception {
+	public <T> T input(InputStream input, int buffer, Class<T> clazz) throws KeplerSerialException {
 		try (SegmentInput stream = new SegmentInput(input, buffer, clazz)) {
 			return this.adapter.adpater(clazz, stream.readObject());
+		} catch (Exception e) {
+			throw new KeplerSerialException(e.getMessage());
 		}
 	}
 
@@ -313,6 +320,13 @@ public class HessianSerial implements SerialOutput, SerialInput {
 		@Override
 		public boolean valid() {
 			return this.checkThrowable().actual.valid();
+		}
+		
+
+		@Override
+		public HessianResponse resend(Throwable throwable) {
+			this.actual.resend(throwable);
+			return this;
 		}
 
 		public String toString() {

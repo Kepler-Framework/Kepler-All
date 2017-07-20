@@ -13,7 +13,6 @@ import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
@@ -52,11 +51,7 @@ import com.kepler.service.imported.ImportedService;
 /**
  * @author zhangjiehao 2015年7月9日
  */
-/**
- * @author KimShen
- *
- */
-public class ZkContext implements Demotion, Imported, Exported, Runnable, ApplicationListener<ContextRefreshedEvent> {
+public class ZkContext implements Demotion, Imported, Exported, ApplicationListener<ContextRefreshedEvent> {
 
 	/**
 	 * 保存依赖关系路径
@@ -64,24 +59,26 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 	public static final String DEPENDENCY = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".dependency", "_dependency");
 
 	/**
+	 * 保存配置信息路径, 如果失败是否抛出异常终止发布
+	 */
+	public static final boolean CONFIG_FROCE = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".config_force", false);
+
+	/**
 	 * 保存配置信息路径
 	 */
 	public static final String CONFIG = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".config", "_configs");
 
 	/**
-	 * 保存配置信息路径, 如果失败是否抛出异常终止发布
+	 * 保存状态信息路径, 如果失败是否抛出异常终止发布
 	 */
-	public static final boolean CONFIG_FROCE = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".config_force", false);
+	public static final boolean STATUS_FROCE = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".status_force", false);
 
 	/**
 	 * 保存状态信息路径
 	 */
 	public static final String STATUS = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".status", "_status");
 
-	/**
-	 * 保存状态信息路径, 如果失败是否抛出异常终止发布
-	 */
-	public static final boolean STATUS_FROCE = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".status_force", false);
+	public static final long REFRESH_INTERVAL = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + "" + ".refresh", 60 * 1000);
 
 	private static final int INTERVAL = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".interval", 60000);
 
@@ -113,14 +110,18 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 
 	public static final boolean IMPORT_VAL = PropertiesUtils.get(ZkContext.IMPORT_KEY, true);
 
-	public static final long REFRESH_INTERVAL = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + "" + ".refresh_interval", 60 * 1000);
-
 	private static final Log LOGGER = LogFactory.getLog(ZkContext.class);
+
+	private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
 
 	/**
 	 * 加载失败的服务
 	 */
-	private final BlockingQueue<DelayInstall> uninstalled = new DelayQueue<DelayInstall>();
+	private final BlockingQueue<Reinstall> uninstalled = new DelayQueue<Reinstall>();
+
+	private final ReinstallRunnable reinstall = new ReinstallRunnable();
+
+	private final RefreshRunnable refresh = new RefreshRunnable();
 
 	private final ZkWatcher watcher = new ZkWatcher();
 
@@ -134,12 +135,6 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 	 * 用于延迟发布
 	 */
 	private final Delay delay = new Delay();
-
-	private final ThreadPoolExecutor threads;
-
-	private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();;
-
-	private final RefreshRunnable refreshRunnable = new RefreshRunnable();
 
 	private final ImportedListener listener;
 
@@ -157,13 +152,12 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 
 	volatile private boolean shutdown;
 
-	public ZkContext(ThreadPoolExecutor threads, ImportedListener listener, ServerHost local, Serials serials, Profile profile, Config config, Status status, ZkClient zoo) {
+	public ZkContext(ImportedListener listener, ServerHost local, Serials serials, Profile profile, Config config, Status status, ZkClient zoo) {
 		super();
 		this.zoo = zoo.bind(this);
 		this.listener = listener;
 		this.profile = profile;
 		this.serials = serials;
-		this.threads = threads;
 		this.config = config;
 		this.status = status;
 		this.local = local;
@@ -173,9 +167,10 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 	 * For Spring
 	 */
 	public void init() {
-		// 单线程操作
-		this.threads.execute(this);
-		this.scheduledExecutorService.scheduleAtFixedRate(this.refreshRunnable, REFRESH_INTERVAL, REFRESH_INTERVAL, TimeUnit.MILLISECONDS);
+		// 启动ZK同步线程
+		this.executor.scheduleAtFixedRate(this.refresh, ZkContext.REFRESH_INTERVAL, ZkContext.REFRESH_INTERVAL, TimeUnit.MILLISECONDS);
+		// 启动服务重加载线程
+		this.executor.execute(this.reinstall);
 	}
 
 	/**
@@ -185,11 +180,12 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 	 */
 	public void destroy() throws Exception {
 		this.shutdown = true;
+		// 关闭内部线程
+		this.executor.shutdownNow();
 		// 注销已发布服务
 		this.exports.destroy();
 		// 关闭ZK
 		this.zoo.close();
-		this.scheduledExecutorService.awaitTermination(1000, TimeUnit.MILLISECONDS);
 	}
 
 	/**
@@ -314,8 +310,7 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 			return;
 		}
 		// 订阅服务并启动Watcher监听
-
-		refreshRunnable.isRunning = true;
+		this.refresh.running = true;
 		try {
 			if (this.watcher.watch(service, this.road.road(ZkContext.ROOT, service.service(), service.versionAndCatalog()))) {
 				// 加入本地快照
@@ -325,7 +320,7 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 				ZkContext.LOGGER.info("Import service: " + service);
 			}
 		} finally {
-			refreshRunnable.isRunning = false;
+			this.refresh.running = false;
 		}
 	}
 
@@ -360,22 +355,6 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 		} catch (Throwable throwable) {
 			throw new KeplerLocalException(throwable);
 		}
-	}
-
-	@Override
-	public void run() {
-		while (!this.shutdown) {
-			try {
-				// 获取未加载服务并尝试重新加载
-				DelayInstall service = this.uninstalled.poll(ZkContext.INTERVAL, TimeUnit.MILLISECONDS);
-				if (service != null) {
-					ZkContext.this.subscribe(service.service());
-				}
-			} catch (Throwable e) {
-				ZkContext.LOGGER.debug(e.getMessage(), e);
-			}
-		}
-		ZkContext.LOGGER.warn("ZkContext shutdown ... ");
 	}
 
 	private class Roadmap {
@@ -643,7 +622,7 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 				if (e.getClass().equals(NoNodeException.class)) {
 					this.failedIfInternal(service);
 					// 尝试延迟加载
-					ZkContext.this.uninstalled.add(new DelayInstall(service));
+					ZkContext.this.uninstalled.add(new Reinstall(service));
 				} else {
 					ZkContext.LOGGER.error(e.getMessage(), e);
 				}
@@ -981,7 +960,7 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 		}
 	}
 
-	private class DelayInstall implements Delayed {
+	private class Reinstall implements Delayed {
 
 		/**
 		 * 当前时间 + delay时间
@@ -990,7 +969,7 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 
 		private final Service service;
 
-		private DelayInstall(Service service) {
+		private Reinstall(Service service) {
 			super();
 			this.service = service;
 		}
@@ -1012,17 +991,36 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 		}
 	}
 
-	private class RefreshRunnable implements Runnable {
-
-		private volatile boolean isRunning = false;
+	private class ReinstallRunnable implements Runnable {
 
 		@Override
 		public void run() {
-			if (this.isRunning) {
+			while (!ZkContext.this.shutdown) {
+				try {
+					// 获取未加载服务并尝试重新加载
+					Reinstall service = ZkContext.this.uninstalled.poll(ZkContext.INTERVAL, TimeUnit.MILLISECONDS);
+					if (service != null) {
+						ZkContext.this.subscribe(service.service());
+					}
+				} catch (Throwable e) {
+					ZkContext.LOGGER.debug(e.getMessage(), e);
+				}
+			}
+			ZkContext.LOGGER.warn("ZkContext shutdown ... ");
+		}
+	}
+
+	private class RefreshRunnable implements Runnable {
+
+		private volatile boolean running = false;
+
+		@Override
+		public void run() {
+			if (this.running) {
 				return;
 			}
 			try {
-				this.isRunning = true;
+				this.running = true;
 				Map<String, ServiceInstance> snapshot = new HashMap<String, ServiceInstance>(ZkContext.this.snapshot.instances);
 				Map<String, ServiceInstance> current = new HashMap<String, ServiceInstance>();
 				Set<Service> imported = ZkContext.this.snapshot.imported;
@@ -1049,14 +1047,14 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 			} catch (Exception e) {
 				ZkContext.LOGGER.error(e.getMessage(), e);
 			} finally {
-				this.isRunning = false;
+				this.running = false;
 			}
 		}
 
 		private void handle(Map<String, ServiceInstance> current, Map<String, ServiceInstance> snapshot) throws Exception {
-			List<ServiceInstance> added = new ArrayList<ServiceInstance>();
-			List<ServiceInstance> removed = new ArrayList<ServiceInstance>();
 			List<ServiceInstance[]> modified = new ArrayList<ServiceInstance[]>();
+			List<ServiceInstance> removed = new ArrayList<ServiceInstance>();
+			List<ServiceInstance> added = new ArrayList<ServiceInstance>();
 			for (String currentNode : current.keySet()) {
 				if (!snapshot.containsKey(currentNode)) {
 					added.add(current.get(currentNode));
@@ -1071,30 +1069,30 @@ public class ZkContext implements Demotion, Imported, Exported, Runnable, Applic
 					removed.add(snapshot.get(snapshotNode));
 				}
 			}
-			this.handleAdded(added);
-			this.handleRemoved(removed);
 			this.handleModified(modified);
+			this.handleRemoved(removed);
+			this.handleAdded(added);
 		}
 
 		private void handleAdded(List<ServiceInstance> added) throws Exception {
-			for (ServiceInstance serviceInstance : added) {
-				ZkContext.LOGGER.info("[new node found]" + serviceInstance);
-				ZkContext.this.listener.add(serviceInstance);
+			for (ServiceInstance instance : added) {
+				ZkContext.LOGGER.warn("[node install]" + instance);
+				ZkContext.this.listener.add(instance);
 			}
 		}
 
 		private void handleRemoved(List<ServiceInstance> removed) throws Exception {
-			for (ServiceInstance serviceInstance : removed) {
-				ZkContext.LOGGER.info("[node removed]" + serviceInstance);
-				ZkContext.this.listener.delete(serviceInstance);
+			for (ServiceInstance instance : removed) {
+				ZkContext.LOGGER.warn("[node removed]" + instance);
+				ZkContext.this.listener.delete(instance);
 			}
 		}
 
 		private void handleModified(List<ServiceInstance[]> modified) throws Exception {
-			for (ServiceInstance[] serviceInstance : modified) {
-				ZkContext.LOGGER.info("[node update]" + serviceInstance[0]);
-				ServiceInstance oldSrvInst = serviceInstance[0], newSrvInst = serviceInstance[1];
-				ZkContext.this.listener.change(oldSrvInst, newSrvInst);
+			for (ServiceInstance[] instance : modified) {
+				ZkContext.LOGGER.warn("[node update]" + instance[0]);
+				ServiceInstance instance_old = instance[0], instance_new = instance[1];
+				ZkContext.this.listener.change(instance_old, instance_new);
 			}
 		}
 	}

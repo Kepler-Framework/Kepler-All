@@ -17,9 +17,9 @@ public class DefaultResponse implements Response {
 
 	private final byte[] ack;
 
-	private final Object response;
-
-	private final Throwable throwable;
+	private Throwable throwable;
+	
+	private Object response;
 
 	public DefaultResponse(byte serial, byte[] ack, Object response) {
 		this(serial, ack, response, null);
@@ -35,6 +35,14 @@ public class DefaultResponse implements Response {
 		this.serial = serial;
 		this.response = response;
 		this.throwable = throwable;
+	}
+	
+
+	@Override
+	public DefaultResponse resend(Throwable ob) {
+		this.response = null;
+		this.throwable = ob;
+		return this;
 	}
 
 	public byte serial() {

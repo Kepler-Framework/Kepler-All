@@ -2,12 +2,14 @@ package com.kepler.serial;
 
 import java.io.OutputStream;
 
+import com.kepler.KeplerSerialException;
+
 /**
  * @author kim 2015年10月13日
  */
 public interface SerialOutput extends SerialID, SerialName {
 
-	public byte[] output(Object data, Class<?> clazz) throws Exception;
+	public byte[] output(Object data, Class<?> clazz) throws KeplerSerialException;
 
-	public OutputStream output(Object data, Class<?> clazz, OutputStream output, int buffer) throws Exception;
+	public void output(Object data, Class<?> clazz, OutputStream output, int buffer) throws KeplerSerialException;
 }

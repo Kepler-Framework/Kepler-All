@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.kepler.serial.SerialID;
+import com.kepler.serial.SerialResend;
 
 /**
  * SerialID, 序列化策略
@@ -14,7 +15,7 @@ import com.kepler.serial.SerialID;
  * @author kim 2015年7月8日
  */
 @JsonTypeInfo(use = Id.CLASS, include = As.WRAPPER_OBJECT)
-public interface Response extends SerialID, Serializable {
+public interface Response extends SerialID, SerialResend, Serializable {
 
 	@JsonProperty
 	public byte[] ack();

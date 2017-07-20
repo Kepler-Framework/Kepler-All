@@ -8,8 +8,11 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.kepler.KeplerSerialException;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.serial.SerialID;
+import com.kepler.serial.SerialOutput;
+import com.kepler.serial.SerialResend;
 import com.kepler.serial.Serials;
 import com.kepler.service.Exported;
 import com.kepler.service.Imported;
@@ -134,15 +137,38 @@ public class Encoder implements Imported, Exported {
 		return handler != null ? handler : this.install(service_method, AdaptiveRecvByteBufAllocator.DEFAULT.newHandle(), false);
 	}
 
-	public ByteBuf encode(Service service, String method, Object message) throws Exception {
-		ServiceAndMethod service_method = new ServiceAndMethod(service, method);
-		// 分配ByteBuf
-		ByteBuf buffer = Encoder.ESTIMATE ? this.handler(service_method).allocate(this.allocator) : this.allocator.ioBuffer();
+	/**
+	 * @param output  序列化工厂
+	 * @param stream 
+	 * @param buffer  缓存大小
+	 * @param message 实际报文
+	 * @return
+	 */
+	private WrapStream stream(SerialOutput output, WrapStream stream, Integer buffer, Object message) throws KeplerSerialException {
 		try {
-			// 获取序列化策略(如Request/Response)
-			byte serial = SerialID.class.cast(message).serial();
-			// 首字节为序列化策略
-			return WrapStream.class.cast(this.serials.output(serial).output(message, this.clazz, new WrapStream(service_method, buffer.writeByte(serial)), (int) (buffer.capacity() * Encoder.ADJUST))).record().buffer();
+			output.output(message, this.clazz, stream, buffer);
+		} catch (KeplerSerialException e) {
+			// 如果为序列化错误检查是否需要重发
+			if (SerialResend.class.isAssignableFrom(message.getClass())) {
+				Encoder.LOGGER.error(e.getMessage(), e);
+				output.output(SerialResend.class.cast(message).resend(e), this.clazz, stream.reset(), buffer);
+			} else {
+				throw e;
+			}
+		}
+		return stream;
+	}
+
+	public ByteBuf encode(Service service, String method, Object message) throws Exception {
+		// 序列化策略
+		byte serial_id = SerialID.class.cast(message).serial();
+		// 序列化实现类
+		SerialOutput serial_output = this.serials.output(serial_id);
+		ServiceAndMethod service_method = new ServiceAndMethod(service, method);
+		// 分配写入缓存
+		ByteBuf buffer = Encoder.ESTIMATE ? this.handler(service_method).allocate(this.allocator) : this.allocator.ioBuffer();
+		try (WrapStream stream = new WrapStream(service_method, buffer.writeByte(serial_id))) {
+			return stream(serial_output, stream, (int) (buffer.capacity() * Encoder.ADJUST), message).record().buffer();
 		} catch (Exception exception) {
 			// 异常, 释放ByteBuf
 			if (buffer.refCnt() > 0) {
@@ -197,6 +223,11 @@ public class Encoder implements Imported, Exported {
 				return;
 			}
 			this.buffer.writeBytes(src, offset, length);
+		}
+
+		public WrapStream reset() {
+			this.buffer.writerIndex(1);
+			return this;
 		}
 
 		/**

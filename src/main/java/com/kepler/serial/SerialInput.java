@@ -2,12 +2,14 @@ package com.kepler.serial;
 
 import java.io.InputStream;
 
+import com.kepler.KeplerSerialException;
+
 /**
  * @author kim 2015年7月8日
  */
 public interface SerialInput extends SerialID, SerialName {
 
-	public <T> T input(byte[] data, Class<T> clazz) throws Exception;
+	public <T> T input(byte[] data, Class<T> clazz) throws KeplerSerialException;
 
 	/**
 	 * @param clazz
@@ -16,5 +18,5 @@ public interface SerialInput extends SerialID, SerialName {
 	 * @return
 	 * @throws Exception
 	 */
-	public <T> T input(InputStream input, int buffer, Class<T> clazz) throws Exception;
+	public <T> T input(InputStream input, int buffer, Class<T> clazz) throws KeplerSerialException;
 }

@@ -21,6 +21,11 @@ public class GuidGenerator implements IDGenerator {
 
 	private int pid;
 
+	public GuidGenerator(int pid, int machine) {
+		this.pid = pid;
+		this.machine = machine;
+	}
+
 	public GuidGenerator(Pid pid, ServerHost host) {
 		this.pid = Integer.valueOf(pid.pid());
 		this.machine = host.sid().hashCode() << 16;

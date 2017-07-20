@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.kepler.KeplerSerialException;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.org.apache.commons.io.IOUtils;
 import com.kepler.protocol.Request;
@@ -78,31 +79,38 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 	}
 
 	@Override
-	public byte[] output(Object data, Class<?> clazz) throws Exception {
+	public byte[] output(Object data, Class<?> clazz) throws KeplerSerialException {
 		try (AutoCloseOutput output = new AutoCloseOutput(clazz)) {
 			return output.writeObject(data).arrays();
+		} catch (Exception e) {
+			throw new KeplerSerialException(e.getMessage());
 		}
 	}
 
 	@Override
-	public OutputStream output(Object data, Class<?> clazz, OutputStream stream, int buffer) throws Exception {
+	public void output(Object data, Class<?> clazz, OutputStream stream, int buffer) throws KeplerSerialException {
 		try (AutoCloseOutput output = new AutoCloseOutput(stream, buffer, clazz)) {
 			output.writeObject(data);
+		} catch (Exception e) {
+			throw new KeplerSerialException(e.getMessage());
 		}
-		return stream;
 	}
 
 	@Override
-	public <T> T input(byte[] data, Class<T> clazz) throws Exception {
+	public <T> T input(byte[] data, Class<T> clazz) throws KeplerSerialException {
 		try (AutoCloseInput input = new AutoCloseInput(data, clazz)) {
 			return clazz.cast(input.readObject());
+		} catch (Exception e) {
+			throw new KeplerSerialException(e.getMessage());
 		}
 	}
 
 	@Override
-	public <T> T input(InputStream input, int buffer, Class<T> clazz) throws Exception {
+	public <T> T input(InputStream input, int buffer, Class<T> clazz) throws KeplerSerialException {
 		try (AutoCloseInput stream = new AutoCloseInput(input, buffer, clazz)) {
 			return clazz.cast(stream.readObject());
+		} catch (Exception e) {
+			throw new KeplerSerialException(e.getMessage());
 		}
 	}
 
