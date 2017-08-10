@@ -86,9 +86,11 @@ public class DefaultHostContext implements HostsContext, Router {
 				Hosts hosts = this.hosts.get(service);
 				// 强先后顺序, hosts.ban(host)必须调用
 				boolean baned_each = hosts.ban(host);
+				if (baned_each) {
+					DefaultHostContext.LOGGER.info("Ban. [service=" + service + "][host=" + host.address() + "]");
+				}
 				// 任何一台Host Ban成功则标记Baned = True.
 				baned_all = baned_each || baned_all;
-				DefaultHostContext.LOGGER.info("Ban. [service=" + service + "][host=" + host.address() + "][baned_each=" + baned_each + "][baned_all=" + baned_all + "]");
 			}
 			// Hosts中任意服务Ban成功均尝试重连
 			if (baned_all) {
@@ -109,7 +111,8 @@ public class DefaultHostContext implements HostsContext, Router {
 
 	public void remove(Host host, Service service) {
 		synchronized (this.hosts) {
-			this.hosts.get(service).remove(host);
+			Hosts hosts = this.hosts.get(service);
+			hosts.remove(host);
 			DefaultHostContext.LOGGER.info("Remove. [service=" + service + "][host=" + host.address() + "]");
 		}
 	}
