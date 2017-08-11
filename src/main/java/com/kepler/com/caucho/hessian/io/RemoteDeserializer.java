@@ -48,15 +48,7 @@
 
 package com.kepler.com.caucho.hessian.io;
 
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.HashMap;
-
-import java.util.logging.*;
+import java.util.logging.Logger;
 
 /**
  * Serializing an object for known object types.

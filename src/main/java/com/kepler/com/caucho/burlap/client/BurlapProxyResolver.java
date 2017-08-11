@@ -48,9 +48,9 @@
 
 package com.kepler.com.caucho.burlap.client;
 
-import com.kepler.com.caucho.burlap.io.BurlapRemoteResolver;
-
 import java.io.IOException;
+
+import com.kepler.com.caucho.burlap.io.BurlapRemoteResolver;
 
 /**
  * Looks up remote objects in the proxy.

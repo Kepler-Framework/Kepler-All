@@ -36,6 +36,7 @@ import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.host.Host;
 import com.kepler.host.HostStatus;
+import com.kepler.host.HostsContext;
 import com.kepler.host.impl.DefaultHostStatus;
 import com.kepler.host.impl.ServerHost;
 import com.kepler.host.impl.ServerHost.Builder;
@@ -138,6 +139,8 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 
 	private final ImportedListener listener;
 
+	private final HostsContext hosts;
+
 	private final ServerHost local;
 
 	private final Profile profile;
@@ -152,7 +155,7 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 
 	volatile private boolean shutdown;
 
-	public ZkContext(ImportedListener listener, ServerHost local, Serials serials, Profile profile, Config config, Status status, ZkClient zoo) {
+	public ZkContext(ImportedListener listener, HostsContext hosts, ServerHost local, Serials serials, Profile profile, Config config, Status status, ZkClient zoo) {
 		super();
 		this.zoo = zoo.bind(this);
 		this.listener = listener;
@@ -161,6 +164,7 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		this.config = config;
 		this.status = status;
 		this.local = local;
+		this.hosts = hosts;
 	}
 
 	/**
@@ -1055,18 +1059,20 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 			List<ServiceInstance[]> modified = new ArrayList<ServiceInstance[]>();
 			List<ServiceInstance> removed = new ArrayList<ServiceInstance>();
 			List<ServiceInstance> added = new ArrayList<ServiceInstance>();
-			for (String currentNode : current.keySet()) {
-				if (!snapshot.containsKey(currentNode)) {
-					added.add(current.get(currentNode));
+			for (String each : current.keySet()) {
+				// ZK快照不包含, 或者指定服务Hosts不包含该Host
+				if (!snapshot.containsKey(each) || !ZkContext.this.hosts.getOrCreate(new Service(current.get(each))).contain(current.get(each).host())) {
+					added.add(current.get(each));
 				} else {
-					if (current.get(currentNode).host().propertyChanged(snapshot.get(currentNode).host())) {
-						modified.add(new ServiceInstance[] { snapshot.get(currentNode), current.get(currentNode) });
+					if (current.get(each).host().propertyChanged(snapshot.get(each).host())) {
+						modified.add(new ServiceInstance[] { snapshot.get(each), current.get(each) });
 					}
 				}
 			}
-			for (String snapshotNode : snapshot.keySet()) {
-				if (!current.containsKey(snapshotNode)) {
-					removed.add(snapshot.get(snapshotNode));
+			// 移除节点
+			for (String each : snapshot.keySet()) {
+				if (!current.containsKey(each)) {
+					removed.add(snapshot.get(each));
 				}
 			}
 			this.handleModified(modified);

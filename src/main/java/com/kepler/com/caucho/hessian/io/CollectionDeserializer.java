@@ -49,7 +49,13 @@
 package com.kepler.com.caucho.hessian.io;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * Deserializing a JDK 1.2 Collection.

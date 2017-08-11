@@ -49,15 +49,10 @@
 package com.kepler.com.caucho.hessian.io;
 
 import java.io.IOException;
-import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
+import java.lang.reflect.Method;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.kepler.com.caucho.hessian.HessianException;
 
 /**
  * Serializing an object for known object types.

@@ -49,7 +49,6 @@
 package com.kepler.com.caucho.hessian.io;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 
 /**
  * Deserializes a string-valued object like BigDecimal.

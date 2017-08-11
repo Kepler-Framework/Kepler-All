@@ -48,19 +48,25 @@
 
 package com.kepler.com.caucho.hessian.io;
 
-import com.kepler.com.caucho.burlap.io.BurlapRemoteObject;
-
-import java.io.*;
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import javax.management.*;
+import com.kepler.com.caucho.burlap.io.BurlapRemoteObject;
 
 /**
  * Factory for returning serialization methods.

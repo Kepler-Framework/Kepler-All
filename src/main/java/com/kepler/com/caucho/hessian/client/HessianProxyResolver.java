@@ -48,9 +48,9 @@
 
 package com.kepler.com.caucho.hessian.client;
 
-import com.kepler.com.caucho.hessian.io.HessianRemoteResolver;
-
 import java.io.IOException;
+
+import com.kepler.com.caucho.hessian.io.HessianRemoteResolver;
 
 /**
  * Looks up remote objects in the proxy.

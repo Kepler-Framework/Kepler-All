@@ -1,7 +1,5 @@
 package com.kepler.com.caucho.hessian.test;
 
-import java.io.IOException;
-
 /**
  * Empty object for short-encoding testing
  */

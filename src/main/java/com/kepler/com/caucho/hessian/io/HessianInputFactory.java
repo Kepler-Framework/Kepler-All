@@ -48,8 +48,9 @@
 
 package com.kepler.com.caucho.hessian.io;
 
-import java.util.logging.*;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.logging.Logger;
 
 public class HessianInputFactory
 {

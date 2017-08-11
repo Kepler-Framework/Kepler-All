@@ -48,9 +48,9 @@
 
 package com.kepler.com.caucho.burlap.io;
 
-import com.kepler.com.caucho.hessian.io.AbstractHessianOutput;
-
 import java.io.IOException;
+
+import com.kepler.com.caucho.hessian.io.AbstractHessianOutput;
 
 /**
  * Abstract output stream for Burlap requests.

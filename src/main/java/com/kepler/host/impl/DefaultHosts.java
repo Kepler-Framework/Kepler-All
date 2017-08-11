@@ -60,7 +60,7 @@ public class DefaultHosts implements Hosts {
 	 * @param host
 	 * @return
 	 */
-	private boolean contain(Host host) {
+	public boolean contain(Host host) {
 		return this.hosts.contains(host) || this.bans.contains(host) || this.waiting.contains(host);
 	}
 

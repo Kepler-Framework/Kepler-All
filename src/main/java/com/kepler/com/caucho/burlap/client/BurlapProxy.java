@@ -48,9 +48,6 @@
 
 package com.kepler.com.caucho.burlap.client;
 
-import com.kepler.com.caucho.burlap.io.AbstractBurlapInput;
-import com.kepler.com.caucho.burlap.io.BurlapOutput;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,7 +58,11 @@ import java.lang.reflect.Proxy;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.logging.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.kepler.com.caucho.burlap.io.AbstractBurlapInput;
+import com.kepler.com.caucho.burlap.io.BurlapOutput;
 
 /**
  * Proxy implementation for Burlap clients.  Applications will generally

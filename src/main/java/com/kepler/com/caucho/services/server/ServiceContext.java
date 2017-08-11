@@ -48,11 +48,11 @@
 
 package com.kepler.com.caucho.services.server;
 
+import java.util.HashMap;
+
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-
-import java.util.HashMap;
 
 /**
  * Context for a service, to handle request-specific information.

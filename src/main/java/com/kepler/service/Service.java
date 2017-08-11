@@ -33,6 +33,10 @@ public final class Service implements Serializable {
 		this(service.getName(), AnnotationUtils.findAnnotation(service, com.kepler.annotation.Service.class));
 	}
 
+	public Service(ServiceInstance instance) throws Exception {
+		this(instance.service(), instance.version(), instance.catalog());
+	}
+
 	public Service(String service, String version) throws Exception {
 		this(service, version, null);
 	}

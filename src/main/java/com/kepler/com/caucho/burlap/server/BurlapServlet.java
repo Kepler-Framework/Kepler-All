@@ -48,10 +48,10 @@
 
 package com.kepler.com.caucho.burlap.server;
 
-import com.kepler.com.caucho.burlap.io.BurlapInput;
-import com.kepler.com.caucho.burlap.io.BurlapOutput;
-import com.kepler.com.caucho.services.server.Service;
-import com.kepler.com.caucho.services.server.ServiceContext;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 
 import javax.servlet.GenericServlet;
 import javax.servlet.Servlet;
@@ -62,10 +62,10 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import com.kepler.com.caucho.burlap.io.BurlapInput;
+import com.kepler.com.caucho.burlap.io.BurlapOutput;
+import com.kepler.com.caucho.services.server.Service;
+import com.kepler.com.caucho.services.server.ServiceContext;
 
 /**
  * Servlet for serving Burlap services.

@@ -1,12 +1,12 @@
 package com.kepler.generic.reflect.convert.impl;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import com.kepler.config.PropertiesUtils;
 import com.kepler.generic.reflect.analyse.FieldsAnalyser;
 import com.kepler.generic.reflect.convert.ConvertorPriority;
 import com.kepler.org.apache.commons.lang.math.NumberUtils;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * @author KimShen

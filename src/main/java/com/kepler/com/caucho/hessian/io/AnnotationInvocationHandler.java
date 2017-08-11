@@ -48,15 +48,11 @@
 
 package com.kepler.com.caucho.hessian.io;
 
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.*;
-
-import com.kepler.com.caucho.hessian.HessianException;
 
 /**
  * Proxy for a java annotation for known object types.

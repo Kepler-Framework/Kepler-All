@@ -48,14 +48,15 @@
 
 package com.kepler.com.caucho.burlap.server;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import com.kepler.com.caucho.burlap.io.BurlapInput;
 import com.kepler.com.caucho.burlap.io.BurlapOutput;
 import com.kepler.com.caucho.services.server.AbstractSkeleton;
 import com.kepler.com.caucho.services.server.ServiceContext;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.logging.*;
 
 /**
  * Proxy class for Burlap services.

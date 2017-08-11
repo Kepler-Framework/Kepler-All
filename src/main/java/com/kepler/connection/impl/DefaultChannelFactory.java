@@ -1,9 +1,9 @@
 package com.kepler.connection.impl;
 
+import com.kepler.KeplerLocalException;
+
 import io.netty.bootstrap.ChannelFactory;
 import io.netty.channel.Channel;
-
-import com.kepler.KeplerLocalException;
 
 /**
  * @author kim 2015年7月8日

@@ -19,6 +19,14 @@ public interface Hosts {
 	public boolean ban(Host host);
 
 	/**
+	 * 是否包含指定主机
+	 * 
+	 * @param host
+	 * @return
+	 */
+	public boolean contain(Host host);
+
+	/**
 	 * 获取默认主机集合
 	 * @return
 	 */

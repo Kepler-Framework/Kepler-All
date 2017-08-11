@@ -48,10 +48,6 @@
 
 package com.kepler.com.caucho.burlap.io;
 
-import com.kepler.com.caucho.hessian.io.Deserializer;
-import com.kepler.com.caucho.hessian.io.HessianRemoteResolver;
-import com.kepler.com.caucho.hessian.io.SerializerFactory;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,6 +58,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.TimeZone;
+
+import com.kepler.com.caucho.hessian.io.Deserializer;
+import com.kepler.com.caucho.hessian.io.HessianRemoteResolver;
+import com.kepler.com.caucho.hessian.io.SerializerFactory;
 
 /**
  * Input stream for Burlap requests.

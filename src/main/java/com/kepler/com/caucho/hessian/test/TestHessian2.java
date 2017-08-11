@@ -1,7 +1,5 @@
 package com.kepler.com.caucho.hessian.test;
 
-import java.io.IOException;
-
 /**
  * The Test service is a quick sanity check service.  Developers of a
  * new Hessian implementation can use this service as an initial test.

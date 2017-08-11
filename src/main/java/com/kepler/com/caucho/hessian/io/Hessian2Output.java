@@ -48,12 +48,12 @@
 
 package com.kepler.com.caucho.hessian.io;
 
-import com.kepler.com.caucho.hessian.util.IdentityIntMap;
-
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
+
+import com.kepler.com.caucho.hessian.util.IdentityIntMap;
 
 /**
  * Output stream for Hessian 2 requests.

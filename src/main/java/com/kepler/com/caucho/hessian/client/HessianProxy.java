@@ -48,19 +48,30 @@
 
 package com.kepler.com.caucho.hessian.client;
 
-import com.kepler.com.caucho.hessian.io.*;
-import com.kepler.com.caucho.services.server.*;
-
-import java.io.*;
-import java.util.logging.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.io.Writer;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.WeakHashMap;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.zip.*;
+import java.util.WeakHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
+
+import com.kepler.com.caucho.hessian.io.AbstractHessianInput;
+import com.kepler.com.caucho.hessian.io.AbstractHessianOutput;
+import com.kepler.com.caucho.hessian.io.HessianDebugInputStream;
+import com.kepler.com.caucho.hessian.io.HessianDebugOutputStream;
+import com.kepler.com.caucho.hessian.io.HessianProtocolException;
+import com.kepler.com.caucho.hessian.io.HessianRemote;
+import com.kepler.com.caucho.services.server.AbstractSkeleton;
 
 /**
  * Proxy implementation for Hessian clients.  Applications will generally

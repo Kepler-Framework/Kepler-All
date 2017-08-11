@@ -1,10 +1,9 @@
 package com.kepler.com.caucho.hessian.test;
 
-import com.kepler.com.caucho.hessian.io.*;
-import com.kepler.com.caucho.hessian.server.HessianServlet;
+import java.io.CharArrayWriter;
+import java.io.IOException;
 
-import java.io.*;
-import java.util.*;
+import com.kepler.com.caucho.hessian.server.HessianServlet;
 
 /**
  * The test service is a Hessian 2.0 protocol test for developers of

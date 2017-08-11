@@ -30,6 +30,7 @@
 		<constructor-arg ref="kepler.zookeeper.listener" />
 		<constructor-arg ref="kepler.zookeeper.factory" />
 		<constructor-arg ref="kepler.config.profile" />
+		<constructor-arg ref="kepler.host.context" />
 		<constructor-arg ref="kepler.host.local" />
 		<constructor-arg ref="kepler.serials" />
 		<constructor-arg ref="kepler.config" />

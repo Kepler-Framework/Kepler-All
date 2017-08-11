@@ -48,8 +48,6 @@
 
 package com.kepler.com.caucho.hessian.io;
 
-import com.kepler.com.caucho.burlap.io.BurlapRemoteObject;
-
 import java.io.IOException;
 
 /**

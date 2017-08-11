@@ -55,7 +55,6 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.logging.Logger;
 
-import javax.servlet.GenericServlet;
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;

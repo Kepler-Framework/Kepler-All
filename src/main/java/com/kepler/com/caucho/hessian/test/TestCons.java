@@ -1,7 +1,6 @@
 package com.kepler.com.caucho.hessian.test;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
 
 /**
  * Cons-cell for testing

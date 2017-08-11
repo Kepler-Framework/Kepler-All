@@ -48,10 +48,9 @@
 
 package com.kepler.com.caucho.hessian.client;
 
-import java.net.URL;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.IOException;
 
 /**
  * Internal connection to a server.  The default connection is based on

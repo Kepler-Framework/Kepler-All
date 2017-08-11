@@ -48,16 +48,13 @@
 
 package com.kepler.com.caucho.hessian.client;
 
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.HttpURLConnection;
-import java.util.zip.Inflater;
-import java.util.zip.InflaterInputStream;
-
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.IOException;
-import java.io.FileNotFoundException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 
 /**
  * Internal connection to a server.  The default connection is based on

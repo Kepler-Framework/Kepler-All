@@ -48,10 +48,7 @@
 
 package com.kepler.com.caucho.hessian.io;
 
-import java.io.IOException;
 import java.io.File;
-
-import com.kepler.com.caucho.hessian.HessianException;
 
 /**
  * Deserializing a File

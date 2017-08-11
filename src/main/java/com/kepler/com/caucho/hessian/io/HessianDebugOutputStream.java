@@ -50,11 +50,10 @@ package com.kepler.com.caucho.hessian.io;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Writer;
 import java.io.PrintWriter;
-
-import java.util.logging.Logger;
+import java.io.Writer;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Debugging output stream for Hessian requests.

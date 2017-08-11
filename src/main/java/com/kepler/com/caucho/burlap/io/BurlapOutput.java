@@ -48,15 +48,15 @@
 
 package com.kepler.com.caucho.burlap.io;
 
-import com.kepler.com.caucho.hessian.io.Serializer;
-import com.kepler.com.caucho.hessian.io.SerializerFactory;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.IdentityHashMap;
 import java.util.TimeZone;
+
+import com.kepler.com.caucho.hessian.io.Serializer;
+import com.kepler.com.caucho.hessian.io.SerializerFactory;
 
 /**
  * Output stream for Burlap requests, compatible with microedition

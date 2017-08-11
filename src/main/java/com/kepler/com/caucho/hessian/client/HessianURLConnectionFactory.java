@@ -48,14 +48,11 @@
 
 package com.kepler.com.caucho.hessian.client;
 
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.HttpURLConnection;
-
-import java.io.IOException;
-
-import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Internal factory for creating connections to the server.  The default

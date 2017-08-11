@@ -48,20 +48,6 @@
 
 package com.kepler.com.caucho.burlap.client;
 
-import com.kepler.com.caucho.burlap.io.AbstractBurlapInput;
-import com.kepler.com.caucho.burlap.io.BurlapInput;
-import com.kepler.com.caucho.burlap.io.BurlapOutput;
-import com.kepler.com.caucho.burlap.io.BurlapRemoteObject;
-import com.kepler.com.caucho.burlap.io.BurlapRemoteResolver;
-import com.kepler.com.caucho.services.client.ServiceProxyFactory;
-
-import javax.naming.Context;
-import javax.naming.Name;
-import javax.naming.NamingException;
-import javax.naming.RefAddr;
-import javax.naming.Reference;
-import javax.naming.spi.ObjectFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -71,6 +57,20 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Hashtable;
+
+import javax.naming.Context;
+import javax.naming.Name;
+import javax.naming.NamingException;
+import javax.naming.RefAddr;
+import javax.naming.Reference;
+import javax.naming.spi.ObjectFactory;
+
+import com.kepler.com.caucho.burlap.io.AbstractBurlapInput;
+import com.kepler.com.caucho.burlap.io.BurlapInput;
+import com.kepler.com.caucho.burlap.io.BurlapOutput;
+import com.kepler.com.caucho.burlap.io.BurlapRemoteObject;
+import com.kepler.com.caucho.burlap.io.BurlapRemoteResolver;
+import com.kepler.com.caucho.services.client.ServiceProxyFactory;
 
 /**
  * Factory for creating Burlap client stubs.  The returned stub will

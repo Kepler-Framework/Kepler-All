@@ -55,9 +55,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
-import java.util.logging.*;
-
-import com.kepler.com.caucho.hessian.io.UnsafeDeserializer.FieldDeserializer;
 
 /**
  * Serializing an object for known object types.

@@ -48,8 +48,7 @@
 
 package com.kepler.com.caucho.hessian.jmx;
 
-import com.kepler.com.caucho.hessian.io.AbstractDeserializer;
-import com.kepler.com.caucho.hessian.io.AbstractHessianInput;
+import java.io.IOException;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanConstructorInfo;
@@ -57,7 +56,8 @@ import javax.management.MBeanInfo;
 import javax.management.MBeanNotificationInfo;
 import javax.management.MBeanOperationInfo;
 
-import java.io.IOException;
+import com.kepler.com.caucho.hessian.io.AbstractDeserializer;
+import com.kepler.com.caucho.hessian.io.AbstractHessianInput;
 
 /**
  * Deserializing an MBeanInfo valued object
