@@ -54,7 +54,7 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	/**
 	 * Trace
 	 */
-	private final String trace = TraceContext.get();
+	private final String trace = TraceContext.getTrace();
 
 	/**
 	 * 执行通道

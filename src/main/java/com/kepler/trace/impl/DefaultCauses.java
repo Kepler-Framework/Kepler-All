@@ -65,7 +65,7 @@ public class DefaultCauses implements TraceCauses {
 	 */
 	private boolean allow(Service service, String method, String cause) {
 		if (this.index.getAndIncrement() > DefaultCauses.MAX) {
-			DefaultCauses.LOGGER.warn("Array out of range. [max=" + DefaultCauses.MAX + "][index=" + this.causes_one.size() + "][service=" + service + "][method=" + method + "][cause=" + cause + "][trace=" + TraceContext.get() + "]");
+			DefaultCauses.LOGGER.warn("Array out of range. [max=" + DefaultCauses.MAX + "][index=" + this.causes_one.size() + "][service=" + service + "][method=" + method + "][cause=" + cause + "][trace=" + TraceContext.getTrace() + "]");
 			return false;
 		}
 		return true;
@@ -77,7 +77,7 @@ public class DefaultCauses implements TraceCauses {
 		}
 		// 开启收集, 并且为非静默异常
 		if (PropertiesUtils.profile(this.profile.profile(service), TraceTask.ENABLED_KEY, TraceTask.ENABLED_DEF)) {
-			this.causes_one.add(new DefaultCause(cause, service, method, TraceContext.get()));
+			this.causes_one.add(new DefaultCause(cause, service, method, TraceContext.getTrace()));
 		}
 	}
 
@@ -88,7 +88,7 @@ public class DefaultCauses implements TraceCauses {
 		}
 		// 开启收集, 并且为非静默异常
 		if (PropertiesUtils.profile(this.profile.profile(request.service()), TraceTask.ENABLED_KEY, TraceTask.ENABLED_DEF) && !this.quiet.quiet(request, throwable.getClass())) {
-			this.causes_one.add(new DefaultCause(throwable, request.service(), request.method(), TraceContext.get()));
+			this.causes_one.add(new DefaultCause(throwable, request.service(), request.method(), TraceContext.getTrace()));
 		}
 	}
 }

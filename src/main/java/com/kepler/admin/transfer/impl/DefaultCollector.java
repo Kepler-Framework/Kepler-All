@@ -210,7 +210,7 @@ public class DefaultCollector implements Runnable, Collector, Imported {
 				Ack ack = this.acks.poll(DefaultCollector.INTERVAL, TimeUnit.MILLISECONDS);
 				if (ack != null) {
 					// 绑定ACK Trace
-					TraceContext.get4create(ack.trace());
+					TraceContext.getTraceOnCreate(ack.trace());
 					this.get(ack).put(ack.local(), ack.remote(), ack.status(), ack.elapse());
 				}
 			} catch (Throwable e) {

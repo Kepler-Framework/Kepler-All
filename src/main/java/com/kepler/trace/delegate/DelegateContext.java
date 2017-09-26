@@ -20,7 +20,7 @@ public class DelegateContext {
 	public Object process(ProceedingJoinPoint point) throws Throwable {
 		try {
 			// 加载Trace
-			TraceContext.get4create();
+			TraceContext.getTraceOnCreate();
 			return point.proceed(point.getArgs());
 		} finally {
 			// 释放Trace

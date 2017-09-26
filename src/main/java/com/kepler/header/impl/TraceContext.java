@@ -43,11 +43,31 @@ public class TraceContext {
 	}
 
 	/**
+	 * 创建Trace
+	 * 
+	 * @param headers 当前上下文
+	 * @return 创建后的Trace
+	 */
+	private static String trace(Headers headers, String trace) {
+		// 生成Trace
+		headers.put(Trace.TRACE_COVER, trace);
+		headers.put(Trace.TRACE_COVER + "_orig", trace);
+		try {
+			if (TraceContext.CLASS != null) {
+				MethodUtils.invokeStaticMethod(TraceContext.CLASS, "put", new Object[] { Trace.TRACE, trace });
+			}
+		} catch (Exception e) {
+			TraceContext.LOGGER.error(e.getMessage(), e);
+		}
+		return trace;
+	}
+
+	/**
 	 * 尝试从上下文获取Headers
 	 * 
 	 * @return
 	 */
-	private static Headers headers() {
+	private static Headers getHeaders() {
 		// 如果作为服务并且上游系统未开启Header则Header可能为Null
 		Headers headers = ThreadHeaders.HEADERS.get();
 		if (headers == null) {
@@ -56,43 +76,31 @@ public class TraceContext {
 		return headers;
 	}
 
-	/**
-	 * 创建Trace
-	 * 
-	 * @param headers 当前上下文
-	 * @return 创建后的Trace
-	 */
-	private static String trace(Headers headers, String trace) {
-		// 生成Trace
-		trace = StringUtils.isEmpty(trace) ? UUID.randomUUID().toString() : trace;
-		headers.put(Trace.TRACE_COVER, TraceContext.log4jmdc(trace));
-		return trace;
+	public static String getSpan() {
+		Headers headers = TraceContext.getHeaders();
+		return headers.get(Trace.SPAN + "_orig");
 	}
 
-	/**
-	 * 获取上下文相关Trace, 如果不存在则返回Null.
-	 * 
-	 * @return
-	 */
-	public static String get() {
-		Headers headers = TraceContext.headers();
-		return headers.get(Trace.TRACE_COVER);
+	public static String getParent() {
+		Headers headers = TraceContext.getHeaders();
+		return headers.get(Trace.SPAN_PARENT + "_orig");
 	}
 
-	/**
-	 * 获取上下文相关Trace, 如果不存在则创建.
-	 * 
-	 * @return
-	 */
-	public static String get4create() {
-		return TraceContext.get4create(null);
+	public static String getTrace() {
+		return TraceContext.getTraceOnCreate(null);
 	}
 
-	public static String get4create(String trace) {
-		Headers headers = TraceContext.headers();
-		String current = headers.get(Trace.TRACE_COVER);
-		// 如果当前不存在Trace则创建
-		return StringUtils.isEmpty(current) ? TraceContext.trace(headers, trace) : current;
+	public static String getTraceOnCreate() {
+		return TraceContext.getTraceOnCreate(null);
+	}
+
+	public static String getTraceOnCreate(String trace) {
+		Headers headers = TraceContext.getHeaders();
+		String current = headers.get(Trace.TRACE_COVER + "_orig");
+		if (StringUtils.isEmpty(current)) {
+			current = StringUtils.isEmpty(trace) ? UUID.randomUUID().toString() : trace;
+		}
+		return TraceContext.trace(headers, current);
 	}
 
 	/**
@@ -106,21 +114,5 @@ public class TraceContext {
 		if (headers != null) {
 			headers.delete(Trace.TRACE_COVER);
 		}
-	}
-
-	/**
-	 * 开启MDC
-	 * 
-	 * @param trace
-	 */
-	private static String log4jmdc(String trace) {
-		try {
-			if (TraceContext.CLASS != null) {
-				MethodUtils.invokeStaticMethod(TraceContext.CLASS, "put", new Object[] { Trace.TRACE, trace });
-			}
-		} catch (Exception e) {
-			TraceContext.LOGGER.error(e.getMessage(), e);
-		}
-		return trace;
 	}
 }
