@@ -96,11 +96,13 @@ public class TraceContext {
 
 	public static String getTraceOnCreate(String trace) {
 		Headers headers = TraceContext.getHeaders();
-		String current = headers.get(Trace.TRACE_COVER + "_orig");
-		if (StringUtils.isEmpty(current)) {
-			current = StringUtils.isEmpty(trace) ? UUID.randomUUID().toString() : trace;
+		String trace_curr = headers.get(Trace.TRACE_COVER);
+		String trace_orig = headers.get(Trace.TRACE_COVER + "_orig");
+		String trace_select = !StringUtils.isEmpty(trace_curr) ? trace_curr : trace_orig;
+		if (StringUtils.isEmpty(trace_select)) {
+			trace_select = StringUtils.isEmpty(trace) ? UUID.randomUUID().toString() : trace;
 		}
-		return TraceContext.trace(headers, current);
+		return TraceContext.trace(headers, trace_select);
 	}
 
 	/**
