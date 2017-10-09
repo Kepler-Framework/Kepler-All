@@ -2,6 +2,9 @@ package com.kepler;
 
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,16 +25,18 @@ import com.kepler.config.PropertiesUtils;
  * 
  * @author zhangjiehao 2016年8月16日
  */
-@JsonAutoDetect(fieldVisibility=Visibility.ANY, getterVisibility=Visibility.NONE, isGetterVisibility=Visibility.NONE)
+@JsonAutoDetect(fieldVisibility = Visibility.ANY, getterVisibility = Visibility.NONE, isGetterVisibility = Visibility.NONE)
 public class KeplerGenericException extends KeplerLocalException implements Cloneable {
 
 	private static final String FILTER = PropertiesUtils.get(KeplerGenericException.class.getName().toLowerCase() + ".filter", "cause;message;stackTrace;suppressed;localizedMessage;");
 
+	private static final Boolean STACK = PropertiesUtils.get(KeplerGenericException.class.getName().toLowerCase() + ".stack", false);
+	
 	private static final Set<Class<? extends Throwable>> FILTER_CLASS = new HashSet<Class<? extends Throwable>>();
 
-	private static final Set<String> FILTER_FIELD = new HashSet<String>();
-
 	private static final Log LOGGER = LogFactory.getLog(KeplerGenericException.class);
+	
+	private static final Set<String> FILTER_FIELD = new HashSet<String>();
 
 	private static final long serialVersionUID = 1L;
 
@@ -54,18 +59,18 @@ public class KeplerGenericException extends KeplerLocalException implements Clon
 	 * 用来保存原始异常类型
 	 */
 	private List<String> classes;
-	
+
 	/**
 	 * 文本错误
 	 */
 	private String reason;
-	
+
 	public KeplerGenericException() {
 		this("");
 	}
 
 	public KeplerGenericException(Throwable throwable) {
-		super(throwable);
+		this(KeplerGenericException.STACK ? KeplerGenericException.cause(throwable) : throwable.getMessage());
 		this.fields = new HashMap<String, Object>();
 		this.classes = new ArrayList<String>();
 		this.classes(throwable.getClass());
@@ -78,6 +83,17 @@ public class KeplerGenericException extends KeplerLocalException implements Clon
 		this.reason = reason;
 		this.classes = null;
 		this.fields = null;
+	}
+
+	private static String cause(Throwable throwable) {
+		try (StringWriter cause = new StringWriter()) {
+			PrintWriter printer = new PrintWriter(cause);
+			throwable.printStackTrace(printer);
+			return cause.toString();
+		} catch (IOException e) {
+			KeplerGenericException.LOGGER.warn(e.getMessage(), e);
+			return "";
+		}
 	}
 
 	/**

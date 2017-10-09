@@ -16,22 +16,22 @@ import com.kepler.config.PropertiesUtils;
  */
 public class ZkFactory implements FactoryBean<ZkClient> {
 
-	private static final int RETRY_TIMES = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".retry_times", Integer.MAX_VALUE);
-
-	private static final int RETRY_INTERVAL = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".retry_interval", 20000);
-
-	private static final int TIMEOUT_SESSION = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".timeout_session", 30000);
-
-	private static final int TIMEOUT_CONNECT = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".timeout_connect", 120000);
-
-	private static final String SCHEME = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".scheme", "digest");
-
-	private static final String AUTH = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".auth", "");
-
 	/**
 	 * Using for kepler admin
 	 */
 	public static final String HOST = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".host", "");
+
+	private static final String AUTH = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".auth", "");
+
+	private static final String SCHEME = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".scheme", "digest");
+
+	private static final int TIMEOUT_SESSION = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".timeout_session", 120000);
+
+	private static final int TIMEOUT_CONNECT = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".timeout_connect", 120000);
+
+	private static final int RETRY_TIMES = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".retry_times", Integer.MAX_VALUE);
+
+	private static final int RETRY_INTERVAL = PropertiesUtils.get(ZkFactory.class.getName().toLowerCase() + ".retry_interval", (int) (ZkFactory.TIMEOUT_SESSION * 1.5));
 
 	private static final Log LOGGER = LogFactory.getLog(ZkFactory.class);
 
