@@ -1029,21 +1029,16 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 				Map<String, ServiceInstance> current = new HashMap<String, ServiceInstance>();
 				Set<Service> imported = ZkContext.this.snapshot.imported;
 				for (Service service : imported) {
-					String zkPath = ZkContext.this.road.road(ZkContext.ROOT, service.service(), service.versionAndCatalog());
-					try {
-						List<String> serviceNodeList = ZkContext.this.zoo.getChildren(zkPath, null);
-						for (String serviceNode : serviceNodeList) {
-							try {
-								byte[] data = ZkContext.this.zoo.getData(zkPath + "/" + serviceNode, false, null);
-								ServiceInstance serviceInstance = ZkContext.this.serials.def4input().input(data, ServiceInstance.class);
-								current.put(zkPath + "/" + serviceNode, serviceInstance);
-							} catch (NodeExistsException e) {
-								ZkContext.LOGGER.warn("Concurrent case. Node not exists");
-							}
-
+					String path = ZkContext.this.road.road(ZkContext.ROOT, service.service(), service.versionAndCatalog());
+					List<String> nodes = ZkContext.this.zoo.getChildren(path, null);
+					for (String node : nodes) {
+						try {
+							byte[] data = ZkContext.this.zoo.getData(path + "/" + node, false, null);
+							ServiceInstance instance = ZkContext.this.serials.def4input().input(data, ServiceInstance.class);
+							current.put(path + "/" + node, instance);
+						} catch (NodeExistsException e) {
+							ZkContext.LOGGER.warn("Concurrent case. Node not exists");
 						}
-					} catch (Exception e) {
-						ZkContext.LOGGER.error("Zk operation error. " + e.getMessage(), e);
 					}
 				}
 				this.handle(current, snapshot);
