@@ -48,8 +48,8 @@ public class TraceContext {
 	 * @param headers 当前上下文
 	 * @return 创建后的Trace
 	 */
-	private static String trace(Headers headers, String trace) {
-		// 生成Trace
+	private static String trace(String trace) {
+		Headers headers = TraceContext.getHeaders();
 		headers.put(Trace.TRACE_COVER, trace);
 		headers.put(Trace.TRACE_COVER + "_orig", trace);
 		try {
@@ -78,16 +78,26 @@ public class TraceContext {
 
 	public static String getSpan() {
 		Headers headers = TraceContext.getHeaders();
-		return headers.get(Trace.SPAN + "_orig");
+		String span_curr = headers.get(Trace.SPAN);
+		String span_orig = headers.get(Trace.SPAN + "_orig");
+		// 如果Span-Curr不为空则返回果Span-Curr
+		return !StringUtils.isEmpty(span_curr) ? span_curr : span_orig;
 	}
 
 	public static String getParent() {
 		Headers headers = TraceContext.getHeaders();
-		return headers.get(Trace.SPAN_PARENT + "_orig");
+		String parent_curr = headers.get(Trace.SPAN_PARENT);
+		String parent_orig = headers.get(Trace.SPAN_PARENT + "_orig");
+		// 如果Parent-Curr不为空则返回果Parent-Curr
+		return !StringUtils.isEmpty(parent_curr) ? parent_curr : parent_orig;
 	}
 
 	public static String getTrace() {
-		return TraceContext.getTraceOnCreate(null);
+		Headers headers = TraceContext.getHeaders();
+		String trace_curr = headers.get(Trace.TRACE_COVER);
+		String trace_orig = headers.get(Trace.TRACE_COVER + "_orig");
+		// 如果Trace-Curr不为空则返回Trace-Curr
+		return !StringUtils.isEmpty(trace_curr) ? trace_curr : trace_orig;
 	}
 
 	public static String getTraceOnCreate() {
@@ -95,14 +105,13 @@ public class TraceContext {
 	}
 
 	public static String getTraceOnCreate(String trace) {
-		Headers headers = TraceContext.getHeaders();
-		String trace_curr = headers.get(Trace.TRACE_COVER);
-		String trace_orig = headers.get(Trace.TRACE_COVER + "_orig");
-		String trace_select = !StringUtils.isEmpty(trace_curr) ? trace_curr : trace_orig;
-		if (StringUtils.isEmpty(trace_select)) {
-			trace_select = StringUtils.isEmpty(trace) ? UUID.randomUUID().toString() : trace;
+		String trace_selected = TraceContext.getTrace();
+		// 已存在Trace则返回
+		if (!StringUtils.isEmpty(trace_selected)) {
+			return trace_selected;
 		}
-		return TraceContext.trace(headers, trace_select);
+		// 不存在Trace则使用指定Trace或UUID
+		return TraceContext.trace(!StringUtils.isEmpty(trace) ? trace : UUID.randomUUID().toString());
 	}
 
 	/**
