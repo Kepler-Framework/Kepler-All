@@ -47,17 +47,11 @@ import com.kepler.service.Imported;
 import com.kepler.service.ImportedListener;
 import com.kepler.service.Service;
 import com.kepler.service.ServiceInstance;
-import com.kepler.service.imported.ImportedService;
 
 /**
  * @author zhangjiehao 2015年7月9日
  */
 public class ZkContext implements Demotion, Imported, Exported, ApplicationListener<ContextRefreshedEvent> {
-
-	/**
-	 * 保存依赖关系路径
-	 */
-	public static final String DEPENDENCY = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".dependency", "_dependency");
 
 	/**
 	 * 保存配置信息路径, 如果失败是否抛出异常终止发布
@@ -272,19 +266,6 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		}
 	}
 
-	/**
-	 * 发布服务依赖
-	 * 
-	 * @param service
-	 * @throws Exception
-	 */
-	private void dependency(Service service) throws Exception {
-		// 指定服务是否需要注册依赖
-		if (PropertiesUtils.profile(this.profile.profile(service), ZkContext.DEPENDENCY_KEY, ZkContext.DEPENDENCY_VAL)) {
-			this.zoo.create(this.road.mkdir(this.road.road(new StringBuffer(ZkContext.ROOT).append(ZkContext.DEPENDENCY).toString(), service.service(), service.versionAndCatalog())) + "/", this.serials.def4output().output(new ImportedService(this.local, service), ImportedService.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
-		}
-	}
-
 	public void demote() throws Exception {
 		// 降级已发布服务
 		this.exports.demote();
@@ -319,8 +300,6 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 			if (this.watcher.watch(service, this.road.road(ZkContext.ROOT, service.service(), service.versionAndCatalog()))) {
 				// 加入本地快照
 				this.snapshot.subscribe(service);
-				// 发布服务依赖
-				this.dependency(service);
 				ZkContext.LOGGER.info("Import service: " + service);
 			}
 		} finally {
