@@ -78,26 +78,23 @@ public class TraceContext {
 
 	public static String getSpan() {
 		Headers headers = TraceContext.getHeaders();
-		String span_curr = headers.get(Trace.SPAN);
-		String span_orig = headers.get(Trace.SPAN + "_orig");
-		// 如果Span-Curr不为空则返回果Span-Curr
-		return !StringUtils.isEmpty(span_curr) ? span_curr : span_orig;
+		String curr = headers.get(Trace.SPAN);
+		String orig = headers.get(Trace.SPAN + "_orig");
+		return !StringUtils.isEmpty(orig) ? orig : curr;
 	}
 
 	public static String getParent() {
 		Headers headers = TraceContext.getHeaders();
-		String parent_curr = headers.get(Trace.SPAN_PARENT);
-		String parent_orig = headers.get(Trace.SPAN_PARENT + "_orig");
-		// 如果Parent-Curr不为空则返回果Parent-Curr
-		return !StringUtils.isEmpty(parent_curr) ? parent_curr : parent_orig;
+		String curr = headers.get(Trace.SPAN_PARENT);
+		String orig = headers.get(Trace.SPAN_PARENT + "_orig");
+		return !StringUtils.isEmpty(orig) ? orig : curr;
 	}
 
 	public static String getTrace() {
 		Headers headers = TraceContext.getHeaders();
-		String trace_curr = headers.get(Trace.TRACE_COVER);
-		String trace_orig = headers.get(Trace.TRACE_COVER + "_orig");
-		// 如果Trace-Curr不为空则返回Trace-Curr
-		return !StringUtils.isEmpty(trace_curr) ? trace_curr : trace_orig;
+		String curr = headers.get(Trace.TRACE);
+		String orig = headers.get(Trace.TRACE + "_orig");
+		return !StringUtils.isEmpty(orig) ? orig : curr;
 	}
 
 	public static String getTraceOnCreate() {

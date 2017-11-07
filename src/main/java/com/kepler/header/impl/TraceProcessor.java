@@ -39,11 +39,8 @@ public class TraceProcessor implements HeadersProcessor {
 	public Headers process(Service service, Headers headers) {
 		// 如果开启Trace则生成
 		if (PropertiesUtils.profile(this.profile.profile(service), Trace.ENABLED_KEY, Trace.ENABLED_DEF) && headers != null) {
-			this.process(headers);
-			// 创建SPAN ID
-			headers.put(Trace.SPAN, this.bytesToString(this.generator.generate()));
-			// 创建Trace时间
-			headers.put(Trace.START_TIME, String.valueOf(System.currentTimeMillis()));
+			this.process4trace(headers);
+			this.process4span(headers);
 		} else {
 			if (headers != null) {
 				this.reset(headers);
@@ -52,17 +49,19 @@ public class TraceProcessor implements HeadersProcessor {
 		return headers;
 	}
 
-	/**
-	 * 创建或恢复Trace
-	 * 
-	 * @param headers
-	 */
-	private void process(Headers headers) {
+	private void process4span(Headers headers) {
+		// 创建SPAN ID
+		headers.putIfAbsent(Trace.SPAN, this.bytesToString(this.generator.generate()));
+		// 创建Trace时间
+		headers.putIfAbsent(Trace.START_TIME, String.valueOf(System.currentTimeMillis()));
+	}
+
+	private void process4trace(Headers headers) {
 		// 如果已存在Trace ID则覆盖否则创建新Trace ID
 		if (!StringUtils.isEmpty(headers.get(Trace.TRACE_COVER))) {
-			headers.put(Trace.TRACE, headers.get(Trace.TRACE_COVER));
+			headers.putIfAbsent(Trace.TRACE, headers.get(Trace.TRACE_COVER));
 		} else {
-			headers.put(Trace.TRACE, this.bytesToString(this.generator.generate()));
+			headers.putIfAbsent(Trace.TRACE, this.bytesToString(this.generator.generate()));
 		}
 	}
 
