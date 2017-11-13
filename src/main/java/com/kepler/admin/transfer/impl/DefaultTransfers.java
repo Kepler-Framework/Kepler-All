@@ -90,9 +90,9 @@ public class DefaultTransfers implements Transfers {
 		return actual != null ? actual : transfer;
 	}
 
-	public Transfer put(Host local, Host target, Status status, long rtt) {
-		Transfer transfer = this.transfers.get(new Hosts(local, target));
-		transfer = (transfer != null ? transfer : this.get(local, target, new DefaultTransfer(DefaultTransfers.this.trace, DefaultTransfers.this.service, DefaultTransfers.this.method, local, target)));
+	public Transfer put(Host local, Host remote, Status status, long rtt) {
+		Transfer transfer = this.transfers.get(new Hosts(local, remote));
+		transfer = (transfer != null ? transfer : this.get(local, remote, new DefaultTransfer(DefaultTransfers.this.trace, DefaultTransfers.this.service, DefaultTransfers.this.method, local, remote)));
 		return DefaultTransfer.class.cast(transfer).touch().rtt(rtt).timeout(status).exception(status);
 	}
 

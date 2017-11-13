@@ -34,6 +34,7 @@ import com.kepler.protocol.Request;
 import com.kepler.protocol.Response;
 import com.kepler.service.Quiet;
 import com.kepler.token.TokenContext;
+import com.kepler.trace.Trace;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ChannelFactory;
@@ -63,6 +64,11 @@ public class DefaultConnect implements Connect {
 	 * 连接超时
 	 */
 	private static final int TIMEOUT = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".timeout", 5000);
+
+	/**
+	 * 等待预警
+	 */
+	private static final int WAIT_WARN = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".wait_warn", 50);
 
 	/**
 	 * 黏包最大长度
@@ -483,11 +489,15 @@ public class DefaultConnect implements Connect {
 
 	private class InvokeRunnable implements Runnable {
 
+		private final long created = System.currentTimeMillis();
+
 		private final ChannelHandlerContext ctx;
 
 		private final AckFuture future;
 
 		private final ByteBuf buffer;
+
+		private long running;
 
 		private InvokeRunnable(ChannelHandlerContext ctx, AckFuture future, ByteBuf buffer) {
 			super();
@@ -498,8 +508,13 @@ public class DefaultConnect implements Connect {
 
 		@Override
 		public void run() {
+			this.running = System.currentTimeMillis();
+			// 线程等待提示
+			if ((this.running - this.created) >= DefaultConnect.WAIT_WARN) {
+				DefaultConnect.LOGGER.warn("[wait-warn][time=" + (this.running - this.created) + "][trace=" + this.future.request().get(Trace.TRACE) + "]");
+			}
 			this.ctx.channel().attr(DefaultConnect.ACKS).get().put(this.future);
-			this.ctx.writeAndFlush(this.buffer).addListener(ExceptionListener.listener(this.ctx));
+			this.ctx.writeAndFlush(this.buffer).addListener(ExceptionListener.listener(this.ctx, this.future.request().get(Trace.TRACE)));
 		}
 	}
 

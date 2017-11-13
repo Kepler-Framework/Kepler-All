@@ -11,6 +11,8 @@
 		</aop:aspect>
 	</aop:config>
 
-	<bean id="kepler.trace.delegate" class="com.kepler.trace.delegate.DelegateContext" />
+	<bean id="kepler.trace.delegate" class="com.kepler.trace.delegate.DelegateContext">
+		<constructor-arg ref="kepler.id.guid" />
+	</bean>
 
 </beans>

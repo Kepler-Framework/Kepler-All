@@ -17,6 +17,10 @@ public interface Trace {
 
 	public static final String TRACE = "trace";
 
+	public static final String TRACE_SPAN_PARENT = "p_span";
+
+	public static final String TRACE_SPAN_CHILD = "c_span";
+
 	public static final String TRACE_COVER = "trace_to_cover";
 
 	public static final String SPAN = "span";

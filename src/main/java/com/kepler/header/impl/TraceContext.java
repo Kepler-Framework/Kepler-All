@@ -50,6 +50,8 @@ public class TraceContext {
 	 */
 	private static String trace(String trace) {
 		Headers headers = TraceContext.getHeaders();
+		headers.put(Trace.TRACE, trace);
+		headers.put(Trace.TRACE + "_orig", trace);
 		headers.put(Trace.TRACE_COVER, trace);
 		headers.put(Trace.TRACE_COVER + "_orig", trace);
 		try {
@@ -77,24 +79,36 @@ public class TraceContext {
 	}
 
 	public static String getSpan() {
-		Headers headers = TraceContext.getHeaders();
-		String curr = headers.get(Trace.SPAN);
-		String orig = headers.get(Trace.SPAN + "_orig");
-		return !StringUtils.isEmpty(orig) ? orig : curr;
+		return TraceContext.getHeaders().get(Trace.TRACE_SPAN_CHILD);
 	}
 
 	public static String getParent() {
-		Headers headers = TraceContext.getHeaders();
-		String curr = headers.get(Trace.SPAN_PARENT);
-		String orig = headers.get(Trace.SPAN_PARENT + "_orig");
-		return !StringUtils.isEmpty(orig) ? orig : curr;
+		return TraceContext.getHeaders().get(Trace.TRACE_SPAN_PARENT);
 	}
 
 	public static String getTrace() {
 		Headers headers = TraceContext.getHeaders();
 		String curr = headers.get(Trace.TRACE);
 		String orig = headers.get(Trace.TRACE + "_orig");
-		return !StringUtils.isEmpty(orig) ? orig : curr;
+		String cover_curr = headers.get(Trace.TRACE_COVER);
+		String cover_orig = headers.get(Trace.TRACE_COVER + "_orig");
+		// Guard case1
+		if (!StringUtils.isEmpty(orig)) {
+			return orig;
+		}
+		// Guard case2
+		if (!StringUtils.isEmpty(curr)) {
+			return curr;
+		}
+		// Guard case3
+		if (!StringUtils.isEmpty(cover_orig)) {
+			return cover_orig;
+		}
+		// Guard case4
+		if (!StringUtils.isEmpty(cover_curr)) {
+			return cover_curr;
+		}
+		return null;
 	}
 
 	public static String getTraceOnCreate() {
@@ -120,7 +134,18 @@ public class TraceContext {
 		// 如果从服务端传递的Header并且未开启则可能为Null
 		Headers headers = ThreadHeaders.HEADERS.get();
 		if (headers != null) {
+			headers.delete(Trace.SPAN);
+			headers.delete(Trace.SPAN + "_orig");
+			headers.delete(Trace.SPAN_PARENT);
+			headers.delete(Trace.SPAN_PARENT + "_orig");
+			headers.delete(Trace.TRACE);
+			headers.delete(Trace.TRACE + "_orig");
 			headers.delete(Trace.TRACE_COVER);
+			headers.delete(Trace.TRACE_COVER + "_orig");
+			headers.delete(Trace.TRACE_SPAN_CHILD);
+			headers.delete(Trace.TRACE_SPAN_CHILD + "_orig");
+			headers.delete(Trace.TRACE_SPAN_PARENT);
+			headers.delete(Trace.TRACE_SPAN_PARENT + "_orig");
 		}
 	}
 }

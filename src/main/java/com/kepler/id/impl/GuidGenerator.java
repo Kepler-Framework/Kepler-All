@@ -2,6 +2,7 @@ package com.kepler.id.impl;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.kepler.config.PropertiesUtils;
 import com.kepler.host.impl.ServerHost;
 import com.kepler.id.IDGenerator;
 import com.kepler.main.Pid;
@@ -12,6 +13,13 @@ import com.kepler.main.Pid;
  * 2016年3月16日
  */
 public class GuidGenerator implements IDGenerator {
+
+	/**
+	 * 用以Hex
+	 */
+	private static final String ARRAY = PropertiesUtils.get(GuidGenerator.class.getName().toLowerCase() + ".array", "0123456789ABCDEF");
+
+	private static final char[] HEX = GuidGenerator.ARRAY.toCharArray();
 
 	private static final String NAME = "guid";
 
@@ -45,6 +53,16 @@ public class GuidGenerator implements IDGenerator {
 		bytes[(index++)] = (byte) ((0xff0000 & data) >> 16);
 		bytes[(index++)] = (byte) ((0xff000000 & data) >> 24);
 		return index;
+	}
+
+	public String toString(byte[] bytes) {
+		char[] hexChars = new char[bytes.length * 2];
+		for (int j = 0; j < bytes.length; j++) {
+			int v = bytes[j] & 0xFF;
+			hexChars[j * 2] = GuidGenerator.HEX[v >>> 4];
+			hexChars[j * 2 + 1] = GuidGenerator.HEX[v & 0x0F];
+		}
+		return new String(hexChars);
 	}
 
 	@Override

@@ -119,12 +119,13 @@ public class ZkFactory implements FactoryBean<ZkClient> {
 		@Override
 		public void process(WatchedEvent event) {
 			switch (event.getState()) {
-			case SyncConnected:
-				ZkFactory.this.connection.activate();
-				return;
 			case Expired:
 				ZkFactory.LOGGER.fatal("ZooKeeper Expired: " + event + " ...");
 				ZkFactory.this.reset();
+				return;
+			case SyncConnected:
+				ZkFactory.LOGGER.fatal("ZooKeeper Connected: " + event + " ...");
+				ZkFactory.this.connection.activate();
 				return;
 			case Disconnected:
 				ZkFactory.LOGGER.fatal("ZooKeeper Disconnected: " + event + " ...");

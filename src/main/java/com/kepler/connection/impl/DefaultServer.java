@@ -65,6 +65,15 @@ public class DefaultServer {
 	private static final short IDLE_WRITE = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".idle_write", Short.MAX_VALUE);
 
 	/**
+	 * 可写测试
+	 */
+	private static final int WRITE_WATERWATER_HIGH = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".write_water_high", 65536);
+
+	private static final int WRITE_WATERWATER_LOW = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".write_water_low", 32768);
+
+	private static final boolean WRITE_WATER = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".write_water", false);
+
+	/**
 	 * 黏包最大长度
 	 */
 	private static final int FRAGEMENT = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".fragment", Integer.MAX_VALUE);
@@ -75,13 +84,9 @@ public class DefaultServer {
 	private static final String BINDING = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".binding", "0.0.0.0");
 
 	/**
-	 * 可写测试
+	 * 等待预警
 	 */
-	private static final boolean WRITE_WATER = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".write_water", false);
-
-	private static final int WRITE_WATERWATER_LOW = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".write_water_low", 32768);
-
-	private static final int WRITE_WATERWATER_HIGH = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".write_water_high", 65536);
+	private static final int WAIT_WARN = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".wait_warn", 50);
 
 	private static final DefaultChannelFactory<ServerChannel> FACTORY = new DefaultChannelFactory<ServerChannel>(NioServerSocketChannel.class);
 
@@ -281,8 +286,12 @@ public class DefaultServer {
 			private void init() {
 				// Reply执行时间
 				this.running = System.currentTimeMillis();
+				this.waiting = this.running - this.created;
+				if (this.waiting >= DefaultServer.WAIT_WARN) {
+					DefaultServer.LOGGER.warn("[wait-warn][time=" + this.waiting + "][remote=" + this.ctx.channel().remoteAddress() + "]");
+				}
 				// 记录等待时间
-				DefaultServer.this.quality.waiting(this.waiting = this.running - this.created);
+				DefaultServer.this.quality.waiting(this.waiting);
 			}
 
 			/**
@@ -307,7 +316,7 @@ public class DefaultServer {
 					// 使用处理后Request
 					Response response = this.response(request);
 					this.water4check();
-					this.ctx.writeAndFlush(DefaultServer.this.encoder.encode(request.service(), request.method(), response)).addListener(ExceptionListener.listener(this.ctx));
+					this.ctx.writeAndFlush(DefaultServer.this.encoder.encode(request.service(), request.method(), response)).addListener(ExceptionListener.listener(this.ctx, request.get(Trace.TRACE)));
 					// 记录调用栈 (使用原始Request)
 					DefaultServer.this.trace.trace(request, response, this.ctx.channel().localAddress().toString(), this.ctx.channel().remoteAddress().toString(), this.waiting, System.currentTimeMillis() - this.running, this.created);
 				} catch (Throwable throwable) {

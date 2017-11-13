@@ -64,11 +64,8 @@ public class DefaultCauses implements TraceCauses {
 	 * @return
 	 */
 	private boolean allow(Service service, String method, String cause) {
-		if (this.index.getAndIncrement() > DefaultCauses.MAX) {
-			DefaultCauses.LOGGER.warn("Array out of range. [max=" + DefaultCauses.MAX + "][index=" + this.causes_one.size() + "][service=" + service + "][method=" + method + "][cause=" + cause + "][trace=" + TraceContext.getTrace() + "]");
-			return false;
-		}
-		return true;
+		DefaultCauses.LOGGER.info("[warn-message][service=" + service + "][method=" + method + "][cause=" + cause + "][trace=" + TraceContext.getTrace() + "]");
+		return this.index.getAndIncrement() > DefaultCauses.MAX ? false : true;
 	}
 
 	public void put(Service service, String method, String cause) {

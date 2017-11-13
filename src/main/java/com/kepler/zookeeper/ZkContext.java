@@ -56,7 +56,7 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	/**
 	 * 保存配置信息路径, 如果失败是否抛出异常终止发布
 	 */
-	public static final boolean CONFIG_FROCE = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".config_force", false);
+	private static final boolean CONFIG_FROCE = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".config_force", false);
 
 	/**
 	 * 保存配置信息路径
@@ -66,14 +66,14 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	/**
 	 * 保存状态信息路径, 如果失败是否抛出异常终止发布
 	 */
-	public static final boolean STATUS_FROCE = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".status_force", false);
+	private static final boolean STATUS_FROCE = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".status_force", false);
 
 	/**
 	 * 保存状态信息路径
 	 */
 	public static final String STATUS = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".status", "_status");
 
-	public static final long REFRESH_INTERVAL = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + "" + ".refresh", 60 * 1000);
+	private static final long REFRESH_INTERVAL = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + "" + ".refresh", 10 * 1000);
 
 	private static final int INTERVAL = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".interval", 60000);
 
@@ -85,25 +85,18 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	public static final String ROOT = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".root", "/kepler");
 
 	/**
-	 * 是否发布依赖
-	 */
-	public static final String DEPENDENCY_KEY = ZkContext.class.getName().toLowerCase() + ".dependency";
-
-	public static final boolean DEPENDENCY_VAL = PropertiesUtils.get(ZkContext.DEPENDENCY_KEY, true);
-
-	/**
 	 * 是否发布
 	 */
-	public static final String EXPORT_KEY = ZkContext.class.getName().toLowerCase() + ".export";
+	private static final String EXPORT_KEY = ZkContext.class.getName().toLowerCase() + ".export";
 
-	public static final boolean EXPORT_VAL = PropertiesUtils.get(ZkContext.EXPORT_KEY, true);
+	private static final boolean EXPORT_VAL = PropertiesUtils.get(ZkContext.EXPORT_KEY, true);
 
 	/**
 	 * 是否导入
 	 */
-	public static final String IMPORT_KEY = ZkContext.class.getName().toLowerCase() + ".import";
+	private static final String IMPORT_KEY = ZkContext.class.getName().toLowerCase() + ".import";
 
-	public static final boolean IMPORT_VAL = PropertiesUtils.get(ZkContext.IMPORT_KEY, true);
+	private static final boolean IMPORT_VAL = PropertiesUtils.get(ZkContext.IMPORT_KEY, true);
 
 	private static final Log LOGGER = LogFactory.getLog(ZkContext.class);
 
@@ -214,18 +207,6 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	}
 
 	/**
-	 * 卸载所有实例(清空本地Host)
-	 * 
-	 * @throws Exception
-	 */
-	private void reset4instance() throws Exception {
-		for (ServiceInstance instance : this.snapshot.instances.values()) {
-			this.listener.delete(instance);
-		}
-		ZkContext.LOGGER.info("Reset instance success ...");
-	}
-
-	/**
 	 * 发布Status节点
 	 * 
 	 * @throws Exception
@@ -279,8 +260,7 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	public void reset() throws Exception {
 		// 注销已发布服务
 		this.exports.destroy();
-		// 卸载所有实例, 重新发布服务, 重新加载实例, 重新发布Status节点, 重新发布Config节点
-		this.reset4instance();
+		// 重新发布服务, 重新加载实例, 重新发布Status节点, 重新发布Config节点
 		this.reset4exported();
 		this.reset4imported();
 		this.status();
@@ -1030,49 +1010,68 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		}
 
 		private void handle(Map<String, ServiceInstance> current, Map<String, ServiceInstance> snapshot) throws Exception {
-			List<ServiceInstance[]> modified = new ArrayList<ServiceInstance[]>();
-			List<ServiceInstance> removed = new ArrayList<ServiceInstance>();
-			List<ServiceInstance> added = new ArrayList<ServiceInstance>();
+			List<ServiceInstance[]> update = new ArrayList<ServiceInstance[]>();
+			List<ServiceInstance> install = new ArrayList<ServiceInstance>();
+			List<ServiceInstance> remove = new ArrayList<ServiceInstance>();
 			for (String each : current.keySet()) {
-				// ZK快照不包含, 或者指定服务Hosts不包含该Host
-				if (!snapshot.containsKey(each) || !ZkContext.this.hosts.getOrCreate(new Service(current.get(each))).contain(current.get(each).host())) {
-					added.add(current.get(each));
+				// 是否在Instance缓存中
+				boolean in_host = ZkContext.this.hosts.getOrCreate(new Service(current.get(each))).contain(current.get(each).host());
+				// 是否在Snapshot缓存中
+				boolean in_snap = snapshot.containsKey(each);
+				if (!in_snap || !in_host) {
+					ZkContext.LOGGER.warn("[node pre-install][in-host=" + in_host + "][in-snap=" + in_snap + "][instance=" + current.get(each) + "]");
+					install.add(current.get(each));
 				} else {
 					if (current.get(each).host().propertyChanged(snapshot.get(each).host())) {
-						modified.add(new ServiceInstance[] { snapshot.get(each), current.get(each) });
+						ZkContext.LOGGER.warn("[node pre-update][instance=" + current.get(each) + "]");
+						update.add(new ServiceInstance[] { snapshot.get(each), current.get(each) });
 					}
 				}
 			}
 			// 移除节点
 			for (String each : snapshot.keySet()) {
 				if (!current.containsKey(each)) {
-					removed.add(snapshot.get(each));
+					ZkContext.LOGGER.warn("[node pre-delete][instance=" + current.get(each) + "]");
+					remove.add(snapshot.get(each));
 				}
 			}
-			this.handleModified(modified);
-			this.handleRemoved(removed);
-			this.handleAdded(added);
+			ZkContext.LOGGER.info("[refresh][install=" + install.size() + "][update=" + update.size() + "][remove=" + remove.size() + "]");
+			this.handleUpdate(update);
+			this.handleRemove(remove);
+			this.handleInstall(install);
 		}
 
-		private void handleAdded(List<ServiceInstance> added) throws Exception {
+		private void handleInstall(List<ServiceInstance> added) throws Exception {
 			for (ServiceInstance instance : added) {
-				ZkContext.LOGGER.warn("[node install]" + instance);
-				ZkContext.this.listener.add(instance);
+				try {
+					ZkContext.LOGGER.warn("[node install]" + instance);
+					ZkContext.this.listener.add(instance);
+				} catch (Exception e) {
+					ZkContext.LOGGER.error(e.getMessage(), e);
+				}
 			}
 		}
 
-		private void handleRemoved(List<ServiceInstance> removed) throws Exception {
+		private void handleRemove(List<ServiceInstance> removed) throws Exception {
 			for (ServiceInstance instance : removed) {
-				ZkContext.LOGGER.warn("[node removed]" + instance);
-				ZkContext.this.listener.delete(instance);
+				try {
+					ZkContext.LOGGER.warn("[node removed]" + instance);
+					ZkContext.this.listener.delete(instance);
+				} catch (Exception e) {
+					ZkContext.LOGGER.error(e.getMessage(), e);
+				}
 			}
 		}
 
-		private void handleModified(List<ServiceInstance[]> modified) throws Exception {
+		private void handleUpdate(List<ServiceInstance[]> modified) throws Exception {
 			for (ServiceInstance[] instance : modified) {
-				ZkContext.LOGGER.warn("[node update]" + instance[0]);
-				ServiceInstance instance_old = instance[0], instance_new = instance[1];
-				ZkContext.this.listener.change(instance_old, instance_new);
+				try {
+					ZkContext.LOGGER.warn("[node update]" + instance[0]);
+					ServiceInstance instance_old = instance[0], instance_new = instance[1];
+					ZkContext.this.listener.change(instance_old, instance_new);
+				} catch (Exception e) {
+					ZkContext.LOGGER.error(e.getMessage(), e);
+				}
 			}
 		}
 	}

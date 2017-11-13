@@ -16,14 +16,7 @@ import com.kepler.trace.Trace;
  */
 public class TraceProcessor implements HeadersProcessor {
 
-	/**
-	 * 用以Hex
-	 */
-	private static final String ARRAY = PropertiesUtils.get(TraceProcessor.class.getName().toLowerCase() + ".array", "0123456789ABCDEF");
-
 	private static final int SORT = PropertiesUtils.get(TraceProcessor.class.getName().toLowerCase() + ".sort", Integer.MAX_VALUE);
-
-	private static final char[] HEX = TraceProcessor.ARRAY.toCharArray();
 
 	private final GuidGenerator generator;
 
@@ -51,7 +44,7 @@ public class TraceProcessor implements HeadersProcessor {
 
 	private void process4span(Headers headers) {
 		// 创建SPAN ID
-		headers.putIfAbsent(Trace.SPAN, this.bytesToString(this.generator.generate()));
+		headers.putIfAbsent(Trace.SPAN, this.generator.toString(this.generator.generate()));
 		// 创建Trace时间
 		headers.putIfAbsent(Trace.START_TIME, String.valueOf(System.currentTimeMillis()));
 	}
@@ -61,7 +54,7 @@ public class TraceProcessor implements HeadersProcessor {
 		if (!StringUtils.isEmpty(headers.get(Trace.TRACE_COVER))) {
 			headers.putIfAbsent(Trace.TRACE, headers.get(Trace.TRACE_COVER));
 		} else {
-			headers.putIfAbsent(Trace.TRACE, this.bytesToString(this.generator.generate()));
+			headers.putIfAbsent(Trace.TRACE, this.generator.toString(this.generator.generate()));
 		}
 	}
 
@@ -71,16 +64,6 @@ public class TraceProcessor implements HeadersProcessor {
 		headers.delete(Trace.SPAN);
 		headers.delete(Trace.SPAN_PARENT);
 		headers.delete(Trace.START_TIME);
-	}
-
-	private String bytesToString(byte[] bytes) {
-		char[] hexChars = new char[bytes.length * 2];
-		for (int j = 0; j < bytes.length; j++) {
-			int v = bytes[j] & 0xFF;
-			hexChars[j * 2] = TraceProcessor.HEX[v >>> 4];
-			hexChars[j * 2 + 1] = TraceProcessor.HEX[v & 0x0F];
-		}
-		return new String(hexChars);
 	}
 
 	@Override
