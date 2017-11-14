@@ -21,14 +21,14 @@ public interface Ack {
 	 * @return
 	 */
 	public Host remote();
-
+	
 	/**
 	 * 已耗时
 	 * 
 	 * @return
 	 */
 	public long elapse();
-	
+
 	/**
 	 * Trace号
 	 * 

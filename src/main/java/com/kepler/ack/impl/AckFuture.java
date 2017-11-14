@@ -107,6 +107,11 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	volatile private Response response;
 
 	/**
+	 * 服务响应时间
+	 */
+	volatile private long receive;
+
+	/**
 	 * Ack集合
 	 */
 	volatile private Acks acks;
@@ -151,7 +156,7 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	 * @return
 	 */
 	private String message4request(String reason) {
-		return "Ack (" + Arrays.toString(this.request.ack()) + ") for " + this.request.service() + "[method=" + this.request.method() + "] to " + this.invoker.remote().address() + " " + reason + " after: " + this.elapse();
+		return "Ack (" + Arrays.toString(this.request.ack()) + ") for " + this.request.service() + "[method=" + this.request.method() + "] to " + this.invoker.remote().address() + " " + reason + " after: " + (System.currentTimeMillis() - this.start);
 	}
 
 	/**
@@ -230,6 +235,7 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	 */
 	public void response(Response response) {
 		synchronized (this) {
+			this.receive = System.currentTimeMillis();
 			this.response = response;
 			// 如果状态为等待则进行唤醒
 			if (this.stauts == Status.WAITING) {
@@ -321,7 +327,7 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	 * @return
 	 */
 	private void timeout(long timeout) {
-		if (this.elapse() > timeout) {
+		if ((System.currentTimeMillis() - this.start) > timeout) {
 			this.stauts = Status.TIMEOUT;
 		}
 	}
@@ -355,7 +361,7 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	 * @return
 	 */
 	public long elapse() {
-		return System.currentTimeMillis() - this.start;
+		return this.receive - this.start;
 	}
 
 	@Override
