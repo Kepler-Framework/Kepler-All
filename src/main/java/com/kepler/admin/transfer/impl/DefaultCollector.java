@@ -3,8 +3,8 @@ package com.kepler.admin.transfer.impl;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -31,7 +31,7 @@ public class DefaultCollector implements Runnable, Collector, Imported {
 	/**
 	 * 队列长度
 	 */
-	private static final int QUEUE_SIZE = PropertiesUtils.get(DefaultCollector.class.getName().toLowerCase() + ".queue_size", Short.MAX_VALUE);
+	private static final int QUEUE_SIZE = PropertiesUtils.get(DefaultCollector.class.getName().toLowerCase() + ".queue_size", Integer.MAX_VALUE);
 
 	private static final int INTERVAL = PropertiesUtils.get(DefaultCollector.class.getName().toLowerCase() + ".interval", 60000);
 
@@ -45,7 +45,7 @@ public class DefaultCollector implements Runnable, Collector, Imported {
 	/**
 	 * 等待队列
 	 */
-	private final BlockingQueue<Ack> acks = new ArrayBlockingQueue<Ack>(DefaultCollector.QUEUE_SIZE);
+	private final BlockingQueue<Ack> acks = new LinkedBlockingQueue<Ack>(DefaultCollector.QUEUE_SIZE);
 
 	private final ThreadPoolExecutor threads;
 
