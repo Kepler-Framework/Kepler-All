@@ -47,7 +47,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 
 	private static final Log LOGGER = LogFactory.getLog(ForkJoinInvoker.class);
 
-	private final MultiKeyMap forkers = new MultiKeyMap();
+	volatile private MultiKeyMap forkers = new MultiKeyMap();
 
 	private final ThreadPoolExecutor threads;
 
@@ -88,14 +88,30 @@ public class ForkJoinInvoker implements Imported, Invoker {
 	@Override
 	public void subscribe(Service service) throws Exception {
 		try {
+			MultiKeyMap forkers = new MultiKeyMap();
+			forkers.putAll(this.forkers);
 			for (Method method : Service.clazz(service).getMethods()) {
 				// 注册Fork方法
 				ForkJoin forkjoin = method.getAnnotation(ForkJoin.class);
 				if (forkjoin != null) {
 					Assert.state(!method.getReturnType().equals(void.class), "Method must not return void ... ");
-					this.forkers.put(service, method.getName(), forkjoin);
+					forkers.put(service, method.getName(), forkjoin);
 				}
 			}
+			this.forkers = forkers;
+		} catch (ClassNotFoundException | NoClassDefFoundError e) {
+			ForkJoinInvoker.LOGGER.info("Class not found: " + service);
+		}
+	}
+
+	public void unsubscribe(Service service) throws Exception {
+		try {
+			MultiKeyMap forkers = new MultiKeyMap();
+			forkers.putAll(this.forkers);
+			for (Method method : Service.clazz(service).getMethods()) {
+				forkers.removeMultiKey(service, method);
+			}
+			this.forkers = forkers;
 		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			ForkJoinInvoker.LOGGER.info("Class not found: " + service);
 		}

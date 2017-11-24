@@ -3,12 +3,12 @@ package com.kepler.zookeeper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.Executors;
@@ -106,6 +106,11 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	 * 加载失败的服务
 	 */
 	private final BlockingQueue<Reinstall> uninstalled = new DelayQueue<Reinstall>();
+
+	/**
+	 * 已经卸载的服务
+	 */
+	private final Set<Service> unsubscribe = new CopyOnWriteArraySet<Service>();
 
 	private final ReinstallRunnable reinstall = new ReinstallRunnable();
 
@@ -274,9 +279,11 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 			ZkContext.LOGGER.warn("Disabled import service: " + service + " ... ");
 			return;
 		}
-		// 订阅服务并启动Watcher监听
-		this.refresh.running = true;
+		// 移除已卸载服务
+		this.unsubscribe.remove(service);
 		try {
+			// 订阅服务并启动Watcher监听
+			this.refresh.running = true;
 			if (this.watcher.watch(service, this.road.road(ZkContext.ROOT, service.service(), service.versionAndCatalog()))) {
 				// 加入本地快照
 				this.snapshot.subscribe(service);
@@ -285,6 +292,12 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		} finally {
 			this.refresh.running = false;
 		}
+	}
+
+	@Override
+	public void unsubscribe(Service service) throws Exception {
+		this.unsubscribe.add(service);
+		this.snapshot.unsubscribe(service);
 	}
 
 	@Override
@@ -532,12 +545,12 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		/**
 		 * 已发布服务
 		 */
-		private final Map<Service, Object> exported = new HashMap<Service, Object>();
+		private final Map<Service, Object> exported = new ConcurrentHashMap<Service, Object>();
 
 		/**
 		 * 已导入服务
 		 */
-		private final Set<Service> imported = new HashSet<Service>();
+		private final Set<Service> imported = new CopyOnWriteArraySet<Service>();
 
 		/**
 		 * 获取并移除快照
@@ -559,10 +572,14 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		}
 
 		@Override
+		public void unsubscribe(Service service) throws Exception {
+			this.imported.remove(service);
+		}
+
+		@Override
 		public void exported(Service service, Object instance) {
 			this.exported.put(service, instance);
 		}
-
 	}
 
 	private class ZkWatcher {
@@ -576,8 +593,8 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		public boolean watch(Service service, String path) throws Exception {
 			try {
 				// 获取所有Children Path, 并监听路径变化
-				for (String child : new PathWatcher(path).snapshot()) {
-					this.init(path, child);
+				for (String child : new PathWatcher(service, path).snapshot()) {
+					this.init(service, path, child);
 				}
 				return true;
 			} catch (Throwable e) {
@@ -618,10 +635,10 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		 * @param path
 		 * @param child
 		 */
-		private void init(String path, String child) {
+		private void init(Service service, String path, String child) {
 			try {
 				String actual = path + "/" + child;
-				ServiceInstance instance = new DataWatcher(actual).snapshot();
+				ServiceInstance instance = new DataWatcher(service, actual).snapshot();
 				// 加载节点
 				ZkContext.this.listener.add(instance);
 				// 加载快照
@@ -634,13 +651,16 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 
 	private class PathWatcher implements Watcher {
 
+		private final Service service;
+
 		private List<String> snapshot;
 
-		private PathWatcher(String path) throws Exception {
+		private PathWatcher(Service service, String path) throws Exception {
 			// 注册路径变化监听
 			this.snapshot = ZkContext.this.zoo.getChildren(path, this);
 			// 排序用于对比
 			Collections.sort(this.snapshot);
+			this.service = service;
 		}
 
 		/**
@@ -650,6 +670,11 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		 */
 		private void add(WatchedEvent event) {
 			try {
+				// Guard case, 已卸载服务
+				if (ZkContext.this.unsubscribe.contains(this.service)) {
+					ZkContext.LOGGER.warn("[unsubscribed][service=" + this.service + "]");
+					return;
+				}
 				// 获取所有节点,对比新增节点
 				List<String> previous = this.snapshot;
 				this.snapshot = ZkContext.this.zoo.getChildren(event.getPath(), this);
@@ -674,7 +699,7 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 			for (String child : children) {
 				try {
 					String actual = path + "/" + child;
-					ServiceInstance instance = new DataWatcher(actual).snapshot();
+					ServiceInstance instance = new DataWatcher(this.service, actual).snapshot();
 					// 加载节点
 					ZkContext.this.listener.add(instance);
 					// 加载快照
@@ -729,11 +754,14 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 
 	private class DataWatcher implements Watcher {
 
+		private final Service service;
+
 		private ServiceInstance data;
 
-		private DataWatcher(String path) throws Exception {
+		private DataWatcher(Service service, String path) throws Exception {
 			// 获取节点数据
 			this.data = ZkContext.this.serials.def4input().input(ZkContext.this.zoo.getData(path, this, null), ServiceInstance.class);
+			this.service = service;
 		}
 
 		public ServiceInstance snapshot() {
@@ -743,6 +771,11 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		@Override
 		public void process(WatchedEvent event) {
 			try {
+				// Guard case, 已卸载服务
+				if (ZkContext.this.unsubscribe.contains(this.service)) {
+					ZkContext.LOGGER.warn("[unsubscribed][service=" + this.service + "]");
+					return;
+				}
 				ZkContext.LOGGER.info("Receive event: " + event);
 				switch (event.getType()) {
 				case NodeDataChanged:
@@ -962,6 +995,11 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 				try {
 					// 获取未加载服务并尝试重新加载
 					Reinstall service = ZkContext.this.uninstalled.poll(ZkContext.INTERVAL, TimeUnit.MILLISECONDS);
+					// Guard case, 已卸载服务
+					if (ZkContext.this.unsubscribe.contains(service.service())) {
+						ZkContext.LOGGER.warn("[unsubscribed][service=" + service.service() + "]");
+						continue;
+					}
 					if (service != null) {
 						ZkContext.this.subscribe(service.service());
 					}

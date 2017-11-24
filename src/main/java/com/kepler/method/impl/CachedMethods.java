@@ -47,12 +47,7 @@ public class CachedMethods implements Methods {
 					return actual;
 				}
 				CachedMethods.LOGGER.warn("Refresh method cache: [service=" + service_method + "][actual=" + actual + "]");
-				HashMap<ServiceAndMethod, Method> cached = new HashMap<ServiceAndMethod, Method>();
-				// 复制
-				for (ServiceAndMethod key : this.cached.keySet()) {
-					cached.put(key, this.cached.get(key));
-				}
-				// 放入新缓存并替换
+				HashMap<ServiceAndMethod, Method> cached = new HashMap<ServiceAndMethod, Method>(this.cached);
 				cached.put(service_method.clone(), actual);
 				this.cached = cached;
 			}

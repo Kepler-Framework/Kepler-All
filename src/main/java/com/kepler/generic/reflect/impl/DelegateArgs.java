@@ -59,6 +59,10 @@ public class DelegateArgs implements GenericArgs {
 		return classes;
 	}
 
+	public String[] classesAsString() {
+		return this.classes;
+	}
+
 	public Object[] args() {
 		return this.args == null ? DelegateArgs.EMPTY_OBJECT : this.args;
 	}

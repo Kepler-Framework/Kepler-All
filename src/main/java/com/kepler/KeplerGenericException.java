@@ -31,11 +31,11 @@ public class KeplerGenericException extends KeplerLocalException implements Clon
 	private static final String FILTER = PropertiesUtils.get(KeplerGenericException.class.getName().toLowerCase() + ".filter", "cause;message;stackTrace;suppressed;localizedMessage;");
 
 	private static final Boolean STACK = PropertiesUtils.get(KeplerGenericException.class.getName().toLowerCase() + ".stack", false);
-	
+
 	private static final Set<Class<? extends Throwable>> FILTER_CLASS = new HashSet<Class<? extends Throwable>>();
 
 	private static final Log LOGGER = LogFactory.getLog(KeplerGenericException.class);
-	
+
 	private static final Set<String> FILTER_FIELD = new HashSet<String>();
 
 	private static final long serialVersionUID = 1L;
@@ -70,7 +70,7 @@ public class KeplerGenericException extends KeplerLocalException implements Clon
 	}
 
 	public KeplerGenericException(Throwable throwable) {
-		this(KeplerGenericException.STACK ? KeplerGenericException.cause(throwable) : throwable.getMessage());
+		this(KeplerGenericException.STACK ? KeplerGenericException.cause(throwable) : "[exception=" + throwable.getClass() + "][message=" + throwable.getMessage() + "]");
 		this.fields = new HashMap<String, Object>();
 		this.classes = new ArrayList<String>();
 		this.classes(throwable.getClass());

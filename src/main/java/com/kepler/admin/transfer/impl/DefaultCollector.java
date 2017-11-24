@@ -38,32 +38,30 @@ public class DefaultCollector implements Runnable, Collector, Imported {
 	private static final Log LOGGER = LogFactory.getLog(DefaultCollector.class);
 
 	/**
-	 * 当前, 切换, 清理
-	 */
-	private final MultiKeyMap[] transfers = new MultiKeyMap[] { new MultiKeyMap(), new MultiKeyMap(), new MultiKeyMap() };
-
-	/**
 	 * 等待队列
 	 */
 	private final BlockingQueue<Ack> acks = new LinkedBlockingQueue<Ack>(DefaultCollector.QUEUE_SIZE);
+
+	/**
+	 * 当前, 切换, 清理
+	 */
+	volatile private MultiKeyMap[] transfers = new MultiKeyMap[] { new MultiKeyMap(), new MultiKeyMap(), new MultiKeyMap() };
+
+	volatile private boolean shutdown = false;
+
+	/**
+	 * Start from 1
+	 */
+	volatile private int indexes = 1;
 
 	private final ThreadPoolExecutor threads;
 
 	private final TraceCauses trace;
 
-	volatile private boolean shutdown;
-
-	/**
-	 * Start from 1
-	 */
-	volatile private int indexes;
-
 	public DefaultCollector(TraceCauses trace, ThreadPoolExecutor threads) {
 		super();
 		this.threads = threads;
-		this.shutdown = false;
 		this.trace = trace;
-		this.indexes = 1;
 	}
 
 	/**
@@ -81,53 +79,52 @@ public class DefaultCollector implements Runnable, Collector, Imported {
 		this.shutdown = true;
 	}
 
-	/**
-	 * 加载指定服务Transfers
-	 * 
-	 * @param service 服务
-	 * @param method 方法名称
-	 * @return Current Transfers
-	 */
-	private Transfers install(Service service, String method) {
-		// 泛化加载时的线程安全
-		synchronized (this) {
-			// Guard case, 同步检查
-			Transfers current = Transfers.class.cast(this.curr().get(service, method));
-			if (current != null) {
-				return current;
-			}
-			// 初始化并返回
-			for (int index = 0; index < this.transfers.length; index++) {
-				this.transfers[index].put(service, method, new DefaultTransfers(this.trace, service, method));
-			}
-			return Transfers.class.cast(this.curr().get(service, method));
-		}
-	}
-
 	@Override
 	public void subscribe(Service service) throws Exception {
 		try {
 			for (Method method : Service.clazz(service).getMethods()) {
-				this.install(service, method.getName());
+				// Guard case, 同步检查, 如果已存在则返回
+				Transfers current = Transfers.class.cast(this.curr().get(service, method));
+				if (current != null) {
+					return;
+				}
+				MultiKeyMap[] transfers = new MultiKeyMap[this.transfers.length];
+				for (int index = 0; index < this.transfers.length; index++) {
+					MultiKeyMap transfer_current = this.transfers[index];
+					MultiKeyMap transfer_replace = new MultiKeyMap();
+					if (transfer_current != null) {
+						transfer_replace.putAll(transfer_current);
+					}
+					transfer_replace.put(service, method, new DefaultTransfers(this.trace, service, method.getName()));
+					transfers[index] = transfer_replace;
+				}
+				this.transfers = transfers;
 			}
 		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			DefaultCollector.LOGGER.info("Class not found: " + service);
 		}
 	}
 
-	/**
-	 * 从ACK定位Transfers
-	 * 
-	 * @param ack
-	 * @return
-	 */
-	private Transfers get(Ack ack) {
-		Transfers transfers = Transfers.class.cast(this.curr().get(ack.request().service(), ack.request().method()));
-		return transfers == null ? this.install(ack.request().service(), ack.request().method()) : transfers;
+	public void unsubscribe(Service service) throws Exception {
+		try {
+			MultiKeyMap[] transfers = new MultiKeyMap[this.transfers.length];
+			for (int index = 0; index < this.transfers.length; index++) {
+				MultiKeyMap transfer = new MultiKeyMap();
+				transfer.putAll(this.transfers[index]);
+				// 移除服务
+				for (Method method : Service.clazz(service).getMethods()) {
+					transfer.removeMultiKey(service, method);
+				}
+				transfers[index] = transfer;
+			}
+			this.transfers = transfers;
+		} catch (ClassNotFoundException | NoClassDefFoundError e) {
+			DefaultCollector.LOGGER.info("Class not found: " + service);
+		}
 	}
 
 	public Transfer peek(Ack ack) {
-		Transfer transfer = this.get(ack).get(ack.local(), ack.remote());
+		Transfer transfer = Transfers.class.cast(this.curr().get(ack.request().service(), ack.request().method())).get(ack.local(), ack.remote());
 		if (transfer == null) {
 			DefaultCollector.LOGGER.warn("Empty transfer for " + ack.request().service() + "[method=" + ack.request().method() + "][local=" + ack.local() + "][remote=" + ack.remote() + "]");
 		}
@@ -211,7 +208,7 @@ public class DefaultCollector implements Runnable, Collector, Imported {
 				if (ack != null) {
 					// 绑定ACK Trace
 					TraceContext.getTraceOnCreate(ack.trace());
-					this.get(ack).put(ack.local(), ack.remote(), ack.status(), ack.elapse());
+					Transfers.class.cast(this.curr().get(ack.request().service(), ack.request().method())).put(ack.local(), ack.remote(), ack.status(), ack.elapse());
 				}
 			} catch (Throwable e) {
 				DefaultCollector.LOGGER.debug(e.getMessage(), e);

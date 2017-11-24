@@ -6,4 +6,6 @@ package com.kepler.service;
 public interface Imported {
 
 	public void subscribe(Service service) throws Exception;
+
+	public void unsubscribe(Service service) throws Exception;
 }

@@ -57,96 +57,80 @@ import com.kepler.com.caucho.hessian.HessianException;
  * Serializing an object. 
  */
 abstract public class AbstractSerializer implements Serializer {
-  public static final NullSerializer NULL = new NullSerializer();
-  
-  protected static final Logger log
-    = Logger.getLogger(AbstractSerializer.class.getName());
-  
-  @Override
-  public void writeObject(Object obj, AbstractHessianOutput out)
-    throws IOException
-  {
-    if (out.addRef(obj)) {
-      return;
-    }
-    
-    try {
-      Object replace = writeReplace(obj);
-      
-      if (replace != null) {
-        // out.removeRef(obj);
 
-        out.writeObject(replace);
+	public static final NullSerializer NULL = new NullSerializer();
 
-        out.replaceRef(replace, obj);
+	protected static final Logger log = Logger.getLogger(AbstractSerializer.class.getName());
 
-        return;
-      }
-    } catch (RuntimeException e) {
-      throw e;
-    } catch (Exception e) {
-      // log.log(Level.FINE, e.toString(), e);
-      throw new HessianException(e);
-    }
+	@Override
+	public void writeObject(Object obj, AbstractHessianOutput out) throws IOException {
+		if (out.addRef(obj)) {
+			return;
+		}
 
-    Class<?> cl = getClass(obj);
+		try {
+			Object replace = writeReplace(obj);
 
-    int ref = out.writeObjectBegin(cl.getName());
+			if (replace != null) {
+				// out.removeRef(obj);
 
-    if (ref < -1) {
-      writeObject10(obj, out);
-    }
-    else {
-      if (ref == -1) {
-        writeDefinition20(cl, out);
+				out.writeObject(replace);
 
-        out.writeObjectBegin(cl.getName());
-      }
+				out.replaceRef(replace, obj);
 
-      writeInstance(obj, out);
-    }
-  }
+				return;
+			}
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			// log.log(Level.FINE, e.toString(), e);
+			throw new HessianException(e);
+		}
 
-  protected Object writeReplace(Object obj)
-  {
-    return null;
-  }
+		Class<?> cl = getClass(obj);
 
-  protected Class<?> getClass(Object obj)
-  {
-    return obj.getClass();
-  }
+		int ref = out.writeObjectBegin(cl.getName());
 
-  protected void writeObject10(Object obj,
-                            AbstractHessianOutput out)
-    throws IOException
-  {
-    throw new UnsupportedOperationException(getClass().getName());
-  }
+		if (ref < -1) {
+			writeObject10(obj, out);
+		} else {
+			if (ref == -1) {
+				writeDefinition20(cl, out);
 
-  protected void writeDefinition20(Class<?> cl,
-                                   AbstractHessianOutput out)
-    throws IOException
-  {
-    throw new UnsupportedOperationException(getClass().getName());
-  }
+				out.writeObjectBegin(cl.getName());
+			}
 
-  protected void writeInstance(Object obj,
-                            AbstractHessianOutput out)
-    throws IOException
-  {
-    throw new UnsupportedOperationException(getClass().getName());
-  }
+			writeInstance(obj, out);
+		}
+	}
 
-  /**
-   * The NullSerializer exists as a marker for the factory classes so
-   * they save a null result.
-   */
-  static final class NullSerializer extends AbstractSerializer {
-    public void writeObject(Object obj, AbstractHessianOutput out)
-      throws IOException
-    {
-      throw new IllegalStateException(getClass().getName());
-    }
-  }
+	protected Object writeReplace(Object obj) {
+		return null;
+	}
+
+	protected Class<?> getClass(Object obj) {
+		return obj.getClass();
+	}
+
+	protected void writeObject10(Object obj, AbstractHessianOutput out) throws IOException {
+		throw new UnsupportedOperationException(getClass().getName());
+	}
+
+	protected void writeDefinition20(Class<?> cl, AbstractHessianOutput out) throws IOException {
+		throw new UnsupportedOperationException(getClass().getName());
+	}
+
+	protected void writeInstance(Object obj, AbstractHessianOutput out) throws IOException {
+		throw new UnsupportedOperationException(getClass().getName());
+	}
+
+	/**
+	 * The NullSerializer exists as a marker for the factory classes so
+	 * they save a null result.
+	 */
+	static final class NullSerializer extends AbstractSerializer {
+		public void writeObject(Object obj, AbstractHessianOutput out) throws IOException {
+			throw new IllegalStateException(getClass().getName());
+		}
+	}
 }

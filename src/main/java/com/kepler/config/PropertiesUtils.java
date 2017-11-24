@@ -51,11 +51,16 @@ public class PropertiesUtils {
 	private static final boolean BACKUP = Boolean.valueOf(System.getProperty("backup", "false"));
 
 	/**
-	 * 当前配置数据(内存快照)
+	 * 是否在新配置生效前对当前配置更新
 	 */
-	private static final Map<String, String> PROPERTIES = new HashMap<String, String>();
+	private static final boolean UPDATE = Boolean.valueOf(System.getProperty("update", "false"));
 
 	private static final Log LOGGER = LogFactory.getLog(PropertiesUtils.class);
+
+	/**
+	 * 当前配置数据(内存快照)
+	 */
+	volatile private static Map<String, String> PROPERTIES;
 
 	/**
 	 * 标记位, 是否已初始
@@ -74,7 +79,7 @@ public class PropertiesUtils {
 	 */
 	public static void init() {
 		if (!PropertiesUtils.INITED) {
-			PropertiesUtils.init(PropertiesUtils.PROPERTIES);
+			PropertiesUtils.init((PropertiesUtils.PROPERTIES = new HashMap<String, String>()));
 			PropertiesUtils.INITED = true;
 		}
 	}
@@ -197,23 +202,25 @@ public class PropertiesUtils {
 	 * 
 	 * @param files
 	 */
-	private static void store(String... files) {
-		// 获取内存快照(防止Merge迭代时修改导致的并发冲突)
-		Map<String, String> memory = PropertiesUtils.memory();
-		for (int index = 0; index < files.length; index++) {
-			String current = files[index];
-			// 排序Properties
-			Properties properties = new OrderedProperties();
-			// 从磁盘加载历史配置
-			PropertiesUtils.loading(current, properties);
-			// 历史配置合并当前配置, 最后的文件(index == files.length - 1)采用MergeAll
-			PropertiesUtils.merge(memory, properties, index == files.length - 1);
-			try (OutputStream output = new FileOutputStream(new File(ResourceUtils.getURL(current).getFile()))) {
-				// 物理存储
-				properties.store(output, null);
-				PropertiesUtils.LOGGER.warn("Restore properties file: " + current);
-			} catch (Throwable throwable) {
-				PropertiesUtils.LOGGER.debug(throwable.getMessage(), throwable);
+	private static void update(String... files) {
+		if (PropertiesUtils.UPDATE) {
+			// 获取内存快照(防止Merge迭代时修改导致的并发冲突)
+			Map<String, String> memory = PropertiesUtils.memory();
+			for (int index = 0; index < files.length; index++) {
+				String current = files[index];
+				// 排序Properties
+				Properties properties = new OrderedProperties();
+				// 从磁盘加载历史配置
+				PropertiesUtils.loading(current, properties);
+				// 历史配置合并当前配置, 最后的文件(index == files.length - 1)采用MergeAll
+				PropertiesUtils.merge(memory, properties, index == files.length - 1);
+				try (OutputStream output = new FileOutputStream(new File(ResourceUtils.getURL(current).getFile()))) {
+					// 物理存储
+					properties.store(output, null);
+					PropertiesUtils.LOGGER.warn("Update properties file: " + current);
+				} catch (Throwable throwable) {
+					PropertiesUtils.LOGGER.debug(throwable.getMessage(), throwable);
+				}
 			}
 		}
 	}
@@ -334,12 +341,14 @@ public class PropertiesUtils {
 	 * @param properties
 	 */
 	public static void properties(Map<String, String> properties) {
-		// 合并(后覆盖前)
-		PropertiesUtils.PROPERTIES.putAll(new FormatedMap(properties));
+		Map<String, String> replace = new HashMap<String, String>(PropertiesUtils.PROPERTIES);
+		replace.putAll(new FormatedMap(properties));
+		// 替换
+		PropertiesUtils.PROPERTIES = replace;
 		// 备份
 		PropertiesUtils.backup(PropertiesUtils.FILE_CONFIG, PropertiesUtils.FILE_VERSION, PropertiesUtils.FILE_DYNAMIC);
 		// 持久化
-		PropertiesUtils.store(PropertiesUtils.FILE_CONFIG, PropertiesUtils.FILE_VERSION, PropertiesUtils.FILE_DYNAMIC);
+		PropertiesUtils.update(PropertiesUtils.FILE_CONFIG, PropertiesUtils.FILE_VERSION, PropertiesUtils.FILE_DYNAMIC);
 	}
 
 	/**

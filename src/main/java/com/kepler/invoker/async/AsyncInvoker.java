@@ -27,14 +27,14 @@ import com.kepler.service.Service;
  */
 public class AsyncInvoker implements Imported, Invoker {
 
-	static final boolean ACTIVED = PropertiesUtils.get(AsyncInvoker.class.getName().toLowerCase() + ".actived", false);
+	public static final boolean ACTIVED = PropertiesUtils.get(AsyncInvoker.class.getName().toLowerCase() + ".actived", false);
 
 	private static final Log LOGGER = LogFactory.getLog(AsyncInvoker.class);
 
 	/**
 	 * 已注册Service, Method(缓存)
 	 */
-	private final Map<Service, Set<Method>> async = new HashMap<Service, Set<Method>>();
+	volatile private Map<Service, Set<Method>> async = new HashMap<Service, Set<Method>>();
 
 	private final RequestFactory factory;
 
@@ -62,13 +62,23 @@ public class AsyncInvoker implements Imported, Invoker {
 				// 注册异步方法(@Async && return void)
 				if (method.getAnnotation(Async.class) != null) {
 					Assert.state(method.getReturnType().equals(void.class), "Method must return void ... ");
+					AsyncInvoker.LOGGER.info("[subscribe][service=" + service + "][method=" + method + "]");
 					methods.add(method);
 				}
 			}
-			this.async.put(service, methods);
+			Map<Service, Set<Method>> async = new HashMap<Service, Set<Method>>(this.async);
+			async.put(service, methods);
+			this.async = async;
 		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			AsyncInvoker.LOGGER.info("Class not found: " + service);
 		}
+	}
+
+	public void unsubscribe(Service service) throws Exception {
+		Map<Service, Set<Method>> async = new HashMap<Service, Set<Method>>(this.async);
+		async.remove(service);
+		this.async = async;
+		AsyncInvoker.LOGGER.info("[unsubscribe][service=" + service + "]");
 	}
 
 	@Override

@@ -54,20 +54,52 @@ public class Encoder implements Imported, Exported {
 	 */
 	private final ByteBufAllocator allocator = Encoder.POOLED ? PooledByteBufAllocator.DEFAULT : UnpooledByteBufAllocator.DEFAULT;
 
+	/**
+	 * 缓存大小分配
+	 */
+	volatile private Map<ServiceAndMethod, Handle> estimates = new HashMap<ServiceAndMethod, Handle>();
+
 	private final Serials serials;
 
 	private final Class<?> clazz;
 
-	/**
-	 * 缓存大小分配
-	 */
-	volatile private Map<ServiceAndMethod, Handle> estimates;
-
 	public Encoder(Serials serials, Class<?> clazz) {
 		super();
-		this.clazz = clazz;
 		this.serials = serials;
-		this.estimates = new HashMap<ServiceAndMethod, Handle>();
+		this.clazz = clazz;
+	}
+
+	private Handle install(ServiceAndMethod service_method) throws Exception {
+		synchronized (this) {
+			Handle handle = this.estimates.get(service_method);
+			// Double Check
+			if (handle != null) {
+				return handle;
+			}
+			Map<ServiceAndMethod, Handle> estimates = new HashMap<ServiceAndMethod, Handle>(this.estimates);
+			estimates.put(service_method, (handle = AdaptiveRecvByteBufAllocator.DEFAULT.newHandle()));
+			this.estimates = estimates;
+			return handle;
+		}
+	}
+
+	/**
+	 * 加载服务-方法级别的分配器(不考虑方法重载)
+	 * 
+	 * @param service
+	 * @throws Exception
+	 */
+	private void install(Service service) throws Exception {
+		try {
+			Map<ServiceAndMethod, Handle> estimates = new HashMap<ServiceAndMethod, Handle>(this.estimates);
+			for (Method method : Service.clazz(service).getMethods()) {
+				ServiceAndMethod service_method = new ServiceAndMethod(service, method.getName());
+				estimates.put(service_method, AdaptiveRecvByteBufAllocator.DEFAULT.newHandle());
+			}
+			this.estimates = estimates;
+		} catch (ClassNotFoundException | NoClassDefFoundError e) {
+			Encoder.LOGGER.info("Class not found: " + service);
+		}
 	}
 
 	@Override
@@ -80,61 +112,26 @@ public class Encoder implements Imported, Exported {
 		this.install(service);
 	}
 
+	public void unsubscribe(Service service) throws Exception {
+		Map<ServiceAndMethod, Handle> estimates = new HashMap<ServiceAndMethod, Handle>(this.estimates);
+		estimates.remove(service);
+		this.estimates = estimates;
+	}
+
 	/**
-	 * 加载服务-方法级别的分配器(不考虑方法重载)
+	 * 分配预估缓存
 	 * 
-	 * @param service
+	 * @param service_method
+	 * @return
 	 * @throws Exception
 	 */
-	private void install(Service service) throws Exception {
-		try {
-			for (Method method : Service.clazz(service).getMethods()) {
-				// 安全模式加载
-				this.install(new ServiceAndMethod(service, method.getName()), AdaptiveRecvByteBufAllocator.DEFAULT.newHandle(), true);
-			}
-		} catch (ClassNotFoundException | NoClassDefFoundError e) {
-			Encoder.LOGGER.info("Class not found: " + service);
-		}
-	}
-
-	/**
-	 * @param service_method
-	 * @param handle
-	 * @param secure 如果不为安全模式则采用COPY ON WRITE
-	 * @return
-	 */
-	private Handle install(ServiceAndMethod service_method, Handle handle, boolean secure) {
-		// 安全模式
-		if (secure) {
-			// 普通PUT
-			this.estimates.put(service_method, handle);
+	private ByteBuf estimate(ServiceAndMethod service_method) throws Exception {
+		if (Encoder.ESTIMATE) {
+			Handle handle = this.estimates.get(service_method);
+			return handle != null ? handle.allocate(this.allocator) : this.install(service_method).allocate(this.allocator);
 		} else {
-			synchronized (this) {
-				// Double Check
-				if (!this.estimates.containsKey(service_method)) {
-					// Copy On Write
-					Map<ServiceAndMethod, Handle> estimates = new HashMap<ServiceAndMethod, Handle>();
-					for (ServiceAndMethod each : this.estimates.keySet()) {
-						estimates.put(each, this.estimates.get(each));
-					}
-					estimates.put(service_method, handle);
-					this.estimates = estimates;
-					Encoder.LOGGER.info("Reset handles for: " + service_method);
-				}
-			}
+			return this.allocator.ioBuffer();
 		}
-		return this.estimates.get(service_method);
-	}
-
-	/**
-	 * 获取指定服务方法分配器
-	 * 
-	 * @param service_method
-	 * @return
-	 */
-	private Handle handler(ServiceAndMethod service_method) {
-		Handle handler = this.estimates.get(service_method);
-		return handler != null ? handler : this.install(service_method, AdaptiveRecvByteBufAllocator.DEFAULT.newHandle(), false);
 	}
 
 	/**
@@ -165,8 +162,8 @@ public class Encoder implements Imported, Exported {
 		// 序列化实现类
 		SerialOutput serial_output = this.serials.output(serial_id);
 		ServiceAndMethod service_method = new ServiceAndMethod(service, method);
-		// 分配写入缓存
-		ByteBuf buffer = Encoder.ESTIMATE ? this.handler(service_method).allocate(this.allocator) : this.allocator.ioBuffer();
+		// 分配缓存
+		ByteBuf buffer = this.estimate(service_method);
 		try (WrapStream stream = new WrapStream(service_method, buffer.writeByte(serial_id))) {
 			return stream(serial_output, stream, (int) (buffer.capacity() * Encoder.ADJUST), message).record().buffer();
 		} catch (Exception exception) {

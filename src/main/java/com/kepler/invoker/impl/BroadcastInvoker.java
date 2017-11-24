@@ -39,7 +39,7 @@ public class BroadcastInvoker implements Imported, Invoker {
 
 	private static final Log LOGGER = LogFactory.getLog(BroadcastInvoker.class);
 
-	private final MultiKeyMap broadcast = new MultiKeyMap();
+	volatile private MultiKeyMap broadcast = new MultiKeyMap();
 
 	private final ChannelContext context;
 
@@ -70,14 +70,31 @@ public class BroadcastInvoker implements Imported, Invoker {
 	@Override
 	public void subscribe(Service service) throws Exception {
 		try {
+			MultiKeyMap broadcast = new MultiKeyMap();
+			broadcast.putAll(this.broadcast);
 			for (Method method : Service.clazz(service).getMethods()) {
-				// 注册Broadcast方法
-				Broadcast broadcast = method.getAnnotation(Broadcast.class);
-				if (broadcast != null) {
+				Broadcast annotation = method.getAnnotation(Broadcast.class);
+				if (annotation != null) {
 					Assert.state(method.getReturnType().equals(void.class), "Method must return void ... ");
-					this.broadcast.put(service, method, broadcast);
+					BroadcastInvoker.LOGGER.info("[subscribe][service=" + service + "][method=" + method + "]");
+					broadcast.put(service, method, annotation);
 				}
 			}
+			this.broadcast = broadcast;
+		} catch (ClassNotFoundException | NoClassDefFoundError e) {
+			BroadcastInvoker.LOGGER.info("Class not found: " + service);
+		}
+	}
+
+	public void unsubscribe(Service service) throws Exception {
+		try {
+			MultiKeyMap broadcast = new MultiKeyMap();
+			broadcast.putAll(this.broadcast);
+			for (Method method : Service.clazz(service).getMethods()) {
+				broadcast.removeMultiKey(service, method);
+			}
+			this.broadcast = broadcast;
+			BroadcastInvoker.LOGGER.info("[unsubscribe][service=" + service + "]");
 		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			BroadcastInvoker.LOGGER.info("Class not found: " + service);
 		}

@@ -38,28 +38,13 @@ public class QuietExceptions implements Quiet, Imported, Exported {
 
 	private static final Log LOGGER = LogFactory.getLog(QuietExceptions.class);
 
-	private final Map<Service, QuietMethods> methods = new HashMap<Service, QuietMethods>();
+	volatile private Map<Service, QuietMethods> quiets = new HashMap<Service, QuietMethods>();
 
-	private final Methods mehtods;
+	private final Methods methods;
 
-	public QuietExceptions(Methods mehtods) {
+	public QuietExceptions(Methods methods) {
 		super();
-		this.mehtods = mehtods;
-	}
-
-	/**
-	 * 获取服务对应QuietMethods
-	 * 
-	 * @param service
-	 * @return
-	 */
-	private QuietMethods methods(Service service) {
-		QuietMethods methods = this.methods.get(service);
-		// Create if null
-		methods = methods != null ? methods : new QuietMethods();
-		// 回写
-		this.methods.put(service, methods);
-		return methods;
+		this.methods = methods;
 	}
 
 	/**
@@ -68,37 +53,51 @@ public class QuietExceptions implements Quiet, Imported, Exported {
 	 * @param service
 	 * @throws Exception
 	 */
-	private void quiet(Service service) throws Exception {
+	private void install(Service service) throws Exception {
 		try {
+			Map<Service, QuietMethods> quiets = new HashMap<Service, QuietMethods>(this.quiets);
 			// 获取对应Method
-			QuietMethods methods = this.methods(service);
+			QuietMethods methods = this.methods(quiets, service);
 			for (Method each : Service.clazz(service).getMethods()) {
-				// Method : Quite List
-				methods.put(each, this.quiet(AnnotationUtils.findAnnotation(each, QuietMethod.class)));
+				// 标记@QuietMethod则注册静默异常集合
+				QuietMethod method = AnnotationUtils.findAnnotation(each, QuietMethod.class);
+				methods.put(each, method != null ? Arrays.asList(method.quiet()) : QuietExceptions.EMPTY);
 			}
+			this.quiets = quiets;
 		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			QuietExceptions.LOGGER.info("Class not found: " + service);
 		}
 	}
 
 	/**
-	 * 标记@QuietMethod则注册静默异常集合
+	 * 获取服务对应QuietMethods
 	 * 
-	 * @param each
-	 * @param quiet
+	 * @param service
+	 * @return
 	 */
-	private List<Class<? extends Throwable>> quiet(QuietMethod quiet) {
-		return quiet != null ? Arrays.asList(quiet.quiet()) : QuietExceptions.EMPTY;
+	private QuietMethods methods(Map<Service, QuietMethods> quiets, Service service) {
+		QuietMethods methods = quiets.get(service);
+		// Create if null
+		methods = methods != null ? methods : new QuietMethods();
+		// 回写
+		quiets.put(service, methods);
+		return methods;
 	}
 
 	@Override
 	public void exported(Service service, Object instance) throws Exception {
-		this.quiet(service);
+		this.install(service);
 	}
 
 	@Override
 	public void subscribe(Service service) throws Exception {
-		this.quiet(service);
+		this.install(service);
+	}
+
+	public void unsubscribe(Service service) throws Exception {
+		Map<Service, QuietMethods> quiets = new HashMap<Service, QuietMethods>(this.quiets);
+		quiets.remove(service);
+		this.quiets = quiets;
 	}
 
 	@Override
@@ -108,8 +107,8 @@ public class QuietExceptions implements Quiet, Imported, Exported {
 			if (AnnotationUtils.findAnnotation(throwable, QuietThrowable.class) != null) {
 				return true;
 			}
-			Method actual = this.mehtods.method(Service.clazz(request.service()), request.method(), request.types());
-			QuietMethods methods = this.methods.get(request.service());
+			Method actual = this.methods.method(Service.clazz(request.service()), request.method(), request.types());
+			QuietMethods methods = this.quiets.get(request.service());
 			// 如果可以获取QuietMethods(非泛化)并且可以获取实际方法则尝试从QuietMethods解析, 如果QuietMethods或实际方法任一无法获得则尝试解析异常
 			return (methods != null && actual != null) ? methods.exceptions(actual).contains(throwable) : false;
 		} catch (Exception e) {

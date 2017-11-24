@@ -38,7 +38,7 @@ public class MainInvoker implements Imported, Invoker {
 	/**
 	 * 取代Semaphore, Failed Fast
 	 */
-	private final Map<Service, AtomicInteger> limit = new HashMap<Service, AtomicInteger>();
+	volatile private Map<Service, AtomicInteger> limit = new HashMap<Service, AtomicInteger>();
 
 	private final List<Invoker> invokers = new ArrayList<Invoker>();
 
@@ -70,7 +70,15 @@ public class MainInvoker implements Imported, Invoker {
 
 	@Override
 	public void subscribe(Service service) throws Exception {
-		this.limit.put(service, new AtomicInteger());
+		Map<Service, AtomicInteger> limit = new HashMap<Service, AtomicInteger>(this.limit);
+		limit.put(service, new AtomicInteger());
+		this.limit = limit;
+	}
+
+	public void unsubscribe(Service service) throws Exception {
+		Map<Service, AtomicInteger> limit = new HashMap<Service, AtomicInteger>(this.limit);
+		limit.remove(service);
+		this.limit = limit;
 	}
 
 	@Override

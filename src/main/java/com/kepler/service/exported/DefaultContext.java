@@ -11,6 +11,8 @@ import org.apache.commons.logging.LogFactory;
 import com.kepler.KeplerRemoteException;
 import com.kepler.KeplerValidateException;
 import com.kepler.config.PropertiesUtils;
+import com.kepler.deceiver.DeceiverRequest;
+import com.kepler.deceiver.DeceiverService;
 import com.kepler.generic.GenericDelegate;
 import com.kepler.generic.GenericResponse;
 import com.kepler.invoker.Invoker;
@@ -71,12 +73,32 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 	public void exported(Service service, Object instance) {
 		this.valid(service);
 		this.services.put(service, instance);
-		this.invokers.put(service, new ProxyInvoker(instance));
+		this.invokers.put(service, DeceiverService.class.isAssignableFrom(instance.getClass()) ? new DeceiveInvoker(instance) : new ProxyInvoker(instance));
 	}
 
 	private void valid(Service service) {
 		if (DefaultContext.CONFLICT && this.invokers.containsKey(service)) {
 			throw new KeplerValidateException("Duplicate service for: " + service);
+		}
+	}
+
+	private class DeceiveInvoker implements Invoker {
+
+		private final DeceiverService service;
+
+		private DeceiveInvoker(Object service) {
+			super();
+			this.service = DeceiverService.class.cast(service);
+		}
+
+		@Override
+		public Object invoke(Request request) throws Throwable {
+			return this.service.deceive(new DeceiverRequest(request));
+		}
+
+		@Override
+		public boolean actived() {
+			return true;
 		}
 	}
 

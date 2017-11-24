@@ -42,7 +42,7 @@ public class CompeteInvoker implements Imported, Invoker {
 
 	private static final Log LOGGER = LogFactory.getLog(CompeteInvoker.class);
 
-	private final MultiKeyMap competed = new MultiKeyMap();
+	volatile private MultiKeyMap competed = new MultiKeyMap();
 
 	private final ThreadPoolExecutor threads;
 
@@ -77,12 +77,29 @@ public class CompeteInvoker implements Imported, Invoker {
 	@Override
 	public void subscribe(Service service) throws Exception {
 		try {
+			MultiKeyMap competed = new MultiKeyMap();
+			competed.putAll(this.competed);
 			for (Method method : Service.clazz(service).getMethods()) {
 				// 注册Compete方法
 				Compete compete = method.getAnnotation(Compete.class);
 				if (compete != null) {
-					this.competed.put(service, method.getName(), compete);
+					competed.put(service, method.getName(), compete);
+					CompeteInvoker.LOGGER.info("[subscribe][service=" + service + "][method=" + method + "]");
 				}
+			}
+			this.competed = competed;
+		} catch (ClassNotFoundException | NoClassDefFoundError e) {
+			CompeteInvoker.LOGGER.info("Class not found: " + service);
+		}
+	}
+
+	public void unsubscribe(Service service) throws Exception {
+		try {
+			MultiKeyMap competed = new MultiKeyMap();
+			competed.putAll(this.competed);
+			for (Method method : Service.clazz(service).getMethods()) {
+				competed.removeMultiKey(service, method);
+				CompeteInvoker.LOGGER.info("[unsubscribe][service=" + service + "][method=" + method + "]");
 			}
 		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			CompeteInvoker.LOGGER.info("Class not found: " + service);
