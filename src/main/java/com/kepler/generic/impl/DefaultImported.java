@@ -12,7 +12,7 @@ import com.kepler.header.HeadersContext;
 import com.kepler.header.HeadersProcessor;
 import com.kepler.id.IDGenerators;
 import com.kepler.invoker.Invoker;
-import com.kepler.protocol.RequestFactory;
+import com.kepler.protocol.RequestFactories;
 import com.kepler.serial.Serials;
 import com.kepler.service.Imported;
 import com.kepler.service.Service;
@@ -28,10 +28,10 @@ abstract public class DefaultImported implements GenericImported {
 	private static final Log LOGGER = LogFactory.getLog(DefaultImported.class);
 
 	protected final HeadersProcessor processor;
+	
+	protected final RequestFactories factory;
 
 	protected final IDGenerators generators;
-
-	protected final RequestFactory factory;
 
 	protected final HeadersContext header;
 
@@ -48,7 +48,7 @@ abstract public class DefaultImported implements GenericImported {
 	 */
 	volatile private Set<Service> services;
 
-	public DefaultImported(HeadersProcessor processor, IDGenerators generators, RequestFactory factory, HeadersContext header, GenericMarker marker, Imported imported, Serials serials, Invoker invoker) {
+	public DefaultImported(HeadersProcessor processor, IDGenerators generators, RequestFactories factory, HeadersContext header, GenericMarker marker, Imported imported, Serials serials, Invoker invoker) {
 		super();
 		this.services = new HashSet<Service>();
 		this.generators = generators;

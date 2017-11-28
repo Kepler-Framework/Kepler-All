@@ -24,7 +24,7 @@ import com.kepler.mock.Mocker;
 import com.kepler.mock.MockerContext;
 import com.kepler.org.apache.commons.collections.map.MultiKeyMap;
 import com.kepler.protocol.Request;
-import com.kepler.protocol.RequestFactory;
+import com.kepler.protocol.RequestFactories;
 import com.kepler.service.Imported;
 import com.kepler.service.Quiet;
 import com.kepler.service.Service;
@@ -50,10 +50,10 @@ public class ForkJoinInvoker implements Imported, Invoker {
 	volatile private MultiKeyMap forkers = new MultiKeyMap();
 
 	private final ThreadPoolExecutor threads;
+	
+	private final RequestFactories request;
 
 	private final IDGenerators generators;
-
-	private final RequestFactory request;
 
 	private final MockerContext mocker;
 
@@ -67,7 +67,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 
 	private final Joins joins;
 
-	public ForkJoinInvoker(Forks forks, Joins joins, Quiet quiet, Invoker delegate, Profile profile, IDGenerators generator, RequestFactory request, MockerContext mocker, ThreadPoolExecutor threads) {
+	public ForkJoinInvoker(Forks forks, Joins joins, Quiet quiet, Invoker delegate, Profile profile, IDGenerators generator, RequestFactories request, MockerContext mocker, ThreadPoolExecutor threads) {
 		super();
 		this.generators = generator;
 		this.delegate = delegate;
@@ -130,7 +130,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 	 * @param exception
 	 * @return
 	 */
-	private Object mock(Request request, KeplerRoutingException exception) {
+	private Object mock(Request request, KeplerRoutingException exception) throws Exception {
 		Mocker mocker = this.mocker.get(request.service());
 		if (mocker != null) {
 			return mocker.mock(request);
@@ -276,7 +276,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 				// 生成ACK
 				byte[] ack = ForkJoinInvoker.this.generators.get(request.service(), request.method()).generate();
 				// 构造请求
-				Request actual = ForkJoinInvoker.this.request.request(request, ack, args).put(Host.TAG_KEY, tags[index]);
+				Request actual = ForkJoinInvoker.this.request.factory(request.serial()).request(request, ack, args).put(Host.TAG_KEY, tags[index]);
 				ForkerRunnable runnable = new ForkerRunnable(this, actual);
 				this.forkers.add(runnable);
 				ForkJoinInvoker.this.threads.execute(runnable);

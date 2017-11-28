@@ -2,10 +2,6 @@ package com.kepler.protocol;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.kepler.header.Headers;
 import com.kepler.serial.SerialID;
 import com.kepler.service.Service;
@@ -15,13 +11,10 @@ import com.kepler.service.Service;
  * 
  * @author kim 2015年7月8日
  */
-@JsonTypeInfo(use = Id.CLASS, include = As.WRAPPER_OBJECT)
 public interface Request extends SerialID, Serializable {
 
-	@JsonProperty
 	public Service service();
 
-	@JsonProperty
 	public String method();
 
 	/**
@@ -29,7 +22,6 @@ public interface Request extends SerialID, Serializable {
 	 * 
 	 * @return
 	 */
-	@JsonProperty
 	public Class<?>[] types();
 
 	/**
@@ -37,8 +29,6 @@ public interface Request extends SerialID, Serializable {
 	 * 
 	 * @return
 	 */
-	@JsonProperty
-	@JsonTypeInfo(use = Id.CLASS, include = As.WRAPPER_OBJECT)
 	public Object[] args();
 
 	/**
@@ -48,10 +38,8 @@ public interface Request extends SerialID, Serializable {
 	 */
 	public boolean async();
 
-	@JsonProperty
 	public byte[] ack();
 
-	@JsonProperty
 	public Headers headers();
 
 	/**

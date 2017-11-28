@@ -19,7 +19,7 @@ import com.kepler.header.HeadersContext;
 import com.kepler.header.HeadersProcessor;
 import com.kepler.id.IDGenerators;
 import com.kepler.invoker.Invoker;
-import com.kepler.protocol.RequestFactory;
+import com.kepler.protocol.RequestFactories;
 import com.kepler.protocol.RequestValidation;
 import com.kepler.serial.SerialID;
 import com.kepler.serial.Serials;
@@ -37,9 +37,9 @@ public class ImportedServiceFactory<T> implements FactoryBean<T> {
 
 	private final HeadersProcessor processor;
 
-	private final IDGenerators generators;
+	private final RequestFactories factory;
 
-	private final RequestFactory factory;
+	private final IDGenerators generators;
 
 	private final HeadersContext header;
 
@@ -57,31 +57,31 @@ public class ImportedServiceFactory<T> implements FactoryBean<T> {
 
 	private final Class<?> clazz;
 
-	private ImportedServiceFactory(Class<T> clazz, com.kepler.annotation.Service service, String profile, Invoker invoker, RequestValidation validation, RequestFactory factory, HeadersContext header, HeadersProcessor processor, IDGenerators generators, Profile profiles, Serials serials, Imported imported) {
+	private ImportedServiceFactory(Class<T> clazz, com.kepler.annotation.Service service, String profile, Invoker invoker, RequestValidation validation, RequestFactories factory, HeadersContext header, HeadersProcessor processor, IDGenerators generators, Profile profiles, Serials serials, Imported imported) {
 		this(clazz, profile, service.version(), service.catalog(), invoker, validation, factory, header, processor, generators, profiles, serials, imported);
 	}
 
-	private ImportedServiceFactory(Class<T> clazz, com.kepler.annotation.Service service, String profile, String catalog, Invoker invoker, RequestValidation validation, RequestFactory factory, HeadersContext header, HeadersProcessor processor, IDGenerators generators, Profile profiles, Serials serials, Imported imported) {
+	private ImportedServiceFactory(Class<T> clazz, com.kepler.annotation.Service service, String profile, String catalog, Invoker invoker, RequestValidation validation, RequestFactories factory, HeadersContext header, HeadersProcessor processor, IDGenerators generators, Profile profiles, Serials serials, Imported imported) {
 		this(clazz, profile, service.version(), catalog, invoker, validation, factory, header, processor, generators, profiles, serials, imported);
 	}
 
 	// 使用@Service获取信息, 并使用默认Profile
-	public ImportedServiceFactory(Class<T> clazz, Invoker invoker, RequestValidation validation, RequestFactory factory, HeadersContext header, HeadersProcessor processor, IDGenerators generators, Profile profiles, Serials serials, Imported imported) {
+	public ImportedServiceFactory(Class<T> clazz, Invoker invoker, RequestValidation validation, RequestFactories factory, HeadersContext header, HeadersProcessor processor, IDGenerators generators, Profile profiles, Serials serials, Imported imported) {
 		this(clazz, AnnotationUtils.findAnnotation(clazz, com.kepler.annotation.Service.class), null, invoker, validation, factory, header, processor, generators, profiles, serials, imported);
 	}
 
 	// 使用@Service获取信息, 并指定Profile
-	public ImportedServiceFactory(Class<T> clazz, String profile, Invoker invoker, RequestValidation validation, RequestFactory factory, HeadersContext header, HeadersProcessor processor, IDGenerators generators, Profile profiles, Serials serials, Imported imported) {
+	public ImportedServiceFactory(Class<T> clazz, String profile, Invoker invoker, RequestValidation validation, RequestFactories factory, HeadersContext header, HeadersProcessor processor, IDGenerators generators, Profile profiles, Serials serials, Imported imported) {
 		this(clazz, AnnotationUtils.findAnnotation(clazz, com.kepler.annotation.Service.class), profile, invoker, validation, factory, header, processor, generators, profiles, serials, imported);
 	}
 
 	// 使用@Service获取信息, 并指定Profile和Catalog
-	public ImportedServiceFactory(Class<T> clazz, String profile, String catalog, Invoker invoker, RequestValidation validation, RequestFactory factory, HeadersContext header, HeadersProcessor processor, IDGenerators generators, Profile profiles, Serials serials, Imported imported) {
+	public ImportedServiceFactory(Class<T> clazz, String profile, String catalog, Invoker invoker, RequestValidation validation, RequestFactories factory, HeadersContext header, HeadersProcessor processor, IDGenerators generators, Profile profiles, Serials serials, Imported imported) {
 		this(clazz, AnnotationUtils.findAnnotation(clazz, com.kepler.annotation.Service.class), profile, catalog, invoker, validation, factory, header, processor, generators, profiles, serials, imported);
 	}
 
 	// 不使用@Service
-	public ImportedServiceFactory(Class<T> clazz, String profile, String version, String catalog, Invoker invoker, RequestValidation validation, RequestFactory factory, HeadersContext header, HeadersProcessor processor, IDGenerators generators, Profile profiles, Serials serials, Imported imported) {
+	public ImportedServiceFactory(Class<T> clazz, String profile, String version, String catalog, Invoker invoker, RequestValidation validation, RequestFactories factory, HeadersContext header, HeadersProcessor processor, IDGenerators generators, Profile profiles, Serials serials, Imported imported) {
 		super();
 		this.clazz = clazz;
 		this.header = header;
@@ -132,7 +132,7 @@ public class ImportedServiceFactory<T> implements FactoryBean<T> {
 			// PropertiesUtils.profile(ImportedServiceFactory.this.profile.profile(service), SerialID.Serial.SERIAL_KEY, SerialID.Serial.SERIAL_VAL)), 获取与Service相关的序列化策略, 并将String转换为对应Byte
 			byte serial = SerialID.DYAMIC ? ImportedServiceFactory.this.serials.output(PropertiesUtils.profile(ImportedServiceFactory.this.profile.profile(ImportedServiceFactory.this.service), SerialID.SERIAL_KEY, SerialID.SERIAL_VAL)) : ImportedServiceFactory.this.serials.output(SerialID.SERIAL_VAL);
 			// 如果返回类型为Future(Future.class.isAssignableFrom(method.getReturnType()))则标记为Async
-			return ImportedServiceFactory.this.invoker.invoke(ImportedServiceFactory.this.validation.valid(ImportedServiceFactory.this.factory.request(headers, ImportedServiceFactory.this.service, method, Future.class.isAssignableFrom(method.getReturnType()), args, ImportedServiceFactory.this.generators.get(ImportedServiceFactory.this.service, method).generate(), serial)));
+			return ImportedServiceFactory.this.invoker.invoke(ImportedServiceFactory.this.validation.valid(ImportedServiceFactory.this.factory.factory(serial).request(headers, ImportedServiceFactory.this.service, method, Future.class.isAssignableFrom(method.getReturnType()), args, ImportedServiceFactory.this.generators.get(ImportedServiceFactory.this.service, method).generate(), serial)));
 		}
 	}
 }

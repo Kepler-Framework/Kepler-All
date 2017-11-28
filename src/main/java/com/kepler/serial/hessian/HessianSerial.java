@@ -1,7 +1,5 @@
 package com.kepler.serial.hessian;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
@@ -12,37 +10,24 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.kepler.KeplerSerialException;
-import com.kepler.com.caucho.hessian.io.HessianInput;
-import com.kepler.com.caucho.hessian.io.HessianOutput;
 import com.kepler.com.caucho.hessian.io.SerializerFactory;
-import com.kepler.config.PropertiesUtils;
 import com.kepler.header.Headers;
 import com.kepler.header.impl.LazyHeaders;
 import com.kepler.org.apache.commons.io.IOUtils;
 import com.kepler.protocol.Request;
-import com.kepler.protocol.RequestFactory;
+import com.kepler.protocol.RequestFactories;
 import com.kepler.protocol.Response;
-import com.kepler.protocol.ResponseFactory;
-import com.kepler.serial.SerialID;
+import com.kepler.protocol.ResponseFactories;
 import com.kepler.serial.SerialInput;
 import com.kepler.serial.SerialOutput;
 import com.kepler.service.Service;
 
 /**
- * 更高压缩比
- * 
  * @author kim 2016年2月2日
  */
-public class HessianSerial implements SerialOutput, SerialInput {
-
-	/**
-	 * 缓冲大小
-	 */
-	private static final int BUFFER = PropertiesUtils.get(HessianSerial.class.getName().toLowerCase() + ".buffer", 10240);
+abstract public class HessianSerial implements SerialOutput, SerialInput {
 
 	private static final byte[] EMPTY = new byte[] {};
-
-	private static final byte SERIAL = 0;
 
 	private final SerializerFactory hessian2factory = new Hessian2SerializerFactory();
 
@@ -53,22 +38,24 @@ public class HessianSerial implements SerialOutput, SerialInput {
 	 */
 	private final Serializers serializers = new Serializers();
 
-	private final ResponseFactory response;
+	private final ResponseFactories response;
 
-	private final RequestFactory request;
+	private final RequestFactories request;
 
-	public HessianSerial(ResponseFactory response, RequestFactory request) {
+	public HessianSerial(ResponseFactories response, RequestFactories request) {
 		this.response = response;
 		this.request = request;
 	}
 
-	public byte serial() {
-		return HessianSerial.SERIAL;
-	}
+	abstract public byte serial();
 
-	public String name() {
-		return SerialID.SERIAL_DEF;
-	}
+	abstract public String name();
+
+	abstract protected Integer buffer();
+
+	abstract protected HessianInputProxy input(InputStream stream, Integer buffer);
+
+	abstract protected HessianOutputProxy output(OutputStream stream, Integer buffer);
 
 	public byte[] output(Object data, Class<?> clazz) throws KeplerSerialException {
 		try (SegmentOutput output = new SegmentOutput(clazz)) {
@@ -104,19 +91,17 @@ public class HessianSerial implements SerialOutput, SerialInput {
 
 	private class SegmentInput implements Closeable {
 
-		private final HessianInput input;
+		private final HessianInputProxy input;
 
 		private final Class<?> clazz;
 
 		private SegmentInput(byte[] arrays, Class<?> clazz) {
-			this.input = new HessianInput(new BufferedInputStream(new ByteArrayInputStream(arrays), HessianSerial.BUFFER));
-			this.input.setSerializerFactory(HessianSerial.this.hessian2factory);
+			this.input = HessianSerial.this.input(new ByteArrayInputStream(arrays), HessianSerial.this.buffer()).setSerializerFactory(HessianSerial.this.hessian2factory);
 			this.clazz = clazz;
 		}
 
 		private SegmentInput(InputStream stream, int buffer, Class<?> clazz) {
-			this.input = new HessianInput(new BufferedInputStream(stream, buffer));
-			this.input.setSerializerFactory(HessianSerial.this.hessian2factory);
+			this.input = HessianSerial.this.input(stream, buffer).setSerializerFactory(HessianSerial.this.hessian2factory);
 			this.clazz = clazz;
 		}
 
@@ -138,20 +123,18 @@ public class HessianSerial implements SerialOutput, SerialInput {
 
 		private final OutputStream stream;
 
-		private final HessianOutput output;
+		private final HessianOutputProxy output;
 
 		private final ByteArrayOutputStream arrays;
 
 		private SegmentOutput(Class<?> clazz) {
-			this.output = new HessianOutput(new BufferedOutputStream(this.arrays = new ByteArrayOutputStream(HessianSerial.BUFFER), HessianSerial.BUFFER));
-			this.output.setSerializerFactory(HessianSerial.this.hessian2factory);
+			this.output = HessianSerial.this.output(this.arrays = new ByteArrayOutputStream(HessianSerial.this.buffer()), HessianSerial.this.buffer()).setSerializerFactory(HessianSerial.this.hessian2factory);
 			this.clazz = clazz;
 			this.stream = null;
 		}
 
 		public SegmentOutput(Class<?> clazz, OutputStream stream, int buffer) {
-			this.output = new HessianOutput(new BufferedOutputStream(this.stream = stream, buffer));
-			this.output.setSerializerFactory(HessianSerial.this.hessian2factory);
+			this.output = HessianSerial.this.output(this.stream = stream, buffer).setSerializerFactory(HessianSerial.this.hessian2factory);
 			this.clazz = clazz;
 			this.arrays = null;
 		}
@@ -321,7 +304,6 @@ public class HessianSerial implements SerialOutput, SerialInput {
 		public boolean valid() {
 			return this.checkThrowable().actual.valid();
 		}
-		
 
 		@Override
 		public HessianResponse resend(Throwable throwable) {
@@ -362,9 +344,9 @@ public class HessianSerial implements SerialOutput, SerialInput {
 
 	private interface Serializer {
 
-		public void write(HessianOutput output, Object ob) throws Exception;
+		public void write(HessianOutputProxy output, Object ob) throws Exception;
 
-		public <T> T read(HessianInput input, Class<T> clazz) throws Exception;
+		public <T> T read(HessianInputProxy input, Class<T> clazz) throws Exception;
 	}
 
 	/**
@@ -375,12 +357,12 @@ public class HessianSerial implements SerialOutput, SerialInput {
 	private class ObjectSerializer implements Serializer {
 
 		@Override
-		public void write(HessianOutput output, Object ob) throws Exception {
+		public void write(HessianOutputProxy output, Object ob) throws Exception {
 			output.writeObject(ob);
 		}
 
 		@Override
-		public <T> T read(HessianInput input, Class<T> clazz) throws Exception {
+		public <T> T read(HessianInputProxy input, Class<T> clazz) throws Exception {
 			return clazz.cast(input.readObject());
 		}
 	}
@@ -415,7 +397,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 			return byte.class.equals(clazz) || short.class.equals(clazz) || float.class.equals(clazz) || Byte.class.equals(clazz) || Short.class.equals(clazz) || Float.class.equals(clazz);
 		}
 
-		public void write(HessianOutput output, Object object) throws Exception {
+		public void write(HessianOutputProxy output, Object object) throws Exception {
 			this.write4request(output, Request.class.cast(object));
 		}
 
@@ -426,7 +408,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 		 * @param request
 		 * @throws Exception
 		 */
-		private void write4request(HessianOutput output, Request request) throws Exception {
+		private void write4request(HessianOutputProxy output, Request request) throws Exception {
 			// 原数据最后写提供预留空间
 			this.write4length(output, request).write4header(output, request).write4args(output, request).write4metadata(output, request);
 		}
@@ -439,13 +421,13 @@ public class HessianSerial implements SerialOutput, SerialInput {
 		 * @return
 		 * @throws Exception
 		 */
-		private RequestSerializer write4length(HessianOutput output, Request request) throws Exception {
+		private RequestSerializer write4length(HessianOutputProxy output, Request request) throws Exception {
 			int headers = request.headers() != null ? request.headers().length() : 0;
 			output.writeInt(0 | headers << 0x4 | request.args().length);
 			return this;
 		}
 
-		private RequestSerializer write4args(HessianOutput output, Request request) throws Exception {
+		private RequestSerializer write4args(HessianOutputProxy output, Request request) throws Exception {
 			for (int index = 0; index < request.types().length; index++) {
 				// Type + Object(Hessian.writeObject)
 				this.write4type(output, request, request.types()[index], request.args()[index]).writeObject(request.args()[index]);
@@ -453,7 +435,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 			return this;
 		}
 
-		private HessianOutput write4type(HessianOutput output, Request request, Class<?> clazz, Object arg) throws Exception {
+		private HessianOutputProxy write4type(HessianOutputProxy output, Request request, Class<?> clazz, Object arg) throws Exception {
 			// this.force(clazz) 强制需要写入Type的类型
 			// clazz.isPrimitive() 原生类型
 			// arg !=null && arg.getClass().equals(clazz), 传递参数与声明类型完全一致
@@ -466,7 +448,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 			return output;
 		}
 
-		private RequestSerializer write4header(HessianOutput output, Request request) throws Exception {
+		private RequestSerializer write4header(HessianOutputProxy output, Request request) throws Exception {
 			if (request.headers() != null && request.headers().length() != 0) {
 				for (String key : request.headers().keys()) {
 					// String -> String
@@ -477,7 +459,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 			return this;
 		}
 
-		private RequestSerializer write4metadata(HessianOutput output, Request request) throws Exception {
+		private RequestSerializer write4metadata(HessianOutputProxy output, Request request) throws Exception {
 			output.writeString(request.service().service());
 			output.writeString(request.service().version());
 			output.writeString(request.service().catalog());
@@ -486,11 +468,11 @@ public class HessianSerial implements SerialOutput, SerialInput {
 			return this;
 		}
 
-		public <T> T read(HessianInput input, Class<T> clazz) throws Exception {
+		public <T> T read(HessianInputProxy input, Class<T> clazz) throws Exception {
 			return clazz.cast(this.read4request(input));
 		}
 
-		private Request read4request(HessianInput input) throws Exception {
+		private Request read4request(HessianInputProxy input) throws Exception {
 			// 计算长度
 			Integer len = input.readInt();
 			Integer len4args = len & 0xf;
@@ -505,10 +487,10 @@ public class HessianSerial implements SerialOutput, SerialInput {
 			String method = input.readString();
 			// ACK
 			byte[] ack = input.readBytes();
-			return HessianSerial.this.request.request(headers, service, method, false, args, types, ack, HessianSerial.SERIAL);
+			return HessianSerial.this.request.factory(HessianSerial.this.serial()).request(headers, service, method, false, args, types, ack, HessianSerial.this.serial());
 		}
 
-		private void read4args(HessianInput input, Class<?>[] types, Object[] args, int length) throws Exception {
+		private void read4args(HessianInputProxy input, Class<?>[] types, Object[] args, int length) throws Exception {
 			for (int index = 0; index < length; index++) {
 				// 是否Class/Object类型精确一致
 				if (input.readBoolean()) {
@@ -522,7 +504,7 @@ public class HessianSerial implements SerialOutput, SerialInput {
 			}
 		}
 
-		private Headers read4header(HessianInput input, int length) throws Exception {
+		private Headers read4header(HessianInputProxy input, int length) throws Exception {
 			Headers headers = null;
 			if (length != 0) {
 				headers = new LazyHeaders();
@@ -541,15 +523,15 @@ public class HessianSerial implements SerialOutput, SerialInput {
 	 */
 	private class ResponseSerializer implements Serializer {
 
-		public void write(HessianOutput output, Object object) throws Exception {
+		public void write(HessianOutputProxy output, Object object) throws Exception {
 			this.write4response(output, Response.class.cast(object));
 		}
 
-		public <T> T read(HessianInput input, Class<T> clazz) throws Exception {
+		public <T> T read(HessianInputProxy input, Class<T> clazz) throws Exception {
 			return clazz.cast(this.read4response(input));
 		}
 
-		private void write4response(HessianOutput output, Response response) throws Exception {
+		private void write4response(HessianOutputProxy output, Response response) throws Exception {
 			output.writeBytes(response.ack());
 			output.writeBoolean(response.valid());
 			if (response.valid()) {
@@ -559,18 +541,18 @@ public class HessianSerial implements SerialOutput, SerialInput {
 			}
 		}
 
-		private Response read4response(HessianInput input) throws Exception {
+		private Response read4response(HessianInputProxy input) throws Exception {
 			// 读取ACK
 			byte[] ack = input.readBytes();
 			if (input.readBoolean()) {
 				// 正常返回
-				return HessianSerial.this.response.response(ack, input.readObject(), HessianSerial.SERIAL);
+				return HessianSerial.this.response.factory(HessianSerial.this.serial()).response(ack, input.readObject(), HessianSerial.this.serial());
 			} else {
 				// 读取异常
 				Object throwable = input.readObject();
 				// 尝试解析异常, 如果为Throwable类型则直接抛出, 包装为类型错误
 				Throwable actual = Throwable.class.isAssignableFrom(throwable.getClass()) ? Throwable.class.cast(throwable) : new ClassNotFoundException("Class not found when service throw exception, " + throwable.toString());
-				return HessianSerial.this.response.throwable(ack, actual, HessianSerial.SERIAL);
+				return HessianSerial.this.response.factory(HessianSerial.this.serial()).throwable(ack, actual, HessianSerial.this.serial());
 			}
 		}
 	}

@@ -1,15 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans
 	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
 	<import resource="kepler-protocol-validation.xml" />
 	<import resource="kepler-protocol-processor.xml" />
-	
-	<bean id="kepler.protocol.response" class="com.kepler.protocol.impl.DefaultResponseFactory" />
+	<import resource="kepler-protocol-factory.xml" />
 
-	<bean id="kepler.protocol.request" class="com.kepler.protocol.impl.DefaultRequestFactory" />
+	<bean id="kepler.protocols.request" class="com.kepler.protocol.impl.DefaultProtocols">
+		<constructor-arg>
+			<util:map>
+				<entry>
+					<key>
+						<util:constant static-field="com.kepler.serial.hessian.Hessian1Serial.SERIAL" />
+					</key>
+					<value>com.kepler.protocol.Request</value>
+				</entry>
+				<entry>
+					<key>
+						<util:constant static-field="com.kepler.serial.hessian.Hessian2Serial.SERIAL" />
+					</key>
+					<value>com.kepler.protocol.Request</value>
+				</entry>
+				<entry>
+					<key>
+						<util:constant static-field="com.kepler.serial.jackson.JacksonSerial.SERIAL" />
+					</key>
+					<value>com.kepler.protocol.impl.JacksonRequest</value>
+				</entry>
+			</util:map>
+		</constructor-arg>
+		<constructor-arg value="com.kepler.protocol.Request" />
+	</bean>
+
+	<bean id="kepler.protocols.response" class="com.kepler.protocol.impl.DefaultProtocols">
+		<constructor-arg>
+			<util:map>
+				<entry>
+					<key>
+						<util:constant static-field="com.kepler.serial.hessian.Hessian1Serial.SERIAL" />
+					</key>
+					<value>com.kepler.protocol.Response</value>
+				</entry>
+				<entry>
+					<key>
+						<util:constant static-field="com.kepler.serial.hessian.Hessian2Serial.SERIAL" />
+					</key>
+					<value>com.kepler.protocol.Response</value>
+				</entry>
+				<entry>
+					<key>
+						<util:constant static-field="com.kepler.serial.jackson.JacksonSerial.SERIAL" />
+					</key>
+					<value>com.kepler.protocol.impl.JacksonResponse</value>
+				</entry>
+			</util:map>
+		</constructor-arg>
+		<constructor-arg value="com.kepler.protocol.Response" />
+	</bean>
 
 </beans>

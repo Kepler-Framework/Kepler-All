@@ -1,9 +1,11 @@
 package com.kepler.protocol;
 
+import com.kepler.serial.SerialID;
+
 /**
  * @author kim 2015年7月8日
  */
-public interface ResponseFactory {
+public interface ResponseFactory extends SerialID {
 
 	/**
 	 * @param ack

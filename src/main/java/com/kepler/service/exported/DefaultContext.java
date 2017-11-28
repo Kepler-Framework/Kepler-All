@@ -11,12 +11,11 @@ import org.apache.commons.logging.LogFactory;
 import com.kepler.KeplerRemoteException;
 import com.kepler.KeplerValidateException;
 import com.kepler.config.PropertiesUtils;
-import com.kepler.deceiver.DeceiverRequest;
-import com.kepler.deceiver.DeceiverService;
 import com.kepler.generic.GenericDelegate;
 import com.kepler.generic.GenericResponse;
 import com.kepler.invoker.Invoker;
 import com.kepler.method.Methods;
+import com.kepler.mock.Mocker;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.RequestValidation;
 import com.kepler.service.Exported;
@@ -73,7 +72,7 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 	public void exported(Service service, Object instance) {
 		this.valid(service);
 		this.services.put(service, instance);
-		this.invokers.put(service, DeceiverService.class.isAssignableFrom(instance.getClass()) ? new DeceiveInvoker(instance) : new ProxyInvoker(instance));
+		this.invokers.put(service, Mocker.class.isAssignableFrom(instance.getClass()) ? new MockerInvoker(instance) : new ProxyInvoker(instance));
 	}
 
 	private void valid(Service service) {
@@ -82,18 +81,18 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 		}
 	}
 
-	private class DeceiveInvoker implements Invoker {
+	private class MockerInvoker implements Invoker {
 
-		private final DeceiverService service;
+		private final Mocker mocker;
 
-		private DeceiveInvoker(Object service) {
+		private MockerInvoker(Object service) {
 			super();
-			this.service = DeceiverService.class.cast(service);
+			this.mocker = Mocker.class.cast(service);
 		}
 
 		@Override
 		public Object invoke(Request request) throws Throwable {
-			return this.service.deceive(new DeceiverRequest(request));
+			return this.mocker.mock(request);
 		}
 
 		@Override

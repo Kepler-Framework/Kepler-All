@@ -2,10 +2,6 @@ package com.kepler.protocol;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.kepler.serial.SerialID;
 import com.kepler.serial.SerialResend;
 
@@ -14,19 +10,9 @@ import com.kepler.serial.SerialResend;
  * 
  * @author kim 2015年7月8日
  */
-@JsonTypeInfo(use = Id.CLASS, include = As.WRAPPER_OBJECT)
 public interface Response extends SerialID, SerialResend, Serializable {
 
-	@JsonProperty
 	public byte[] ack();
-
-	@JsonProperty
-	@JsonTypeInfo(use = Id.CLASS, include = As.WRAPPER_OBJECT)
-	public Object response();
-
-	@JsonProperty
-	@JsonTypeInfo(use = Id.CLASS, include = As.WRAPPER_OBJECT)
-	public Throwable throwable();
 
 	/**
 	 * 是否存在Exception
@@ -34,4 +20,8 @@ public interface Response extends SerialID, SerialResend, Serializable {
 	 * @return
 	 */
 	public boolean valid();
+
+	public Object response();
+
+	public Throwable throwable();
 }

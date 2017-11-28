@@ -3,12 +3,13 @@ package com.kepler.protocol;
 import java.lang.reflect.Method;
 
 import com.kepler.header.Headers;
+import com.kepler.serial.SerialID;
 import com.kepler.service.Service;
 
 /**
  * @author kim 2015年7月8日
  */
-public interface RequestFactory {
+public interface RequestFactory extends SerialID {
 
 	/**
 	 * @param headers
@@ -51,4 +52,5 @@ public interface RequestFactory {
 	 * @return
 	 */
 	public Request request(Request request, byte[] ack);
+
 }

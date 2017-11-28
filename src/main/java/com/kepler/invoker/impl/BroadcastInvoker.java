@@ -19,7 +19,7 @@ import com.kepler.invoker.Invoker;
 import com.kepler.method.Methods;
 import com.kepler.org.apache.commons.collections.map.MultiKeyMap;
 import com.kepler.protocol.Request;
-import com.kepler.protocol.RequestFactory;
+import com.kepler.protocol.RequestFactories;
 import com.kepler.router.Router;
 import com.kepler.service.Imported;
 import com.kepler.service.Service;
@@ -40,10 +40,10 @@ public class BroadcastInvoker implements Imported, Invoker {
 	private static final Log LOGGER = LogFactory.getLog(BroadcastInvoker.class);
 
 	volatile private MultiKeyMap broadcast = new MultiKeyMap();
+	
+	private final RequestFactories request;
 
 	private final ChannelContext context;
-
-	private final RequestFactory request;
 
 	private final IDGenerators generators;
 
@@ -53,7 +53,7 @@ public class BroadcastInvoker implements Imported, Invoker {
 
 	private final Router router;
 
-	public BroadcastInvoker(Router router, Profile profile, Methods methods, RequestFactory request, ChannelContext context, IDGenerators generators) {
+	public BroadcastInvoker(Router router, Profile profile, Methods methods, RequestFactories request, ChannelContext context, IDGenerators generators) {
 		this.generators = generators;
 		this.methods = methods;
 		this.profile = profile;
@@ -118,7 +118,7 @@ public class BroadcastInvoker implements Imported, Invoker {
 		List<Future<Object>> futures = new ArrayList<Future<Object>>();
 		for (Host host : this.router.hosts(request)) {
 			// 转换为底层Future(异步)并定向发送Request
-			futures.add(Future.class.cast(this.context.get(host).invoke(this.request.request(request, this.generators.get(request.service(), request.method()).generate(), true))));
+			futures.add(Future.class.cast(this.context.get(host).invoke(this.request.factory(request.serial()).request(request, this.generators.get(request.service(), request.method()).generate(), true))));
 		}
 		return futures;
 	}

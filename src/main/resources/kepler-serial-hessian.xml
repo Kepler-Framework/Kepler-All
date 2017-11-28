@@ -4,10 +4,15 @@
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-	<alias name="kepler.serial.hessian" alias="kepler.serial.output.hessian" />
-	<alias name="kepler.serial.hessian" alias="kepler.serial.input.hessian" />
+	<alias name="kepler.serial.hessian.1" alias="kepler.serial.output.hessian" />
+	<alias name="kepler.serial.hessian.1" alias="kepler.serial.input.hessian" />
 
-	<bean id="kepler.serial.hessian" class="com.kepler.serial.hessian.HessianSerial">
+	<bean id="kepler.serial.hessian.1" class="com.kepler.serial.hessian.Hessian1Serial">
+		<constructor-arg ref="kepler.protocol.request" />
+		<constructor-arg ref="kepler.protocol.response" />
+	</bean>
+
+	<bean id="kepler.serial.hessian.2" class="com.kepler.serial.hessian.Hessian2Serial">
 		<constructor-arg ref="kepler.protocol.request" />
 		<constructor-arg ref="kepler.protocol.response" />
 	</bean>

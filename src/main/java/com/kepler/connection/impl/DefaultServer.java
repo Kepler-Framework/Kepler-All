@@ -19,7 +19,7 @@ import com.kepler.host.impl.ServerHost;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.RequestProcessor;
 import com.kepler.protocol.Response;
-import com.kepler.protocol.ResponseFactory;
+import com.kepler.protocol.ResponseFactories;
 import com.kepler.quality.Quality;
 import com.kepler.service.ExportedContext;
 import com.kepler.token.TokenContext;
@@ -98,11 +98,11 @@ public class DefaultServer {
 
 	private final ThreadPoolExecutor threads;
 
+	private final ResponseFactories response;
+
 	private final RequestProcessor processor;
 
 	private final ExportedContext exported;
-
-	private final ResponseFactory response;
 
 	private final HeadersContext headers;
 
@@ -120,7 +120,7 @@ public class DefaultServer {
 
 	private final Trace trace;
 
-	public DefaultServer(Trace trace, Reject reject, Encoder encoder, Decoder decoder, Quality quality, ServerHost local, TokenContext token, ExportedContext exported, ResponseFactory response, HeadersContext headers, ThreadPoolExecutor threads, RequestProcessor processor) {
+	public DefaultServer(Trace trace, Reject reject, Encoder encoder, Decoder decoder, Quality quality, ServerHost local, TokenContext token, ExportedContext exported, ResponseFactories response, HeadersContext headers, ThreadPoolExecutor threads, RequestProcessor processor) {
 		super();
 		this.processor = processor;
 		this.exported = exported;
@@ -331,9 +331,9 @@ public class DefaultServer {
 					// 校验请求合法性
 					request = DefaultServer.this.token.valid(request);
 					// 获取服务并执行
-					return DefaultServer.this.response.response(request.ack(), DefaultServer.this.exported.get(request.service()).invoke(request), request.serial());
+					return DefaultServer.this.response.factory(request.serial()).response(request.ack(), DefaultServer.this.exported.get(request.service()).invoke(request), request.serial());
 				} catch (Throwable e) {
-					return DefaultServer.this.response.throwable(request.ack(), e, request.serial());
+					return DefaultServer.this.response.factory(request.serial()).throwable(request.ack(), e, request.serial());
 				} finally {
 					// 删除Header避免同线程的其他业务复用
 					DefaultServer.this.headers.release();

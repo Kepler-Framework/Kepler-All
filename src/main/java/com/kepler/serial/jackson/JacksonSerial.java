@@ -18,14 +18,12 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.kepler.KeplerSerialException;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.org.apache.commons.io.IOUtils;
-import com.kepler.protocol.Request;
-import com.kepler.protocol.Response;
+import com.kepler.protocol.impl.JacksonRequest;
+import com.kepler.protocol.impl.JacksonResponse;
 import com.kepler.serial.SerialInput;
 import com.kepler.serial.SerialOutput;
 
 /**
- * 更快压缩速度
- * 
  * @author kim
  *
  * 2016年2月14日
@@ -43,7 +41,7 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 
 	private static final String NAME = "jackson";
 
-	private static final byte SERIAL = 1;
+	public static final byte SERIAL = 2;
 
 	private final ObjectReader reader_request;
 
@@ -57,10 +55,10 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 
 	public JacksonSerial() {
 		this.mapper = this.prepare(new ObjectMapper());
-		this.reader_request = this.mapper.reader(Request.class);
-		this.reader_response = this.mapper.reader(Response.class);
-		this.writer_request = this.mapper.writerWithType(Request.class);
-		this.writer_response = this.mapper.writerWithType(Response.class);
+		this.reader_request = this.mapper.reader(JacksonRequest.class);
+		this.reader_response = this.mapper.reader(JacksonResponse.class);
+		this.writer_request = this.mapper.writerWithType(JacksonRequest.class);
+		this.writer_response = this.mapper.writerWithType(JacksonResponse.class);
 	}
 
 	protected ObjectMapper prepare(ObjectMapper mapper) {
@@ -69,13 +67,13 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 	}
 
 	@Override
-	public byte serial() {
-		return JacksonSerial.SERIAL;
+	public String name() {
+		return JacksonSerial.NAME;
 	}
 
 	@Override
-	public String name() {
-		return JacksonSerial.NAME;
+	public byte serial() {
+		return JacksonSerial.SERIAL;
 	}
 
 	@Override
@@ -191,8 +189,8 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 		private final Serializer object = new ObjectSerializer();
 
 		private Serializers() {
-			this.serializers.put(Request.class, new RequestSerializer());
-			this.serializers.put(Response.class, new ResponseSerializer());
+			this.serializers.put(JacksonRequest.class, new RequestSerializer());
+			this.serializers.put(JacksonResponse.class, new ResponseSerializer());
 		}
 
 		/**

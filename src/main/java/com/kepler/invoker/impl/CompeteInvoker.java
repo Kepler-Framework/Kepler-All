@@ -20,7 +20,7 @@ import com.kepler.invoker.Invoker;
 import com.kepler.method.Methods;
 import com.kepler.org.apache.commons.collections.map.MultiKeyMap;
 import com.kepler.protocol.Request;
-import com.kepler.protocol.RequestFactory;
+import com.kepler.protocol.RequestFactories;
 import com.kepler.router.Router;
 import com.kepler.service.Imported;
 import com.kepler.service.Service;
@@ -46,7 +46,7 @@ public class CompeteInvoker implements Imported, Invoker {
 
 	private final ThreadPoolExecutor threads;
 
-	private final RequestFactory request;
+	private final RequestFactories request;
 
 	private final IDGenerators generators;
 
@@ -58,7 +58,7 @@ public class CompeteInvoker implements Imported, Invoker {
 
 	private final Router router;
 
-	public CompeteInvoker(ThreadPoolExecutor threads, RequestFactory request, IDGenerators generators, Methods methods, Invoker delegate, Profile profile, Router router) {
+	public CompeteInvoker(ThreadPoolExecutor threads, RequestFactories request, IDGenerators generators, Methods methods, Invoker delegate, Profile profile, Router router) {
 		super();
 		this.generators = generators;
 		this.delegate = delegate;
@@ -116,7 +116,7 @@ public class CompeteInvoker implements Imported, Invoker {
 		CompeteService service = new CompeteService(this.threads, request);
 		for (int index = 0; index < service.capacity(); index++) {
 			// Clone Request
-			service.submit(new CompeteCallable(this.request.request(request, this.generators.get(request.service(), request.method()).generate()), index));
+			service.submit(new CompeteCallable(this.request.factory(request.serial()).request(request, this.generators.get(request.service(), request.method()).generate()), index));
 		}
 		// 如果没有任何提交则抛出异常,避免死锁
 		return service.valid().select();

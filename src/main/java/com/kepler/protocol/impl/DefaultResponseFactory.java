@@ -6,7 +6,7 @@ import com.kepler.protocol.ResponseFactory;
 /**
  * @author kim 2015年7月8日
  */
-public class DefaultResponseFactory implements ResponseFactory {
+abstract public class DefaultResponseFactory implements ResponseFactory {
 
 	@Override
 	public Response response(byte[] ack, Object response, byte serial) {

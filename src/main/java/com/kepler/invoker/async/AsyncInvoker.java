@@ -16,7 +16,7 @@ import com.kepler.config.PropertiesUtils;
 import com.kepler.invoker.Invoker;
 import com.kepler.method.Methods;
 import com.kepler.protocol.Request;
-import com.kepler.protocol.RequestFactory;
+import com.kepler.protocol.RequestFactories;
 import com.kepler.service.Imported;
 import com.kepler.service.Service;
 
@@ -36,13 +36,13 @@ public class AsyncInvoker implements Imported, Invoker {
 	 */
 	volatile private Map<Service, Set<Method>> async = new HashMap<Service, Set<Method>>();
 
-	private final RequestFactory factory;
+	private final RequestFactories factory;
 
 	private final Invoker delegate;
 
 	private final Methods methods;
 
-	public AsyncInvoker(RequestFactory factory, Methods methods, Invoker delegate) {
+	public AsyncInvoker(RequestFactories factory, Methods methods, Invoker delegate) {
 		super();
 		this.factory = factory;
 		this.methods = methods;
@@ -102,7 +102,7 @@ public class AsyncInvoker implements Imported, Invoker {
 	 */
 	private Object async(Request request) throws Throwable {
 		// 修改Request为异步并发送
-		AsyncInvoker.this.delegate.invoke(AsyncInvoker.this.factory.request(request, request.ack(), true));
+		AsyncInvoker.this.delegate.invoke(AsyncInvoker.this.factory.factory(request.serial()).request(request, request.ack(), true));
 		// 异步无返回值
 		return null;
 	}
@@ -119,7 +119,7 @@ public class AsyncInvoker implements Imported, Invoker {
 	private Object async(Request request, AsyncDelegate delegate) throws Throwable {
 		try {
 			// 修改请求为异步, 并发送后获取原始Future(AckFuture)
-			delegate.future().binding(Future.class.cast(AsyncInvoker.this.delegate.invoke(AsyncInvoker.this.factory.request(request, request.ack(), true))));
+			delegate.future().binding(Future.class.cast(AsyncInvoker.this.delegate.invoke(AsyncInvoker.this.factory.factory(request.serial()).request(request, request.ack(), true))));
 		} catch (Throwable throwable) {
 			// 任何异常释放delegate
 			delegate.future().release(throwable);

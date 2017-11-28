@@ -10,6 +10,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.kepler.KeplerSerialException;
 import com.kepler.config.PropertiesUtils;
+import com.kepler.protocol.Protocols;
 import com.kepler.serial.SerialID;
 import com.kepler.serial.SerialOutput;
 import com.kepler.serial.SerialResend;
@@ -59,14 +60,14 @@ public class Encoder implements Imported, Exported {
 	 */
 	volatile private Map<ServiceAndMethod, Handle> estimates = new HashMap<ServiceAndMethod, Handle>();
 
+	private final Protocols protocols;
+
 	private final Serials serials;
 
-	private final Class<?> clazz;
-
-	public Encoder(Serials serials, Class<?> clazz) {
+	public Encoder(Serials serials, Protocols protocols) {
 		super();
+		this.protocols = protocols;
 		this.serials = serials;
-		this.clazz = clazz;
 	}
 
 	private Handle install(ServiceAndMethod service_method) throws Exception {
@@ -139,16 +140,17 @@ public class Encoder implements Imported, Exported {
 	 * @param stream 
 	 * @param buffer  缓存大小
 	 * @param message 实际报文
+	 * @param clazz 序列化类型
 	 * @return
 	 */
-	private WrapStream stream(SerialOutput output, WrapStream stream, Integer buffer, Object message) throws KeplerSerialException {
+	private WrapStream stream(SerialOutput output, WrapStream stream, Integer buffer, Class<?> clazz, Object message) throws KeplerSerialException {
 		try {
-			output.output(message, this.clazz, stream, buffer);
+			output.output(message, clazz, stream, buffer);
 		} catch (KeplerSerialException e) {
 			// 如果为序列化错误检查是否需要重发
 			if (SerialResend.class.isAssignableFrom(message.getClass())) {
 				Encoder.LOGGER.error(e.getMessage(), e);
-				output.output(SerialResend.class.cast(message).resend(e), this.clazz, stream.reset(), buffer);
+				output.output(SerialResend.class.cast(message).resend(e), clazz, stream.reset(), buffer);
 			} else {
 				throw e;
 			}
@@ -165,7 +167,7 @@ public class Encoder implements Imported, Exported {
 		// 分配缓存
 		ByteBuf buffer = this.estimate(service_method);
 		try (WrapStream stream = new WrapStream(service_method, buffer.writeByte(serial_id))) {
-			return stream(serial_output, stream, (int) (buffer.capacity() * Encoder.ADJUST), message).record().buffer();
+			return this.stream(serial_output, stream, (int) (buffer.capacity() * Encoder.ADJUST), this.protocols.protocol(serial_id), message).record().buffer();
 		} catch (Exception exception) {
 			// 异常, 释放ByteBuf
 			if (buffer.refCnt() > 0) {

@@ -1,6 +1,5 @@
 package com.kepler.protocol.impl;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kepler.org.apache.commons.lang.builder.ToStringBuilder;
 import com.kepler.protocol.Response;
 
@@ -18,7 +17,7 @@ public class DefaultResponse implements Response {
 	private final byte[] ack;
 
 	private Throwable throwable;
-	
+
 	private Object response;
 
 	public DefaultResponse(byte serial, byte[] ack, Object response) {
@@ -29,14 +28,13 @@ public class DefaultResponse implements Response {
 		this(serial, ack, null, throwable);
 	}
 
-	private DefaultResponse(@JsonProperty("serial") byte serial, @JsonProperty("ack") byte[] ack, @JsonProperty("respones") Object response, @JsonProperty("throwable") Throwable throwable) {
+	public DefaultResponse(byte serial, byte[] ack, Object response, Throwable throwable) {
 		super();
 		this.ack = ack;
 		this.serial = serial;
 		this.response = response;
 		this.throwable = throwable;
 	}
-	
 
 	@Override
 	public DefaultResponse resend(Throwable ob) {
@@ -45,13 +43,13 @@ public class DefaultResponse implements Response {
 		return this;
 	}
 
-	public byte serial() {
-		return this.serial;
-	}
-
 	@Override
 	public byte[] ack() {
 		return this.ack;
+	}
+
+	public byte serial() {
+		return this.serial;
 	}
 
 	@Override

@@ -49,7 +49,7 @@ public class DemoteInvoker implements Invoker {
 		return PropertiesUtils.profile(this.profile.profile(request.service()), DemoteInvoker.DEMOTE_KEY, DemoteInvoker.DEMOTE_DEF) ? this.demote(request) : Invoker.EMPTY;
 	}
 
-	private Object demote(Request request) {
+	private Object demote(Request request) throws Exception {
 		Mocker mocker = this.mocker.get(request.service());
 		if (mocker != null) {
 			this.quality.demoting();

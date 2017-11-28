@@ -2,7 +2,6 @@ package com.kepler.protocol.impl;
 
 import java.lang.reflect.Method;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kepler.header.Headers;
 import com.kepler.header.impl.LazyHeaders;
 import com.kepler.org.apache.commons.lang.builder.ToStringBuilder;
@@ -53,7 +52,7 @@ public class DefaultRequest implements Request {
 		this(ack, headers, service, method.getName(), async, args, method.getParameterTypes(), serial);
 	}
 
-	public DefaultRequest(@JsonProperty("ack") byte[] ack, @JsonProperty("headers") Headers headers, @JsonProperty("service") Service service, @JsonProperty("method") String method, @JsonProperty("async") boolean async, @JsonProperty("args") Object[] args, @JsonProperty("types") Class<?>[] types, @JsonProperty("serial") byte serial) {
+	public DefaultRequest(byte[] ack, Headers headers, Service service, String method, boolean async, Object[] args, Class<?>[] types, byte serial) {
 		super();
 		this.service = service;
 		this.headers = headers;
@@ -71,7 +70,7 @@ public class DefaultRequest implements Request {
 	 * @param headers
 	 * @return
 	 */
-	private static Headers clone(Headers headers) {
+	protected static Headers clone(Headers headers) {
 		return Headers.ENABLED ? new LazyHeaders(headers.get()) : null;
 	}
 

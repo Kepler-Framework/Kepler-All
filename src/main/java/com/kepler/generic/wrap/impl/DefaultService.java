@@ -10,7 +10,7 @@ import com.kepler.header.HeadersContext;
 import com.kepler.header.HeadersProcessor;
 import com.kepler.id.IDGenerators;
 import com.kepler.invoker.Invoker;
-import com.kepler.protocol.RequestFactory;
+import com.kepler.protocol.RequestFactories;
 import com.kepler.serial.Serials;
 import com.kepler.service.Imported;
 import com.kepler.service.Service;
@@ -26,7 +26,7 @@ public class DefaultService extends DefaultImported implements GenericService {
 	 */
 	private static final boolean AUTOMATIC = PropertiesUtils.get(DefaultService.class.getName().toLowerCase() + ".automatic", true);
 
-	public DefaultService(HeadersProcessor processor, IDGenerators generators, RequestFactory factory, HeadersContext header, GenericMarker marker, Imported imported, Serials serials, Invoker invoker) {
+	public DefaultService(HeadersProcessor processor, IDGenerators generators, RequestFactories factory, HeadersContext header, GenericMarker marker, Imported imported, Serials serials, Invoker invoker) {
 		super(processor, generators, factory, header, marker, imported, serials, invoker);
 	}
 
@@ -57,6 +57,6 @@ public class DefaultService extends DefaultImported implements GenericService {
 		// 获取Header并标记为泛型(隐式开启Header)
 		Headers headers = super.marker.mark(super.processor.process(service, super.header.get()));
 		// 强制同步调用
-		return this.invoker.invoke(super.factory.request(headers, service, method, false, args, this.clazz(args), super.generators.get(service, method).generate(), serial));
+		return this.invoker.invoke(super.factory.factory(serial).request(headers, service, method, false, args, this.clazz(args), super.generators.get(service, method).generate(), serial));
 	}
 }

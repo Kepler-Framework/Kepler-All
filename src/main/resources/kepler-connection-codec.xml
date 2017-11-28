@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans
 	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
@@ -10,22 +9,22 @@
 
 	<bean id="kepler.codec.encoder.request" class="com.kepler.connection.codec.Encoder">
 		<constructor-arg ref="kepler.serials" />
-		<constructor-arg value="com.kepler.protocol.Request" />
+		<constructor-arg ref="kepler.protocols.request" />
 	</bean>
 
 	<bean id="kepler.codec.encoder.response" class="com.kepler.connection.codec.Encoder">
 		<constructor-arg ref="kepler.serials" />
-		<constructor-arg value="com.kepler.protocol.Response" />
+		<constructor-arg ref="kepler.protocols.response" />
 	</bean>
 
 	<bean id="kepler.codec.decoder.request" class="com.kepler.connection.codec.Decoder">
 		<constructor-arg ref="kepler.serials" />
-		<constructor-arg value="com.kepler.protocol.Request" />
+		<constructor-arg ref="kepler.protocols.request" />
 	</bean>
 
 	<bean id="kepler.codec.decoder.response" class="com.kepler.connection.codec.Decoder">
 		<constructor-arg ref="kepler.serials" />
-		<constructor-arg value="com.kepler.protocol.Response" />
+		<constructor-arg ref="kepler.protocols.response" />
 	</bean>
 
 </beans>

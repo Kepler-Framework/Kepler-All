@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+    http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<bean id="kepler.protocol.request" class="com.kepler.protocol.impl.DefaultRequestFactories">
+		<constructor-arg>
+			<util:list>
+				<ref bean="kepler.protocol.request.jackson" />
+				<ref bean="kepler.protocol.request.hessian.1" />
+				<ref bean="kepler.protocol.request.hessian.2" />
+			</util:list>
+		</constructor-arg>
+		<constructor-arg ref="kepler.protocol.request.hessian.1" />
+	</bean>
+
+	<bean id="kepler.protocol.request.jackson" class="com.kepler.protocol.impl.JacksonRequestFactory" />
+
+	<bean id="kepler.protocol.request.hessian.1" class="com.kepler.protocol.impl.Hessian1RequestFactory" />
+
+	<bean id="kepler.protocol.request.hessian.2" class="com.kepler.protocol.impl.Hessian2RequestFactory" />
+
+	<bean id="kepler.protocol.response" class="com.kepler.protocol.impl.DefaultResponseFactories">
+		<constructor-arg>
+			<util:list>
+				<ref bean="kepler.protocol.response.jackson" />
+				<ref bean="kepler.protocol.response.hessian.1" />
+				<ref bean="kepler.protocol.response.hessian.2" />
+			</util:list>
+		</constructor-arg>
+		<constructor-arg ref="kepler.protocol.response.hessian.1" />
+	</bean>
+
+	<bean id="kepler.protocol.response.jackson" class="com.kepler.protocol.impl.JacksonResponseFactory" />
+
+	<bean id="kepler.protocol.response.hessian.1" class="com.kepler.protocol.impl.Hessian1ResponseFactory" />
+
+	<bean id="kepler.protocol.response.hessian.2" class="com.kepler.protocol.impl.Hessian2ResponseFactory" />
+
+</beans>
