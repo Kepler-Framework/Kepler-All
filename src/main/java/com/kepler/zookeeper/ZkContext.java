@@ -308,6 +308,7 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 
 	public void logout(Service service) throws Exception {
 		this.exports.destroy(service);
+		ZkContext.LOGGER.info("Logout service: " + service + " ... ");
 	}
 
 	private void exported4delay(Service service, Object instance) throws Exception {
@@ -508,7 +509,7 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		public void destroy(Service service) {
 			List<ZkInstance> instances = this.instance.remove(service);
 			if (!instances.isEmpty()) {
-				for (ZkInstance instance : this.instance.get(service)) {
+				for (ZkInstance instance : instances) {
 					this.destroy(instance.path());
 				}
 			}
