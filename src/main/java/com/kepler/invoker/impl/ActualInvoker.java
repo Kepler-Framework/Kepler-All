@@ -1,5 +1,7 @@
 package com.kepler.invoker.impl;
 
+import java.lang.reflect.Method;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -76,9 +78,9 @@ public class ActualInvoker implements Invoker {
 	}
 
 	@Override
-	public Object invoke(Request request) throws Throwable {
+	public Object invoke(Request request, Method method) throws Throwable {
 		try {
-			return this.invoker(request, System.currentTimeMillis());
+			return this.invoker(request, method, System.currentTimeMillis());
 		} catch (KeplerRemoteException exception) {
 			Throwable cause = exception.cause();
 			throw ActualInvoker.ERROR_TO_EXCEPTION && Error.class.isAssignableFrom(cause.getClass()) ? new KeplerErrorException(Error.class.cast(cause)) : exception.cause();
@@ -91,26 +93,26 @@ public class ActualInvoker implements Invoker {
 	 * @return
 	 * @throws Throwable
 	 */
-	private Object invoker(Request request, long timestamp) throws Throwable {
+	private Object invoker(Request request, Method method, long timestamp) throws Throwable {
 		try {
-			return this.channels.get(this.router.host(request)).invoke(request);
+			return this.channels.get(this.router.host(request)).invoke(request, method);
 		} catch (KeplerRoutingException exception) {
 			// 存在Mocker则使用Mocker, 否则重试
 			Mocker mocker = this.mocker.get(request.service());
-			return mocker != null ? mocker.mock(request) : this.retry(request, timestamp, exception);
+			return mocker != null ? mocker.mock(request) : this.retry(request, method, timestamp, exception);
 		} catch (Throwable throwable) {
 			this.trace.put(request, throwable);
 			throw throwable;
 		}
 	}
 
-	private Object retry(Request request, long timestamp, KeplerRoutingException exception) throws Throwable {
+	private Object retry(Request request, Method method, long timestamp, KeplerRoutingException exception) throws Throwable {
 		// 是否终止重试
 		this.timeout(timestamp, request, exception);
 		ActualInvoker.LOGGER.warn("Warning: " + exception.getMessage() + " then retry ... ");
 		Thread.sleep(this.interval);
 		// 重试
-		return this.invoker(request, timestamp);
+		return this.invoker(request, method, timestamp);
 	}
 
 	private void timeout(long timestamp, Request request, KeplerRoutingException exception) {

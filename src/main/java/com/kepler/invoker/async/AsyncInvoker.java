@@ -82,15 +82,15 @@ public class AsyncInvoker implements Imported, Invoker {
 	}
 
 	@Override
-	public Object invoke(Request request) throws Throwable {
+	public Object invoke(Request request, Method method) throws Throwable {
 		AsyncDelegate delegate = AsyncContext.release();
 		// 当前请求支持异步或使用异步上下文则尝试,否则继续下一个Invoker
-		return delegate != null || this.async.get(request.service()).contains(this.methods.method(Service.clazz(request.service()), request.method(), request.types())) ? this.invoke(request, delegate) : Invoker.EMPTY;
+		return delegate != null || this.async.get(request.service()).contains(this.methods.method(Service.clazz(request.service()), request.method(), request.types())) ? this.invoke(request, method, delegate) : Invoker.EMPTY;
 	}
 
-	private Object invoke(Request request, AsyncDelegate delegate) throws Throwable {
+	private Object invoke(Request request, Method method, AsyncDelegate delegate) throws Throwable {
 		// 异步策略
-		return delegate == null ? this.async(request) : this.async(request, delegate);
+		return delegate == null ? this.async(request, method) : this.async(request, method, delegate);
 	}
 
 	/**
@@ -100,9 +100,9 @@ public class AsyncInvoker implements Imported, Invoker {
 	 * @return
 	 * @throws Throwable
 	 */
-	private Object async(Request request) throws Throwable {
+	private Object async(Request request, Method method) throws Throwable {
 		// 修改Request为异步并发送
-		AsyncInvoker.this.delegate.invoke(AsyncInvoker.this.factory.factory(request.serial()).request(request, request.ack(), true));
+		AsyncInvoker.this.delegate.invoke(AsyncInvoker.this.factory.factory(request.serial()).request(request, request.ack(), true), method);
 		// 异步无返回值
 		return null;
 	}
@@ -116,10 +116,10 @@ public class AsyncInvoker implements Imported, Invoker {
 	 * @throws Throwable
 	 */
 	@SuppressWarnings("unchecked")
-	private Object async(Request request, AsyncDelegate delegate) throws Throwable {
+	private Object async(Request request, Method method, AsyncDelegate delegate) throws Throwable {
 		try {
 			// 修改请求为异步, 并发送后获取原始Future(AckFuture)
-			delegate.future().binding(Future.class.cast(AsyncInvoker.this.delegate.invoke(AsyncInvoker.this.factory.factory(request.serial()).request(request, request.ack(), true))));
+			delegate.future().binding(Future.class.cast(AsyncInvoker.this.delegate.invoke(AsyncInvoker.this.factory.factory(request.serial()).request(request, request.ack(), true), method)));
 		} catch (Throwable throwable) {
 			// 任何异常释放delegate
 			delegate.future().release(throwable);

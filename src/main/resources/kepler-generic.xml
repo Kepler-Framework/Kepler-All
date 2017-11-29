@@ -1,23 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans
 	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-	<import resource="kepler-generic-wrap.xml" />
 	<import resource="kepler-generic-reflect.xml" />
 
 	<bean id="kepler.generic.response" class="com.kepler.generic.impl.DefaultResponseFactory" />
 
 	<bean id="kepler.generic.delegate" class="com.kepler.generic.impl.DefaultDelegate">
+		<constructor-arg ref="kepler.generic.reflect.delegate" />
 		<constructor-arg ref="kepler.generic.response" />
-		<constructor-arg>
-			<util:list>
-				<ref bean="kepler.generic.wrap.delegate" />
-				<ref bean="kepler.generic.reflect.delegate" />
-			</util:list>
-		</constructor-arg>
 	</bean>
 
 </beans>

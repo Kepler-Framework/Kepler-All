@@ -1,9 +1,13 @@
 package com.kepler.ack.impl;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.kepler.KeplerLocalException;
 import com.kepler.KeplerRemoteException;
@@ -17,6 +21,8 @@ import com.kepler.admin.transfer.Transfer;
 import com.kepler.channel.ChannelInvoker;
 import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
+import com.kepler.generic.reflect.analyse.Fields;
+import com.kepler.generic.reflect.analyse.FieldsAnalyser;
 import com.kepler.header.impl.TraceContext;
 import com.kepler.host.Host;
 import com.kepler.protocol.Request;
@@ -34,12 +40,19 @@ import com.kepler.service.Quiet;
  */
 public class AckFuture implements Future<Object>, Runnable, Ack {
 
+	/**
+	 * Response校对
+	 */
+	private static final boolean PROOFREAD = PropertiesUtils.get(AckFuture.class.getName().toLowerCase() + ".proofread", false);
+
 	public static final String TIMEOUT_KEY = AckFuture.class.getName().toLowerCase() + ".timeout";
 
 	/**
 	 * 默认最大超时
 	 */
 	private static final int TIMEOUT_DEF = PropertiesUtils.get(AckFuture.TIMEOUT_KEY, 60000);
+
+	private static final Log LOGGER = LogFactory.getLog(AckFuture.class);
 
 	/**
 	 * ACK创建时间
@@ -55,6 +68,11 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	 * Trace
 	 */
 	private final String trace = TraceContext.getTrace();
+
+	/**
+	 * 泛化分析
+	 */
+	private final FieldsAnalyser analyser;
 
 	/**
 	 * 执行通道
@@ -80,6 +98,11 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	 * 原始请求
 	 */
 	private final Request request;
+
+	/**
+	 * 原始方法(可能为Null)
+	 */
+	private final Method method;
 
 	/**
 	 * 超时上限
@@ -116,13 +139,15 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	 */
 	volatile private Acks acks;
 
-	public AckFuture(ChannelInvoker invoker, AckTimeOut timeout, Collector collector, Executor executor, Request request, Profile profile, Quiet quiet) {
+	public AckFuture(FieldsAnalyser analyser, ChannelInvoker invoker, AckTimeOut timeout, Collector collector, Executor executor, Method method, Request request, Profile profile, Quiet quiet) {
 		super();
 		this.quiet = quiet;
+		this.method = method;
 		this.invoker = invoker;
 		this.timeout = timeout;
 		this.request = request;
 		this.executor = executor;
+		this.analyser = analyser;
 		this.collector = collector;
 		// 计算Timeout最终时间
 		this.deadline = this.deadline(PropertiesUtils.profile(profile.profile(request.service()), AckFuture.TIMEOUT_KEY, AckFuture.TIMEOUT_DEF));
@@ -298,7 +323,28 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 		try {
 			// 取Timeout最小值
 			this.waiting(Math.min(timeout, this.deadline));
-			return this.response();
+			Object response = this.response();
+			// Guard case1, 无需校对
+			if (!AckFuture.PROOFREAD) {
+				return response;
+			}
+			// Guard case2, 类型兼容
+			if (this.method.getReturnType().isAssignableFrom(response.getClass())) {
+				return response;
+			}
+			Fields[] fields = this.analyser.get(this.method);
+			// Guard case3, 无法转换
+			if (fields == null || fields.length == 0) {
+				AckFuture.LOGGER.warn("[generic-failed][service=" + this.request.service() + "][method=" + this.method + "]");
+				return response;
+			}
+			// 转换, 如果失败则返回原始类型
+			try {
+				return fields[0].actual(response);
+			} catch (Throwable e) {
+				AckFuture.LOGGER.error(e.getMessage(), e);
+				return response;
+			}
 		} finally {
 			this.completed();
 		}

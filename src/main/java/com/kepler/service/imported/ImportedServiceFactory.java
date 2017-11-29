@@ -132,7 +132,7 @@ public class ImportedServiceFactory<T> implements FactoryBean<T> {
 			// PropertiesUtils.profile(ImportedServiceFactory.this.profile.profile(service), SerialID.Serial.SERIAL_KEY, SerialID.Serial.SERIAL_VAL)), 获取与Service相关的序列化策略, 并将String转换为对应Byte
 			byte serial = SerialID.DYAMIC ? ImportedServiceFactory.this.serials.output(PropertiesUtils.profile(ImportedServiceFactory.this.profile.profile(ImportedServiceFactory.this.service), SerialID.SERIAL_KEY, SerialID.SERIAL_VAL)) : ImportedServiceFactory.this.serials.output(SerialID.SERIAL_VAL);
 			// 如果返回类型为Future(Future.class.isAssignableFrom(method.getReturnType()))则标记为Async
-			return ImportedServiceFactory.this.invoker.invoke(ImportedServiceFactory.this.validation.valid(ImportedServiceFactory.this.factory.factory(serial).request(headers, ImportedServiceFactory.this.service, method, Future.class.isAssignableFrom(method.getReturnType()), args, ImportedServiceFactory.this.generators.get(ImportedServiceFactory.this.service, method).generate(), serial)));
+			return ImportedServiceFactory.this.invoker.invoke(ImportedServiceFactory.this.validation.valid(ImportedServiceFactory.this.factory.factory(serial).request(headers, ImportedServiceFactory.this.service, method, Future.class.isAssignableFrom(method.getReturnType()), args, ImportedServiceFactory.this.generators.get(ImportedServiceFactory.this.service, method).generate(), serial)), method);
 		}
 	}
 }

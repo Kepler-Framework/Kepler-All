@@ -40,7 +40,7 @@ public class BroadcastInvoker implements Imported, Invoker {
 	private static final Log LOGGER = LogFactory.getLog(BroadcastInvoker.class);
 
 	volatile private MultiKeyMap broadcast = new MultiKeyMap();
-	
+
 	private final RequestFactories request;
 
 	private final ChannelContext context;
@@ -101,9 +101,9 @@ public class BroadcastInvoker implements Imported, Invoker {
 	}
 
 	@Override
-	public Object invoke(Request request) throws Throwable {
+	public Object invoke(Request request, Method method) throws Throwable {
 		// 是否开启了Broadcast, 否则进入下一个Invoker
-		return this.broadcast.containsKey(request.service(), this.methods.method(Service.clazz(request.service()), request.method(), request.types())) ? this.broadcast(request) : Invoker.EMPTY;
+		return this.broadcast.containsKey(request.service(), this.methods.method(Service.clazz(request.service()), request.method(), request.types())) ? this.broadcast(request, method) : Invoker.EMPTY;
 	}
 
 	/**
@@ -114,11 +114,11 @@ public class BroadcastInvoker implements Imported, Invoker {
 	 * @throws Throwable
 	 */
 	@SuppressWarnings("unchecked")
-	private List<Future<Object>> futures(Request request) throws Throwable {
+	private List<Future<Object>> futures(Request request, Method method) throws Throwable {
 		List<Future<Object>> futures = new ArrayList<Future<Object>>();
 		for (Host host : this.router.hosts(request)) {
 			// 转换为底层Future(异步)并定向发送Request
-			futures.add(Future.class.cast(this.context.get(host).invoke(this.request.factory(request.serial()).request(request, this.generators.get(request.service(), request.method()).generate(), true))));
+			futures.add(Future.class.cast(this.context.get(host).invoke(this.request.factory(request.serial()).request(request, this.generators.get(request.service(), request.method()).generate(), true), method)));
 		}
 		return futures;
 	}
@@ -130,8 +130,8 @@ public class BroadcastInvoker implements Imported, Invoker {
 	 * @return
 	 * @throws Throwable
 	 */
-	private Object broadcast(Request request) throws Throwable {
-		List<Future<Object>> futures = this.futures(request);
+	private Object broadcast(Request request, Method method) throws Throwable {
+		List<Future<Object>> futures = this.futures(request, method);
 		try {
 			for (Future<Object> each : futures) {
 				each.get();

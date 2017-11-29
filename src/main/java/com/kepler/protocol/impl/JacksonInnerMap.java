@@ -3,7 +3,8 @@ package com.kepler.protocol.impl;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -21,7 +22,7 @@ public class JacksonInnerMap implements ResponseInner {
 
 	private static final boolean WARN = PropertiesUtils.get(JacksonInnerMap.class.getName().toLowerCase() + ".warn", true);
 
-	private static final Logger LOGGER = Logger.getLogger(JacksonInnerMap.class);
+	private static final Log LOGGER = LogFactory.getLog(JacksonInnerMap.class);
 
 	private static Class<?> CLAZZ;
 

@@ -6,6 +6,7 @@
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
 	<alias name="kepler.generic.analyse.analyser" alias="kepler.service.exported.generic" />
+	<alias name="kepler.generic.analyse.analyser" alias="kepler.service.imported.generic"/>
 
 	<bean id="kepler.generic.analyse.analyser" class="com.kepler.generic.reflect.analyse.impl.DefaultAnalyser">
 		<constructor-arg ref="kepler.generic.convert.selector" />

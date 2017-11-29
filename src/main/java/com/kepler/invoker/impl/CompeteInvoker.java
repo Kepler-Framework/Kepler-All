@@ -107,16 +107,16 @@ public class CompeteInvoker implements Imported, Invoker {
 	}
 
 	@Override
-	public Object invoke(Request request) throws Throwable {
+	public Object invoke(Request request, Method method) throws Throwable {
 		// 是否开启了Compete, 否则进入下一个Invoker
-		return this.competed.containsKey(request.service(), this.methods.method(Service.clazz(request.service()), request.method(), request.types())) ? this.compete(request) : Invoker.EMPTY;
+		return this.competed.containsKey(request.service(), this.methods.method(Service.clazz(request.service()), request.method(), request.types())) ? this.compete(request, method) : Invoker.EMPTY;
 	}
 
-	private Object compete(Request request) throws Throwable {
+	private Object compete(Request request, Method method) throws Throwable {
 		CompeteService service = new CompeteService(this.threads, request);
 		for (int index = 0; index < service.capacity(); index++) {
 			// Clone Request
-			service.submit(new CompeteCallable(this.request.factory(request.serial()).request(request, this.generators.get(request.service(), request.method()).generate()), index));
+			service.submit(new CompeteCallable(this.request.factory(request.serial()).request(request, this.generators.get(request.service(), request.method()).generate()), method, index));
 		}
 		// 如果没有任何提交则抛出异常,避免死锁
 		return service.valid().select();
@@ -174,11 +174,14 @@ public class CompeteInvoker implements Imported, Invoker {
 
 		private final Request request;
 
+		private final Method method;
+
 		private final int index;
 
-		private CompeteCallable(Request request, int index) {
+		private CompeteCallable(Request request, Method method, int index) {
 			super();
 			this.request = request;
+			this.method = method;
 			this.index = index;
 		}
 
@@ -189,7 +192,7 @@ public class CompeteInvoker implements Imported, Invoker {
 		@Override
 		public Object call() throws Exception {
 			try {
-				return CompeteInvoker.this.delegate.invoke(this.request);
+				return CompeteInvoker.this.delegate.invoke(this.request, this.method);
 			} catch (Throwable e) {
 				throw Exception.class.isAssignableFrom(e.getClass()) ? Exception.class.cast(e) : new KeplerRemoteException(e);
 			}

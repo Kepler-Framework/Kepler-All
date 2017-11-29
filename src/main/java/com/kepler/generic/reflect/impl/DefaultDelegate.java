@@ -40,11 +40,11 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 	/**
 	 * Header Key, 用于服务端判定
 	 */
-	private static final String DELEGATE_KEY = DefaultDelegate.class.getName().toLowerCase() + ".delegate";
+	public static final String DELEGATE_KEY = DefaultDelegate.class.getName().toLowerCase() + ".delegate";
+
+	private static final String DELEGATE_VAL = PropertiesUtils.get(DefaultDelegate.DELEGATE_KEY, "generic_reflect");
 
 	private static final Log LOGGER = LogFactory.getLog(DefaultDelegate.class);
-
-	private static final String DELEGATE_VAL = "generic_reflect";
 
 	private final GenericResponseFactory factory;
 
