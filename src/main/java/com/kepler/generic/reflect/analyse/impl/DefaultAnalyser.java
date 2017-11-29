@@ -19,6 +19,7 @@ import com.kepler.advised.AdvisedFinder;
 import com.kepler.annotation.Generic;
 import com.kepler.annotation.GenericElement;
 import com.kepler.annotation.GenericParam;
+import com.kepler.annotation.GenericReturn;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.generic.reflect.analyse.Fields;
 import com.kepler.generic.reflect.analyse.FieldsAnalyser;
@@ -28,6 +29,7 @@ import com.kepler.generic.reflect.convert.ConvertorSelector;
 import com.kepler.org.apache.commons.lang.builder.ToStringBuilder;
 import com.kepler.org.apache.commons.lang.reflect.MethodUtils;
 import com.kepler.service.Exported;
+import com.kepler.service.Imported;
 import com.kepler.service.Service;
 
 /**
@@ -38,7 +40,7 @@ import com.kepler.service.Service;
  * @author KimShen
  *
  */
-public class DefaultAnalyser implements Exported, FieldsAnalyser {
+public class DefaultAnalyser implements Exported, Imported, FieldsAnalyser {
 
 	/**
 	 * 是否自动分析全部接口
@@ -57,19 +59,9 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 	 */
 	public static final Class<?>[] EMPTY = new Class<?>[] {};
 
+	volatile private Map<Extension, Fields> extensions = new HashMap<Extension, Fields>();
+
 	volatile private Map<Method, Fields[]> methods = new HashMap<Method, Fields[]>();
-
-	/**
-	 * Extension - Fields映射
-	 */
-	volatile private Map<Extension, Fields> fields = new HashMap<Extension, Fields>();
-
-	/**
-	 * Method - Fields[]映射
-	 */
-	volatile private Map<Method, Fields[]> methods_used = new HashMap<Method, Fields[]>();
-
-	volatile private Map<Extension, Fields> fields_used = new HashMap<Extension, Fields>();
 
 	private final ConvertorSelector selector;
 
@@ -81,29 +73,58 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 		this.filter = filter;
 	}
 
+	private void uninstall(Service service) {
+		Map<Extension, Fields> extension = new HashMap<Extension, Fields>(this.extensions);
+		Map<Method, Fields[]> methods = new HashMap<Method, Fields[]>(this.methods);
+		extension.remove(service);
+		methods.remove(service);
+		this.extensions = extension;
+		this.methods = methods;
+
+	}
+
 	@Override
 	public void export(Service service, Object instance) throws Exception {
 		if (DefaultAnalyser.ENABLED) {
-			// 复制
-			this.methods.putAll(this.methods_used);
-			this.fields.putAll(this.fields_used);
-			// 分析接口
-			this.analyse4interface(service, instance);
-			// 分析实现类
-			this.analyse4instance(instance);
-			// 替换
-			this.methods_used = this.methods;
-			this.fields_used = this.fields;
-			// 清理
-			this.methods.clear();
-			this.fields.clear();
+			Map<Extension, Fields> extensions = new HashMap<Extension, Fields>(this.extensions);
+			Map<Method, Fields[]> methods = new HashMap<Method, Fields[]>(this.methods);
+			// 分析接口和实现类
+			this.install4interface(extensions, methods, service, instance);
+			this.install4instance(extensions, methods, instance);
+			this.extensions = extensions;
+			this.methods = methods;
 		}
 	}
 
 	public void logout(Service service) throws Exception {
-		this.methods.putAll(this.methods_used);
-		this.methods.remove(service);
-		this.methods_used = this.methods;
+		this.uninstall(service);
+	}
+
+	@Override
+	public void subscribe(Service service) throws Exception {
+		if (DefaultAnalyser.ENABLED) {
+			try {
+				Map<Extension, Fields> extensions = new HashMap<Extension, Fields>(this.extensions);
+				Map<Method, Fields[]> methods = new HashMap<Method, Fields[]>(this.methods);
+				for (Method method : Class.forName(service.service()).getMethods()) {
+					if (void.class.equals(method.getReturnType())) {
+						continue;
+					}
+					GenericReturn generic = method.getAnnotation(GenericReturn.class);
+					methods.put(method, new Fields[] { this.set(extensions, method.getReturnType(), generic != null ? generic.value() : this.extension(method.getReturnType(), method.getGenericReturnType())) });
+					DefaultAnalyser.LOGGER.info("[analyse-completed][method=" + method + "]");
+				}
+				this.extensions = extensions;
+				this.methods = methods;
+			} catch (ClassNotFoundException | NoClassDefFoundError e) {
+				DefaultAnalyser.LOGGER.info("Class not found: " + service);
+			}
+		}
+	}
+
+	@Override
+	public void unsubscribe(Service service) throws Exception {
+		this.uninstall(service);
 	}
 
 	/**
@@ -113,13 +134,13 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 	 * @param instance
 	 * @throws ClassNotFoundException
 	 */
-	private void analyse4interface(Service service, Object instance) throws Exception {
+	private void install4interface(Map<Extension, Fields> extensions, Map<Method, Fields[]> methods, Service service, Object instance) throws Exception {
 		try {
 			for (Method method_interface : Class.forName(service.service()).getMethods()) {
 				// 通过接口反向查找实现类对应方法并尝试自动分析
 				Method proxy_before = MethodUtils.getAccessibleMethod(AdvisedFinder.get(instance), method_interface.getName(), method_interface.getParameterTypes());
 				Method proxy_after = MethodUtils.getAccessibleMethod(instance.getClass(), method_interface.getName(), method_interface.getParameterTypes());
-				this.analyse(proxy_after, proxy_before, DefaultAnalyser.AUTOMATIC);
+				this.install(extensions, methods, proxy_after, proxy_before, DefaultAnalyser.AUTOMATIC);
 			}
 		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			DefaultAnalyser.LOGGER.info("Class not found: " + service);
@@ -132,11 +153,11 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 	 * @param instance
 	 * @throws Exception
 	 */
-	private void analyse4instance(Object instance) throws Exception {
+	private void install4instance(Map<Extension, Fields> extensions, Map<Method, Fields[]> methods, Object instance) throws Exception {
 		// 获取实际方法(代理后)并分析
 		for (Method method : AdvisedFinder.get(instance).getMethods()) {
 			// 关闭自动分析
-			this.analyse(method, method, false);
+			this.install(extensions, methods, method, method, false);
 		}
 	}
 
@@ -147,22 +168,22 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 	 * @parma acutal 实际方法(代理前)
 	 * @param generic 泛化标记
 	 */
-	private void analyse(Method proxy, Method acutal, boolean automatic) {
+	private void install(Map<Extension, Fields> extensions, Map<Method, Fields[]> methods, Method proxy, Method acutal, boolean automatic) {
 		// 1, 存在方法 
 		// 2, 尚未分析 
 		// 3, 如果没有标记Generic则由是否允许自动分析判断是否继续, 如果标记了Generic则仅当True时继续
-		if (acutal != null && !this.methods.containsKey(acutal)) {
+		if (acutal != null && !methods.containsKey(acutal)) {
 			Generic generic = AnnotationUtils.findAnnotation(acutal, Generic.class);
 			if (generic == null ? automatic : generic.value()) {
 				Fields[] fields = new Fields[acutal.getParameterTypes().length];
 				for (int index = 0; index < acutal.getParameterTypes().length; index++) {
 					List<Class<?>> annotation_param = this.extension4param(acutal.getParameterAnnotations()[index]);
 					// 分析参数, 并传递扩展信息(优先采用Annotation)
-					fields[index] = this.set(acutal.getParameterTypes()[index], !annotation_param.isEmpty() ? annotation_param.toArray(new Class<?>[] {}) : this.extension(proxy.getParameterTypes()[index], proxy.getGenericParameterTypes()[index]));
+					fields[index] = this.set(extensions, acutal.getParameterTypes()[index], !annotation_param.isEmpty() ? annotation_param.toArray(new Class<?>[] {}) : this.extension(proxy.getParameterTypes()[index], proxy.getGenericParameterTypes()[index]));
 				}
 				// 放入Method缓存
-				this.methods.put(proxy, fields);
-				DefaultAnalyser.LOGGER.info("[analyse-completed][method=" + acutal + "]");
+				methods.put(proxy, fields);
+				DefaultAnalyser.LOGGER.info("[install-completed][method=" + acutal + "]");
 			}
 		}
 	}
@@ -187,32 +208,32 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 		return extensions;
 	}
 
-	private Fields set(Class<?> clazz) {
-		return this.set(clazz, DefaultAnalyser.EMPTY);
+	private Fields set(Map<Extension, Fields> extensions, Class<?> clazz) {
+		return this.set(extensions, clazz, DefaultAnalyser.EMPTY);
 	}
 
-	private Fields set(Class<?> clazz, Class<?>[] extension) {
+	private Fields set(Map<Extension, Fields> extensions, Class<?> clazz, Class<?>[] extension) {
 		// 递归, 尝试分析扩展
 		for (Class<?> each : extension) {
-			this.set(each);
+			this.set(extensions, each);
 		}
 		// 构建Key
 		Extension actual = new Extension(clazz, extension);
 		// Guard case, 已存在则获取后返回
-		if (this.fields.containsKey(actual)) {
-			return this.fields.get(actual);
+		if (extensions.containsKey(actual)) {
+			return extensions.get(actual);
 		}
 		// 分析ObjectFields (符合Object判定条件)
 		if (!this.filter.filter(actual.clazz())) {
 			ObjectFields fields = new ObjectFields(actual.clazz(), extension);
 			// 先入缓存后分析(ObjectFields分析过程会产生递归分析)
-			this.fields.put(actual, fields);
+			extensions.put(actual, fields);
 			DefaultAnalyser.LOGGER.info("[analyse-fields][object=" + actual + "]");
-			return fields.fields();
+			return fields.fields(extensions);
 		} else {
 			// 分析DefaultFields
 			Fields fields = new DefaultFields(this.selector.select(clazz), actual);
-			this.fields.put(actual, fields);
+			extensions.put(actual, fields);
 			DefaultAnalyser.LOGGER.info("[analyse-fields][default]=" + actual + "]");
 			return fields;
 		}
@@ -223,11 +244,11 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 	}
 
 	public Fields[] get(Method method) {
-		return this.methods_used.get(method);
+		return this.methods.get(method);
 	}
 
 	public Fields get(Class<?> clazz, Class<?>[] extension) {
-		return this.fields_used.get(new Extension(clazz, extension));
+		return this.extensions.get(new Extension(clazz, extension));
 	}
 
 	/**
@@ -379,20 +400,20 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 		 * 
 		 * @return
 		 */
-		public ObjectFields fields() {
+		public ObjectFields fields(Map<Extension, Fields> extensions) {
 			// 分析所有set方法
 			for (Method method : this.clazz.getMethods()) {
 				if (this.allowed(method)) {
 					// Generic from Set/Get
 					GenericElement element = this.annotation(this.clazz, method);
 					// 获取扩展信息(优先从Generic)
-					Class<?>[] extensions = element != null ? element.value() : DefaultAnalyser.this.extension(method.getParameterTypes()[0], method.getGenericParameterTypes()[0]);
+					Class<?>[] extension = element != null ? element.value() : DefaultAnalyser.this.extension(method.getParameterTypes()[0], method.getGenericParameterTypes()[0]);
 					// 方法缩写
 					String abbr = method.getName().replaceFirst(ObjectFields.PREFIX_SET, "");
 					// 追加setter
-					this.setters.add(new ObjectFieldSetter(String.valueOf(abbr.toCharArray()[0]).toLowerCase() + abbr.substring(1, abbr.length()), method, extensions, DefaultAnalyser.this.selector.select(method.getParameterTypes()[0])));
+					this.setters.add(new ObjectFieldSetter(String.valueOf(abbr.toCharArray()[0]).toLowerCase() + abbr.substring(1, abbr.length()), method, extension, DefaultAnalyser.this.selector.select(method.getParameterTypes()[0])));
 					// 尝试递归分析方法参数及对应扩展
-					DefaultAnalyser.this.set(method.getParameterTypes()[0], extensions);
+					DefaultAnalyser.this.set(extensions, method.getParameterTypes()[0], extension);
 				}
 			}
 			return this;

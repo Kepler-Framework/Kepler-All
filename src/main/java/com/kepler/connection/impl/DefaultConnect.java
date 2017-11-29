@@ -1,5 +1,6 @@
 package com.kepler.connection.impl;
 
+import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import com.kepler.connection.Connects;
 import com.kepler.connection.codec.CodecHeader;
 import com.kepler.connection.codec.Decoder;
 import com.kepler.connection.codec.Encoder;
+import com.kepler.generic.reflect.analyse.FieldsAnalyser;
 import com.kepler.host.Host;
 import com.kepler.host.HostsContext;
 import com.kepler.protocol.Request;
@@ -156,11 +158,13 @@ public class DefaultConnect implements Connect {
 
 	private final ChannelContext channels;
 
+	private final FieldsAnalyser analyser;
+
 	private final ThreadPoolExecutor threads;
 
 	volatile private boolean shutdown;
 
-	public DefaultConnect(Host local, Quiet quiet, Encoder encoder, Decoder decoder, Profile profiles, Connects connects, TokenContext token, AckTimeOut timeout, HostsContext context, ChannelContext channels, Collector collector, ThreadPoolExecutor threads) {
+	public DefaultConnect(Host local, Quiet quiet, Encoder encoder, Decoder decoder, Profile profiles, Connects connects, TokenContext token, AckTimeOut timeout, HostsContext context, ChannelContext channels, Collector collector, FieldsAnalyser analyser, ThreadPoolExecutor threads) {
 		super();
 		this.local = local;
 		this.token = token;
@@ -170,6 +174,7 @@ public class DefaultConnect implements Connect {
 		this.threads = threads;
 		this.context = context;
 		this.timeout = timeout;
+		this.analyser = analyser;
 		this.connects = connects;
 		this.channels = channels;
 		this.profiles = profiles;
@@ -373,9 +378,9 @@ public class DefaultConnect implements Connect {
 			ctx.close().addListener(ExceptionListener.listener(this.ctx));
 		}
 
-		public Object invoke(Request request) throws Throwable {
+		public Object invoke(Request request, Method method) throws Throwable {
 			// 增加Token Header
-			AckFuture future = new AckFuture(this, DefaultConnect.this.timeout, DefaultConnect.this.collector, this.ctx.channel().eventLoop(), DefaultConnect.this.token.set(request, this), DefaultConnect.this.profiles, DefaultConnect.this.quiet);
+			AckFuture future = new AckFuture(DefaultConnect.this.analyser, this, DefaultConnect.this.timeout, DefaultConnect.this.collector, this.ctx.channel().eventLoop(), method, DefaultConnect.this.token.set(request, this), DefaultConnect.this.profiles, DefaultConnect.this.quiet);
 			ByteBuf buffer = DefaultConnect.this.encoder.encode(request.service(), request.method(), future.request());
 			this.water4check();
 			if (this.ctx.channel().eventLoop().inEventLoop()) {

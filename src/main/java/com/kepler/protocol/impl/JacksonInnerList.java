@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
@@ -18,7 +19,7 @@ import com.kepler.config.PropertiesUtils;
 @JsonTypeInfo(use = Id.CLASS, include = As.WRAPPER_OBJECT)
 public class JacksonInnerList extends JacksonInner {
 
-	private static final Logger LOGGER = Logger.getLogger(JacksonInnerList.class);
+	private static final Log LOGGER = LogFactory.getLog(JacksonInnerList.class);
 
 	private static Class<?> CLAZZ;
 

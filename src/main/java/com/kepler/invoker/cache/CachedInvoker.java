@@ -1,5 +1,7 @@
 package com.kepler.invoker.cache;
 
+import java.lang.reflect.Method;
+
 import com.kepler.cache.Cache;
 import com.kepler.cache.CacheContext;
 import com.kepler.config.PropertiesUtils;
@@ -33,9 +35,9 @@ public class CachedInvoker implements Invoker {
 	}
 
 	@Override
-	public Object invoke(Request request) throws Throwable {
+	public Object invoke(Request request, Method method) throws Throwable {
 		// 开启缓存则尝试使用缓存
-		return CachedInvoker.ACTIVED ? this.invoke4cache(request) : this.invoker.invoke(request);
+		return CachedInvoker.ACTIVED ? this.invoke4cache(request, method) : this.invoker.invoke(request, method);
 	}
 
 	/**
@@ -46,8 +48,8 @@ public class CachedInvoker implements Invoker {
 	 * @return 本地调用实际结果
 	 * @throws Throwable
 	 */
-	private Object invoke4reset(Request request, Cache cache) throws Throwable {
-		Object response = this.invoker.invoke(request);
+	private Object invoke4reset(Request request, Method method, Cache cache) throws Throwable {
+		Object response = this.invoker.invoke(request, method);
 		cache.set(response);
 		return response;
 	}
@@ -59,9 +61,9 @@ public class CachedInvoker implements Invoker {
 	 * @return
 	 * @throws Throwable
 	 */
-	private Object invoke4cache(Request request) throws Throwable {
+	private Object invoke4cache(Request request, Method method) throws Throwable {
 		Cache cache = this.cache.get(request.service(), request.method());
 		// 如果已过期则更新缓存
-		return cache.expired() ? this.invoke4reset(request, cache) : cache.get();
+		return cache.expired() ? this.invoke4reset(request, method, cache) : cache.get();
 	}
 }

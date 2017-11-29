@@ -89,6 +89,7 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 	}
 
 	private void valid(Service service) {
+		// 相同Service即使同一Host中发布多个版本也仅适用相同Tag
 		if (DefaultContext.CONFLICT && this.invokers.containsKey(service)) {
 			throw new KeplerValidateException("Duplicate service for: " + service);
 		}
@@ -104,7 +105,7 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 		}
 
 		@Override
-		public Object invoke(Request request) throws Throwable {
+		public Object invoke(Request request, Method method) throws Throwable {
 			return this.mocker.mock(request);
 		}
 
@@ -124,7 +125,7 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 		}
 
 		@Override
-		public Object invoke(Request request) throws Throwable {
+		public Object invoke(Request request, Method method) throws Throwable {
 			// 尝试解析泛化请求
 			GenericResponse generic = DefaultContext.this.delegate.delegate(DefaultContext.this.services.get(request.service()), request.method(), request);
 			// 如果为泛型请求则使用泛型处理否则使用常规调用

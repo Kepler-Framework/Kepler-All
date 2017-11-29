@@ -30,6 +30,11 @@ public interface Host extends Serializable {
 	public static final String TAG_VAL = PropertiesUtils.get(Host.TAG_KEY, Host.TAG_DEF);
 
 	/**
+	 * 主机Tag分隔
+	 */
+	public static final String TAG_MULTI = PropertiesUtils.get(Host.class.getName().toLowerCase() + ".tag_multi", ",");
+
+	/**
 	 * 主机令牌
 	 */
 	public static final String TOKEN_KEY = Host.class.getName().toLowerCase() + ".token";

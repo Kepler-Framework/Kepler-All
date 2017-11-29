@@ -50,7 +50,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 	volatile private MultiKeyMap forkers = new MultiKeyMap();
 
 	private final ThreadPoolExecutor threads;
-	
+
 	private final RequestFactories request;
 
 	private final IDGenerators generators;
@@ -118,9 +118,9 @@ public class ForkJoinInvoker implements Imported, Invoker {
 	}
 
 	@Override
-	public Object invoke(Request request) throws Throwable {
+	public Object invoke(Request request, Method method) throws Throwable {
 		// 是否开启了Fork, 否则进入下一个Invoker
-		return this.forkers.containsKey(request.service(), request.method()) ? this.fork(request) : Invoker.EMPTY;
+		return this.forkers.containsKey(request.service(), request.method()) ? this.fork(request, method) : Invoker.EMPTY;
 	}
 
 	/**
@@ -186,14 +186,14 @@ public class ForkJoinInvoker implements Imported, Invoker {
 	 * @param request
 	 * @return
 	 */
-	private Object fork(Request request) throws Throwable {
+	private Object fork(Request request, Method method) throws Throwable {
 		try {
 			ForkJoin fk = ForkJoin.class.cast(this.forkers.get(request.service(), request.method()));
 			Joiner joiner = this.join(fk.join(), request);
 			Forker forker = this.fork(fk.fork(), request);
 			String[] tags = this.tag(request);
 			// 发起请求, 等待合并结果
-			return new ForkJoinProcessor(joiner).fork(request, forker, tags).value();
+			return new ForkJoinProcessor(joiner).fork(request, method, forker, tags).value();
 		} catch (KeplerRoutingException exception) {
 			// 失败则尝试Mock
 			return this.mock(request, exception);
@@ -268,7 +268,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 			return this;
 		}
 
-		public ForkJoinProcessor fork(Request request, Forker forker, String[] tags) {
+		public ForkJoinProcessor fork(Request request, Method method, Forker forker, String[] tags) {
 			// 向所有Tag集群发送请求(可能出现None Service Exception)
 			for (int index = 0; index < tags.length; this.running++, index++) {
 				// 拆分参数
@@ -277,7 +277,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 				byte[] ack = ForkJoinInvoker.this.generators.get(request.service(), request.method()).generate();
 				// 构造请求
 				Request actual = ForkJoinInvoker.this.request.factory(request.serial()).request(request, ack, args).put(Host.TAG_KEY, tags[index]);
-				ForkerRunnable runnable = new ForkerRunnable(this, actual);
+				ForkerRunnable runnable = new ForkerRunnable(this, actual, method);
 				this.forkers.add(runnable);
 				ForkJoinInvoker.this.threads.execute(runnable);
 			}
@@ -326,6 +326,8 @@ public class ForkJoinInvoker implements Imported, Invoker {
 
 		private final Request request;
 
+		private final Method method;
+
 		/**
 		 * 返回结果
 		 */
@@ -340,9 +342,10 @@ public class ForkJoinInvoker implements Imported, Invoker {
 		 * @param forker
 		 * @param request
 		 */
-		private ForkerRunnable(ForkJoinProcessor forker, Request request) {
+		private ForkerRunnable(ForkJoinProcessor forker, Request request, Method method) {
 			super();
 			this.request = request;
+			this.method = method;
 			this.forker = forker;
 		}
 
@@ -363,7 +366,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 			try {
 				// 绑定线程
 				this.thread = Thread.currentThread();
-				this.response = ForkJoinInvoker.this.delegate.invoke(this.request);
+				this.response = ForkJoinInvoker.this.delegate.invoke(this.request, this.method);
 			} catch (Throwable e) {
 				// 异常回调
 				this.forker.throwable(this.request, e);

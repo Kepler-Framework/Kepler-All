@@ -1,5 +1,7 @@
 package com.kepler.invoker.impl;
 
+import java.lang.reflect.Method;
+
 import com.kepler.KeplerLocalException;
 import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
@@ -44,7 +46,7 @@ public class DemoteInvoker implements Invoker {
 	}
 
 	@Override
-	public Object invoke(Request request) throws Throwable {
+	public Object invoke(Request request, Method method) throws Throwable {
 		// 开启Demote则尝试
 		return PropertiesUtils.profile(this.profile.profile(request.service()), DemoteInvoker.DEMOTE_KEY, DemoteInvoker.DEMOTE_DEF) ? this.demote(request) : Invoker.EMPTY;
 	}

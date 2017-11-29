@@ -2,7 +2,8 @@ package com.kepler.protocol.impl;
 
 import java.util.Collection;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -23,7 +24,7 @@ abstract public class JacksonInner implements ResponseInner {
 	 */
 	private static final boolean WARN = PropertiesUtils.get(JacksonInner.class.getName().toLowerCase() + ".warn", true);
 
-	private static final Logger LOGGER = Logger.getLogger(JacksonInner.class);
+	private static final Log LOGGER = LogFactory.getLog(JacksonInner.class);
 
 	/**
 	 * 集合元素

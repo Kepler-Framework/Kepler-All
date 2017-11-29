@@ -331,7 +331,7 @@ public class DefaultServer {
 					// 校验请求合法性
 					request = DefaultServer.this.token.valid(request);
 					// 获取服务并执行
-					return DefaultServer.this.response.factory(request.serial()).response(request.ack(), DefaultServer.this.exported.get(request.service()).invoke(request), request.serial());
+					return DefaultServer.this.response.factory(request.serial()).response(request.ack(), DefaultServer.this.exported.get(request.service()).invoke(request, null), request.serial());
 				} catch (Throwable e) {
 					return DefaultServer.this.response.factory(request.serial()).throwable(request.ack(), e, request.serial());
 				} finally {

@@ -154,8 +154,13 @@ public class DefaultHosts implements Hosts {
 		private final Map<String, List<Host>> tags = new HashMap<String, List<Host>>();
 
 		public List<Host> get(String tag) {
-			List<Host> hosts = this.tags.get(tag);
-			return hosts != null ? hosts : DefaultHosts.EMPTY;
+			for (String each : tag.split(Host.TAG_MULTI)) {
+				List<Host> hosts = this.tags.get(each);
+				if (hosts != null) {
+					return hosts;
+				}
+			}
+			return DefaultHosts.EMPTY;
 		}
 
 		/**
