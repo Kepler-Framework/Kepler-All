@@ -76,7 +76,7 @@ public class ExportedDiscovery implements BeanPostProcessor {
 		for (String version : versions) {
 			com.kepler.service.Service service = new com.kepler.service.Service(clazz.getName(), version, catalog);
 			this.profile.add(service, profile);
-			this.exported.exported(service, bean);
+			this.exported.export(service, bean);
 		}
 	}
 

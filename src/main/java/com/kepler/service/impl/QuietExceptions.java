@@ -85,8 +85,14 @@ public class QuietExceptions implements Quiet, Imported, Exported {
 	}
 
 	@Override
-	public void exported(Service service, Object instance) throws Exception {
+	public void export(Service service, Object instance) throws Exception {
 		this.install(service);
+	}
+
+	public void logout(Service service) throws Exception {
+		Map<Service, QuietMethods> quiets = new HashMap<Service, QuietMethods>(this.quiets);
+		quiets.remove(service);
+		this.quiets = quiets;
 	}
 
 	@Override

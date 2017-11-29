@@ -82,6 +82,6 @@ public class ExportedDelegate {
 	}
 
 	public void init() throws Exception {
-		this.exported.exported(this.service, this.instance);
+		this.exported.export(this.service, this.instance);
 	}
 }

@@ -57,15 +57,19 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 	 */
 	public static final Class<?>[] EMPTY = new Class<?>[] {};
 
+	volatile private Map<Method, Fields[]> methods = new HashMap<Method, Fields[]>();
+
 	/**
 	 * Extension - Fields映射
 	 */
-	private final Map<Extension, Fields> fields = new HashMap<Extension, Fields>();
+	volatile private Map<Extension, Fields> fields = new HashMap<Extension, Fields>();
 
 	/**
 	 * Method - Fields[]映射
 	 */
-	private final Map<Method, Fields[]> methods = new HashMap<Method, Fields[]>();
+	volatile private Map<Method, Fields[]> methods_used = new HashMap<Method, Fields[]>();
+
+	volatile private Map<Extension, Fields> fields_used = new HashMap<Extension, Fields>();
 
 	private final ConvertorSelector selector;
 
@@ -78,13 +82,28 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 	}
 
 	@Override
-	public void exported(Service service, Object instance) throws Exception {
+	public void export(Service service, Object instance) throws Exception {
 		if (DefaultAnalyser.ENABLED) {
+			// 复制
+			this.methods.putAll(this.methods_used);
+			this.fields.putAll(this.fields_used);
 			// 分析接口
 			this.analyse4interface(service, instance);
 			// 分析实现类
 			this.analyse4instance(instance);
+			// 替换
+			this.methods_used = this.methods;
+			this.fields_used = this.fields;
+			// 清理
+			this.methods.clear();
+			this.fields.clear();
 		}
+	}
+
+	public void logout(Service service) throws Exception {
+		this.methods.putAll(this.methods_used);
+		this.methods.remove(service);
+		this.methods_used = this.methods;
 	}
 
 	/**
@@ -143,7 +162,7 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 				}
 				// 放入Method缓存
 				this.methods.put(proxy, fields);
-				DefaultAnalyser.LOGGER.info("Analyse method: " + acutal + " completed");
+				DefaultAnalyser.LOGGER.info("[analyse-completed][method=" + acutal + "]");
 			}
 		}
 	}
@@ -168,13 +187,11 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 		return extensions;
 	}
 
-	@Override
-	public Fields set(Class<?> clazz) {
+	private Fields set(Class<?> clazz) {
 		return this.set(clazz, DefaultAnalyser.EMPTY);
 	}
 
-	@Override
-	public Fields set(Class<?> clazz, Class<?>[] extension) {
+	private Fields set(Class<?> clazz, Class<?>[] extension) {
 		// 递归, 尝试分析扩展
 		for (Class<?> each : extension) {
 			this.set(each);
@@ -190,13 +207,13 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 			ObjectFields fields = new ObjectFields(actual.clazz(), extension);
 			// 先入缓存后分析(ObjectFields分析过程会产生递归分析)
 			this.fields.put(actual, fields);
-			DefaultAnalyser.LOGGER.info("Analyse fields[object]: " + actual);
+			DefaultAnalyser.LOGGER.info("[analyse-fields][object=" + actual + "]");
 			return fields.fields();
 		} else {
 			// 分析DefaultFields
 			Fields fields = new DefaultFields(this.selector.select(clazz), actual);
 			this.fields.put(actual, fields);
-			DefaultAnalyser.LOGGER.info("Analyse fields[default]: " + actual);
+			DefaultAnalyser.LOGGER.info("[analyse-fields][default]=" + actual + "]");
 			return fields;
 		}
 	}
@@ -205,13 +222,12 @@ public class DefaultAnalyser implements Exported, FieldsAnalyser {
 		return this.get(clazz, DefaultAnalyser.EMPTY);
 	}
 
-	public Fields get(Class<?> clazz, Class<?>[] extension) {
-		return this.fields.get(new Extension(clazz, extension));
+	public Fields[] get(Method method) {
+		return this.methods_used.get(method);
 	}
 
-	@Override
-	public Fields[] get(Method method) {
-		return this.methods.get(method);
+	public Fields get(Class<?> clazz, Class<?>[] extension) {
+		return this.fields_used.get(new Extension(clazz, extension));
 	}
 
 	/**

@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
@@ -206,7 +207,7 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		// 从快照获取需发布服务
 		for (Service service : this.snapshot.exported.keySet()) {
 			// 获取所有服务实例并重新发布
-			this.exported(service, this.snapshot.exported.get(service));
+			this.export(service, this.snapshot.exported.get(service));
 		}
 		ZkContext.LOGGER.info("Reset exported success ...");
 	}
@@ -301,8 +302,12 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	}
 
 	@Override
-	public void exported(Service service, Object instance) throws Exception {
+	public void export(Service service, Object instance) throws Exception {
 		this.delay.exported(service, instance);
+	}
+
+	public void logout(Service service) throws Exception {
+		this.exports.destroy(service);
 	}
 
 	private void exported4delay(Service service, Object instance) throws Exception {
@@ -314,9 +319,9 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		// 生成ZK节点(Profile Tag, Priority)
 		ZkSerial serial = new ZkSerial(new Builder(this.local).setTag(PropertiesUtils.profile(this.profile.profile(service), Host.TAG_KEY, Host.TAG_VAL)).setPriority(Integer.valueOf(PropertiesUtils.profile(this.profile.profile(service), Host.PRIORITY_KEY, Host.PRIORITY_DEF))).toServerHost(), service);
 		// 加入已导出服务列表
-		this.exports.put(this.zoo.create(this.road.mkdir(this.road.road(ZkContext.ROOT, service.service(), service.versionAndCatalog())) + "/", this.serials.def4output().output(serial, ServiceInstance.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL), serial);
+		this.exports.put(this.zoo.create(this.road.mkdir(this.road.road(ZkContext.ROOT, service.service(), service.versionAndCatalog())) + "/", this.serials.def4output().output(serial, ServiceInstance.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL), service, serial);
 		// 加入已导出快照列表
-		this.snapshot.exported(service, instance);
+		this.snapshot.export(service, instance);
 		ZkContext.LOGGER.info("Export service: " + service + " ... ");
 	}
 
@@ -391,6 +396,8 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 	 */
 	private class Exports {
 
+		private final Map<Service, List<ZkInstance>> instance = new ConcurrentHashMap<Service, List<ZkInstance>>();
+
 		/**
 		 * 已发布服务(Path -> Instance)
 		 */
@@ -446,10 +453,24 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		 * 已发布服务
 		 * 
 		 * @param path
+		 * @param service
 		 * @param instance
 		 */
-		public void put(String path, ServiceInstance instance) {
+		public void put(String path, Service service, ServiceInstance instance) {
+			List<ZkInstance> instances = this.instance.get(service);
+			if (instances == null) {
+				synchronized (this) {
+					// Double check
+					if (this.instance.containsKey(service)) {
+						instances = this.instance.get(service);
+					} else {
+						this.instance.put(service, (instances = new CopyOnWriteArrayList<ZkInstance>()));
+					}
+				}
+			}
+			instances.add(new ZkInstance(instance, path));
 			this.exported.put(path, instance);
+			ZkContext.LOGGER.info("[exported-service][service=" + service + "][path=" + path + "]");
 		}
 
 		/**
@@ -476,6 +497,20 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		public void demote() throws Exception {
 			for (String path : this.exported.keySet()) {
 				this.demote(path, this.exported.get(path));
+			}
+		}
+
+		/**
+		 * 注销指定服务
+		 * 
+		 * @param path
+		 */
+		public void destroy(Service service) {
+			List<ZkInstance> instances = this.instance.remove(service);
+			if (!instances.isEmpty()) {
+				for (ZkInstance instance : this.instance.get(service)) {
+					this.destroy(instance.path());
+				}
 			}
 		}
 
@@ -567,18 +602,22 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		}
 
 		@Override
-		public void subscribe(Service service) {
+		public void export(Service service, Object instance) throws Exception {
+			this.exported.put(service, instance);
+		}
+
+		public void logout(Service service) throws Exception {
+			this.exported.remove(service);
+		}
+
+		@Override
+		public void subscribe(Service service) throws Exception {
 			this.imported.add(service);
 		}
 
 		@Override
 		public void unsubscribe(Service service) throws Exception {
 			this.imported.remove(service);
-		}
-
-		@Override
-		public void exported(Service service, Object instance) {
-			this.exported.put(service, instance);
 		}
 	}
 

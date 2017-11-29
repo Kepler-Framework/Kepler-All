@@ -103,9 +103,19 @@ public class Encoder implements Imported, Exported {
 		}
 	}
 
+	private void uninstall(Service service) throws Exception {
+		Map<ServiceAndMethod, Handle> estimates = new HashMap<ServiceAndMethod, Handle>(this.estimates);
+		estimates.remove(service);
+		this.estimates = estimates;
+	}
+
 	@Override
-	public void exported(Service service, Object instance) throws Exception {
+	public void export(Service service, Object instance) throws Exception {
 		this.install(service);
+	}
+
+	public void logout(Service service) throws Exception {
+		this.uninstall(service);
 	}
 
 	@Override
@@ -114,9 +124,7 @@ public class Encoder implements Imported, Exported {
 	}
 
 	public void unsubscribe(Service service) throws Exception {
-		Map<ServiceAndMethod, Handle> estimates = new HashMap<ServiceAndMethod, Handle>(this.estimates);
-		estimates.remove(service);
-		this.estimates = estimates;
+		this.uninstall(service);
 	}
 
 	/**

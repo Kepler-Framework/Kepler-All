@@ -18,9 +18,19 @@ public class ChainedExported implements Exported {
 	}
 
 	@Override
-	public void exported(Service service, Object instance) throws Exception {
-		for (Exported each : this.exported) {
-			each.exported(service, instance);
+	public void export(Service service, Object instance) throws Exception {
+		synchronized (this.exported) {
+			for (Exported each : this.exported) {
+				each.export(service, instance);
+			}
+		}
+	}
+
+	public void logout(Service service) throws Exception {
+		synchronized (this.exported) {
+			for (Exported each : this.exported) {
+				each.logout(service);
+			}
 		}
 	}
 }

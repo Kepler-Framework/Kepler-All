@@ -5,5 +5,7 @@ package com.kepler.service;
  */
 public interface Exported {
 
-	public void exported(Service service, Object instance) throws Exception;
+	public void export(Service service, Object instance) throws Exception;
+
+	public void logout(Service service) throws Exception;
 }
