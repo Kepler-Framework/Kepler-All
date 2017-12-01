@@ -44,6 +44,7 @@ import com.kepler.host.impl.ServerHost.Builder;
 import com.kepler.main.Demotion;
 import com.kepler.serial.Serials;
 import com.kepler.service.Exported;
+import com.kepler.service.ExportedInfo;
 import com.kepler.service.Imported;
 import com.kepler.service.ImportedListener;
 import com.kepler.service.Service;
@@ -52,7 +53,7 @@ import com.kepler.service.ServiceInstance;
 /**
  * @author zhangjiehao 2015年7月9日
  */
-public class ZkContext implements Demotion, Imported, Exported, ApplicationListener<ContextRefreshedEvent> {
+public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, ApplicationListener<ContextRefreshedEvent> {
 
 	/**
 	 * 保存配置信息路径, 如果失败是否抛出异常终止发布
@@ -271,6 +272,22 @@ public class ZkContext implements Demotion, Imported, Exported, ApplicationListe
 		this.reset4imported();
 		this.status();
 		this.config();
+	}
+
+	@Override
+	public List<ServiceInstance> instance() throws Exception {
+		List<ServiceInstance> instances = new ArrayList<ServiceInstance>();
+		for (List<ZkInstance> each : this.exports.instance.values()) {
+			for (ZkInstance instance : each) {
+				instances.add(instance.instance());
+			}
+		}
+		return instances;
+	}
+
+	@Override
+	public List<Service> services() throws Exception {
+		return new ArrayList<Service>(this.exports.instance.keySet());
 	}
 
 	@Override
