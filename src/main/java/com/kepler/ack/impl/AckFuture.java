@@ -43,7 +43,9 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	/**
 	 * Response校对
 	 */
-	private static final boolean PROOFREAD = PropertiesUtils.get(AckFuture.class.getName().toLowerCase() + ".proofread", false);
+	private static final boolean CORRECT_ACTIVED = PropertiesUtils.get(AckFuture.class.getName().toLowerCase() + ".correct_actived", false);
+
+	private static final boolean CORRECT_LOG = PropertiesUtils.get(AckFuture.class.getName().toLowerCase() + ".correct_log", false);
 
 	public static final String TIMEOUT_KEY = AckFuture.class.getName().toLowerCase() + ".timeout";
 
@@ -325,8 +327,11 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 			this.waiting(Math.min(timeout, this.deadline));
 			Object response = this.response();
 			// Guard case1, 无需校对
-			if (!AckFuture.PROOFREAD) {
+			if (!AckFuture.CORRECT_ACTIVED) {
 				return response;
+			}
+			if (AckFuture.CORRECT_LOG) {
+				AckFuture.LOGGER.info("[response=" + response + "]");
 			}
 			// Guard case2, 类型兼容
 			if (this.method.getReturnType().isAssignableFrom(response.getClass())) {
