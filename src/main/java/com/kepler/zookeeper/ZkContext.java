@@ -541,6 +541,7 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 			try {
 				if (ZkContext.this.zoo.exists(path, false) != null) {
 					ZkContext.this.zoo.delete(path, -1);
+					ZkContext.LOGGER.info("[destory][path=" + path + "]");
 				}
 				// 从已发布服务路径中移除
 				this.exported.remove(path);
