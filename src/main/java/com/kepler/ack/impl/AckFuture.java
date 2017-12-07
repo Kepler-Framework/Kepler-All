@@ -25,6 +25,7 @@ import com.kepler.generic.reflect.analyse.Fields;
 import com.kepler.generic.reflect.analyse.FieldsAnalyser;
 import com.kepler.header.impl.TraceContext;
 import com.kepler.host.Host;
+import com.kepler.mock.MockResponse;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.Response;
 import com.kepler.service.Quiet;
@@ -44,8 +45,6 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	 * Response校对
 	 */
 	private static final boolean CORRECT_ACTIVED = PropertiesUtils.get(AckFuture.class.getName().toLowerCase() + ".correct_actived", false);
-
-	private static final boolean CORRECT_LOG = PropertiesUtils.get(AckFuture.class.getName().toLowerCase() + ".correct_log", false);
 
 	public static final String TIMEOUT_KEY = AckFuture.class.getName().toLowerCase() + ".timeout";
 
@@ -325,30 +324,29 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 		try {
 			// 取Timeout最小值
 			this.waiting(Math.min(timeout, this.deadline));
-			Object response = this.response();
+			Object response_source = this.response();
 			// Guard case1, 无需校对
-			if (!AckFuture.CORRECT_ACTIVED || response == null) {
-				return response;
+			if (!AckFuture.CORRECT_ACTIVED) {
+				return response_source;
 			}
-			if (AckFuture.CORRECT_LOG) {
-				AckFuture.LOGGER.info("[response=" + response + "]");
+			// 获取实际响应
+			Object response_actual = MockResponse.class.isAssignableFrom(response_source.getClass()) ? MockResponse.class.cast(response_source).response() : response_source;
+			// Guard case2, 返回为空
+			if (response_actual == null) {
+				return response_actual;
 			}
-			// Guard case2, 类型兼容
-			if (this.method.getReturnType().isAssignableFrom(response.getClass())) {
-				return response;
-			}
-			Fields[] fields = this.analyser.get(this.method);
-			// Guard case3, 无法转换
-			if (fields == null || fields.length == 0) {
-				AckFuture.LOGGER.warn("[generic-failed][service=" + this.request.service() + "][method=" + this.method + "]");
-				return response;
-			}
-			// 转换, 如果失败则返回原始类型
 			try {
-				return fields[0].actual(response);
+				Fields[] fields = this.analyser.get(this.method);
+				// Guard case4, 无法转换
+				if (fields == null || fields.length == 0) {
+					AckFuture.LOGGER.warn("[generic-failed][service=" + this.request.service() + "][method=" + this.method + "]");
+					return response_actual;
+				}
+				return fields[0].actual(response_actual);
 			} catch (Throwable e) {
+				// 转换, 如果失败则返回原始类型
 				AckFuture.LOGGER.error(e.getMessage(), e);
-				return response;
+				return response_source;
 			}
 		} finally {
 			this.completed();
