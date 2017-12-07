@@ -327,7 +327,7 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 			this.waiting(Math.min(timeout, this.deadline));
 			Object response = this.response();
 			// Guard case1, 无需校对
-			if (!AckFuture.CORRECT_ACTIVED) {
+			if (!AckFuture.CORRECT_ACTIVED || response == null) {
 				return response;
 			}
 			if (AckFuture.CORRECT_LOG) {
