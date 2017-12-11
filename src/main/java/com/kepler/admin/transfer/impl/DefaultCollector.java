@@ -206,11 +206,14 @@ public class DefaultCollector implements Runnable, Collector, Imported {
 		while (!this.shutdown) {
 			try {
 				Ack ack = this.acks.poll(DefaultCollector.INTERVAL, TimeUnit.MILLISECONDS);
-				if (ack != null) {
-					// 绑定ACK Trace
-					TraceContext.getTraceOnCreate(ack.trace());
-					Transfers.class.cast(this.curr().get(ack.request().service(), ack.request().method())).put(ack.local(), ack.remote(), ack.status(), ack.elapse());
+				// Guard case, 无需处理
+				if (ack == null) {
+					continue;
 				}
+				// 绑定ACK Trace
+				TraceContext.getTraceOnCreate(ack.trace());
+				Transfers transfers = Transfers.class.cast(this.curr().get(ack.request().service(), ack.request().method()));
+				transfers.put(ack.local(), ack.remote(), ack.status(), ack.elapse());
 			} catch (Throwable e) {
 				DefaultCollector.LOGGER.debug(e.getMessage(), e);
 			} finally {

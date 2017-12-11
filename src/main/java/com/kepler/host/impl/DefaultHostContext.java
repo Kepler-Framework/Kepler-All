@@ -87,7 +87,7 @@ public class DefaultHostContext implements HostsContext, Router {
 				// 强先后顺序, hosts.ban(host)必须调用
 				boolean baned_each = hosts.ban(host);
 				if (baned_each) {
-					DefaultHostContext.LOGGER.info("Ban. [service=" + service + "][host=" + host.address() + "]");
+					DefaultHostContext.LOGGER.info("Ban. [service=" + service + "][host=" + host.address() + "][pid=" + host.pid() + "]");
 				}
 				// 任何一台Host Ban成功则标记Baned = True.
 				baned_all = baned_each || baned_all;
@@ -104,7 +104,7 @@ public class DefaultHostContext implements HostsContext, Router {
 			for (Service service : this.hosts.keySet()) {
 				Hosts hosts = this.hosts.get(service);
 				hosts.active(host);
-				DefaultHostContext.LOGGER.info("Active. [service=" + service + "][host=" + host.address() + "]");
+				DefaultHostContext.LOGGER.info("Active. [service=" + service + "][host=" + host.address() + "][pid=" + host.pid() + "]");
 			}
 		}
 	}
@@ -113,7 +113,7 @@ public class DefaultHostContext implements HostsContext, Router {
 		synchronized (this.hosts) {
 			Hosts hosts = this.hosts.get(service);
 			hosts.remove(host);
-			DefaultHostContext.LOGGER.info("Remove. [service=" + service + "][host=" + host.address() + "]");
+			DefaultHostContext.LOGGER.info("Remove. [service=" + service + "][host=" + host.address() + "][pid=" + host.pid() + "]");
 		}
 	}
 
@@ -133,7 +133,7 @@ public class DefaultHostContext implements HostsContext, Router {
 		// Request.header(Host.TAG_KEY, Host.TAG_DEF)), 获取Tag, 如果不存在则使用默认""
 		String tag = request.get(Host.TAG_KEY, Host.TAG_DEF);
 		List<Host> matched = hosts.tags(tag);
-		//若没有main, 也没有匹配tag, 则提前异常
+		// 若没有main, 也没有匹配tag, 则提前异常
 		if (matched.isEmpty() && hosts.main().isEmpty()) {
 			throw new KeplerRoutingException("None service for " + request.service() + " with tag " + tag);
 		}

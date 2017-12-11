@@ -64,10 +64,30 @@ public class DefaultHosts implements Hosts {
 		return this.hosts.contains(host) || this.bans.contains(host) || this.waiting.contains(host);
 	}
 
+	private boolean remove4active(Host host) {
+		boolean remove_address = this.address.remove(host.address()) != null;
+		boolean remove_host = this.hosts.remove(host);
+		boolean remove_tag = this.tags.remove(host);
+		DefaultHosts.LOGGER.info("[remove-active][host=" + host + "][address=" + remove_address + "][host=" + remove_host + "][tag=" + remove_tag + "]");
+		return remove_host && remove_tag && remove_address;
+	}
+
+	private boolean remove4wait(Host host) {
+		boolean remove_wait = this.waiting.remove(host);
+		DefaultHosts.LOGGER.info("[remove-wait][host=" + host + "][wait=" + remove_wait + "]");
+		return remove_wait;
+	}
+
+	private boolean remove4ban(Host host) {
+		boolean remove_ban = this.bans.remove(host);
+		DefaultHosts.LOGGER.info("[remove-ban][host=" + host + "][ban=" + remove_ban + "]");
+		return remove_ban;
+	}
+
 	public void remove(Host host) {
 		synchronized (this) {
 			// 从Host&&Tag&Address删除(运行时Host)或从Ban||Waiting删除(待连接Host)
-			if ((this.hosts.remove(host) && this.tags.remove(host) && (this.address.remove(host.address()) != null)) || (this.bans.remove(host) || this.waiting.remove(host))) {
+			if (this.remove4active(host) || this.remove4wait(host) || this.remove4ban(host)) {
 				DefaultHosts.LOGGER.warn(this.detail(host, "removed"));
 			}
 		}
@@ -185,7 +205,8 @@ public class DefaultHosts implements Hosts {
 		 */
 		public boolean remove(Host host) {
 			List<Host> hosts = this.get(host.tag());
-			// InvokerHandler.channelInactive回调此方法. 禁止对DefaultHosts.EMPTY调用Remove
+			// InvokerHandler.channelInactive回调此方法.
+			// 禁止对DefaultHosts.EMPTY调用Remove
 			return hosts != DefaultHosts.EMPTY ? hosts.remove(host) : false;
 		}
 	}

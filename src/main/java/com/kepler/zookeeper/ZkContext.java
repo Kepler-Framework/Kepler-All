@@ -1053,7 +1053,11 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 				try {
 					// 获取未加载服务并尝试重新加载
 					Reinstall service = ZkContext.this.uninstalled.poll(ZkContext.INTERVAL, TimeUnit.MILLISECONDS);
-					// Guard case, 已卸载服务
+					// Guard case1, 无需重加载
+					if (service == null) {
+						continue;
+					}
+					// Guard case2, 已卸载服务
 					if (ZkContext.this.unsubscribe.contains(service.service())) {
 						ZkContext.LOGGER.warn("[unsubscribed][service=" + service.service() + "]");
 						continue;
