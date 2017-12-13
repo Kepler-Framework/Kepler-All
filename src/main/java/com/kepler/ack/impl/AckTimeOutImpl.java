@@ -16,7 +16,6 @@ import com.kepler.quality.Quality;
 /**
  * @author kim
  *
- * 2016年2月9日
  */
 public class AckTimeOutImpl implements AckTimeOut {
 
@@ -26,6 +25,8 @@ public class AckTimeOutImpl implements AckTimeOut {
 	public static final String DEMOTION_KEY = AckTimeOutImpl.class.getName().toLowerCase() + ".demotion";
 
 	private static final int DEMOTION_DEF = PropertiesUtils.get(AckTimeOutImpl.DEMOTION_KEY, Integer.MAX_VALUE);
+
+	private static final boolean CLOSE = PropertiesUtils.get(AckTimeOutImpl.class.getName().toLowerCase() + ".close", true);
 
 	private static final Log LOGGER = LogFactory.getLog(AckTimeOutImpl.class);
 
@@ -76,8 +77,11 @@ public class AckTimeOutImpl implements AckTimeOut {
 
 		@Override
 		public void run() {
-			AckTimeOutImpl.this.quality.breaking();
 			AckTimeOutImpl.this.hosts.ban(this.invoker.remote());
+			AckTimeOutImpl.this.quality.breaking();
+			if (AckTimeOutImpl.CLOSE) {
+				this.invoker.close();
+			}
 			AckTimeOutImpl.LOGGER.warn("Host: " + this.invoker.remote() + " demotion after " + this.ack.request().service() + " ( " + this.ack.request().method() + " ) timeout " + this.times + " times ... ");
 		}
 	}

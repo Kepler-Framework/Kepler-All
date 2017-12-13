@@ -1,8 +1,10 @@
 package com.kepler.admin.transfer.impl;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -18,6 +20,7 @@ import com.kepler.admin.transfer.Transfer;
 import com.kepler.admin.transfer.Transfers;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.header.impl.TraceContext;
+import com.kepler.org.apache.commons.collections.keyvalue.MultiKey;
 import com.kepler.org.apache.commons.collections.map.MultiKeyMap;
 import com.kepler.service.Imported;
 import com.kepler.service.Service;
@@ -79,48 +82,50 @@ public class DefaultCollector implements Runnable, Collector, Imported {
 		this.shutdown = true;
 	}
 
+	private void subscribe(Service service, String... methods) throws Exception {
+		synchronized (this) {
+			MultiKeyMap[] transfers = new MultiKeyMap[this.transfers.length];
+			for (int index = 0; index < transfers.length; index++) {
+				// Create On Copy
+				(transfers[index] = new MultiKeyMap()).putAll(this.transfers[index]);
+				for (String method : methods) {
+					// Double Check
+					if (transfers[index].containsKey(service, method)) {
+						continue;
+					}
+					transfers[index].put(service, method, new DefaultTransfers(this.trace, service, method));
+				}
+			}
+			this.transfers = transfers;
+		}
+	}
+
 	@Override
 	public void subscribe(Service service) throws Exception {
 		try {
-			for (Method method : Service.clazz(service).getMethods()) {
-				// Guard case, 同步检查, 如果已存在则返回
-				Transfers current = Transfers.class.cast(this.curr().get(service, method));
-				if (current != null) {
-					return;
-				}
-				MultiKeyMap[] transfers = new MultiKeyMap[this.transfers.length];
-				for (int index = 0; index < this.transfers.length; index++) {
-					MultiKeyMap transfer_current = this.transfers[index];
-					MultiKeyMap transfer_replace = new MultiKeyMap();
-					if (transfer_current != null) {
-						transfer_replace.putAll(transfer_current);
-					}
-					transfer_replace.put(service, method, new DefaultTransfers(this.trace, service, method.getName()));
-					transfers[index] = transfer_replace;
-				}
-				this.transfers = transfers;
+			List<String> methods = new ArrayList<String>();
+			for (Method each : Service.clazz(service).getMethods()) {
+				methods.add(each.getName());
 			}
+			this.subscribe(service, methods.toArray(new String[] {}));
 		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			DefaultCollector.LOGGER.info("Class not found: " + service);
 		}
 	}
 
 	public void unsubscribe(Service service) throws Exception {
-		try {
-			MultiKeyMap[] transfers = new MultiKeyMap[this.transfers.length];
-			for (int index = 0; index < this.transfers.length; index++) {
-				MultiKeyMap transfer = new MultiKeyMap();
-				transfer.putAll(this.transfers[index]);
-				// 移除服务
-				for (Method method : Service.clazz(service).getMethods()) {
-					transfer.removeMultiKey(service, method);
+		MultiKeyMap[] transfers = new MultiKeyMap[this.transfers.length];
+		for (int index = 0; index < transfers.length; index++) {
+			transfers[index] = new MultiKeyMap();
+			for (Object each : this.transfers[index].keySet()) {
+				MultiKey key = MultiKey.class.cast(each);
+				// 如果Key不属于指定Service则追加
+				if (!key.getKey(0).equals(service)) {
+					transfers[index].put(key.getKey(0), key.getKey(1), this.transfers[index].get(key.getKey(0), key.getKey(1)));
 				}
-				transfers[index] = transfer;
 			}
-			this.transfers = transfers;
-		} catch (ClassNotFoundException | NoClassDefFoundError e) {
-			DefaultCollector.LOGGER.info("Class not found: " + service);
 		}
+		this.transfers = transfers;
 	}
 
 	public Transfer peek(Ack ack) {
@@ -213,6 +218,12 @@ public class DefaultCollector implements Runnable, Collector, Imported {
 				// 绑定ACK Trace
 				TraceContext.getTraceOnCreate(ack.trace());
 				Transfers transfers = Transfers.class.cast(this.curr().get(ack.request().service(), ack.request().method()));
+				if (transfers == null) {
+					// 泛化请求
+					this.subscribe(ack.request().service(), ack.request().method());
+					transfers = Transfers.class.cast(this.curr().get(ack.request().service(), ack.request().method()));
+					DefaultCollector.LOGGER.info("Create Transfers for [service =" + ack.request().service() + "][method=" + ack.request().method() + "]");
+				}
 				transfers.put(ack.local(), ack.remote(), ack.status(), ack.elapse());
 			} catch (Throwable e) {
 				DefaultCollector.LOGGER.debug(e.getMessage(), e);

@@ -53,6 +53,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.AttributeKey;
 
 /**
@@ -117,6 +119,14 @@ public class DefaultConnect implements Connect {
 	private static final int WRITE_WATERWATER_LOW = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".write_water_low", 32768);
 
 	private static final int WRITE_WATERWATER_HIGH = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".write_water_high", 65536);
+
+	private static final boolean IDLE_CLOSE = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".idle_close", true);
+
+	private static final short IDLE_ALL = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".idle_all", Short.MAX_VALUE);
+
+	private static final short IDLE_READ = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".idle_read", Short.MAX_VALUE);
+
+	private static final short IDLE_WRITE = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".idle_write", Short.MAX_VALUE);
 
 	private static final ChannelFactory<SocketChannel> FACTORY = new DefaultChannelFactory<SocketChannel>(NioSocketChannel.class);
 
@@ -367,6 +377,14 @@ public class DefaultConnect implements Connect {
 			ctx.fireChannelInactive();
 		}
 
+		public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+			if (DefaultConnect.IDLE_CLOSE && evt instanceof IdleStateEvent) {
+				DefaultConnect.LOGGER.warn("Idle (" + IdleStateEvent.class.cast(evt).state() + ") connection closed. [local=" + ctx.channel().localAddress() + "][remote=" + ctx.channel().remoteAddress() + "]");
+				// 关闭通道, 并启动Inactive
+				ctx.close().addListener(ExceptionListener.listener(this.ctx));
+			}
+		}
+
 		public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 			// 框架异常使用Error日志
 			if (KeplerException.class.isAssignableFrom(cause.getClass())) {
@@ -438,6 +456,8 @@ public class DefaultConnect implements Connect {
 					channel.config().setReceiveBufferSize(DefaultConnect.BUFFER_RECV);
 					channel.config().setSendBufferSize(DefaultConnect.BUFFER_SEND);
 					channel.config().setAllocator(PooledByteBufAllocator.DEFAULT);
+					// 检查死连接
+					channel.pipeline().addLast(new IdleStateHandler(DefaultConnect.IDLE_READ, DefaultConnect.IDLE_WRITE, DefaultConnect.IDLE_ALL));
 					channel.pipeline().addLast(new LengthFieldBasedFrameDecoder(DefaultConnect.FRAGEMENT, 0, CodecHeader.DEFAULT, 0, CodecHeader.DEFAULT));
 					for (ChannelHandler each : InitializerFactory.this.handlers) {
 						channel.pipeline().addLast(each);
