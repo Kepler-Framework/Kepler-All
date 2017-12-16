@@ -178,7 +178,7 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 		 */
 		private Method exists(Request request, Method method) throws NoSuchMethodException {
 			if (method == null) {
-				throw new NoSuchMethodException("No such method: " + request.method());
+				throw new NoSuchMethodException("No such method: " + request.method() + " for service:" + request.service());
 			}
 			return method;
 		}
