@@ -109,6 +109,7 @@ public class DefaultDelegate extends DefaultMarker implements GenericMarker, Gen
 			// 代理执行
 			return this.factory.response(method_actual.invoke(instance, this.validation.valid(args_actual)));
 		} catch (InvocationTargetException e) {
+			this.quiet.print(request, e);
 			// 处理Method实际错误
 			throw new KeplerGenericException(e.getTargetException());
 		} catch (Throwable e) {
