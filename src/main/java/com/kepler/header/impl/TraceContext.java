@@ -79,11 +79,11 @@ public class TraceContext {
 	}
 
 	public static String getSpan() {
-		return TraceContext.getHeaders().get(Trace.TRACE_SPAN_CHILD);
+		return TraceContext.getHeaders().get(Trace.SPAN + "_orig");
 	}
 
 	public static String getParent() {
-		return TraceContext.getHeaders().get(Trace.TRACE_SPAN_PARENT);
+		return TraceContext.getHeaders().get(Trace.SPAN_PARENT + "_orig");
 	}
 
 	public static String getTrace() {
