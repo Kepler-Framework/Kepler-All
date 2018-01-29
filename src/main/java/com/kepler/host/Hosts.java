@@ -1,6 +1,5 @@
 package com.kepler.host;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -38,6 +37,14 @@ public interface Hosts {
 	 * @return
 	 */
 	public List<Host> tags(String tag);
+	
+	/**
+	 * 获取指定状态的主机
+	 * 
+	 * @param state
+	 * @return
+	 */
+	public List<Host> select(HostState state);
 
 	/**
 	 * 获取指定地址的主机
@@ -45,13 +52,5 @@ public interface Hosts {
 	 * @param address
 	 * @return
 	 */
-	public Host select(String address);
-
-	/**
-	 * 获取指定状态的主机
-	 * 
-	 * @param state
-	 * @return
-	 */
-	public Collection<Host> select(HostState state);
+	public Host select(String sid);
 }

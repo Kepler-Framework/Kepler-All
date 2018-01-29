@@ -5,7 +5,7 @@
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-	<import resource="kepler-filter-assumed.xml" />
+	<import resource="kepler-filter-sid.xml" />
 
 	<bean id="kepler.router.filters" class="com.kepler.router.filter.impl.ChainedFilter" />
 

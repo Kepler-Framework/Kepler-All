@@ -1,7 +1,6 @@
 package com.kepler.host.impl;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,11 +27,6 @@ public class DefaultHosts implements Hosts {
 	private static final Log LOGGER = LogFactory.getLog(DefaultHosts.class);
 
 	/**
-	 * Address维度映射
-	 */
-	private final Map<String, Host> address = new HashMap<String, Host>();
-
-	/**
 	 * 所有主机(所有状态)
 	 */
 	private final List<Host> hosts = new ArrayList<Host>();
@@ -42,6 +36,8 @@ public class DefaultHosts implements Hosts {
 	private final Set<Host> bans = new HashSet<Host>();
 
 	private final Tags tags = new Tags();
+
+	private final SIDs sids = new SIDs();
 
 	private final Service service;
 
@@ -65,7 +61,7 @@ public class DefaultHosts implements Hosts {
 	}
 
 	private boolean remove4active(Host host) {
-		boolean remove_address = this.address.remove(host.address()) != null;
+		boolean remove_address = this.sids.remove(host) != null;
 		boolean remove_host = this.hosts.remove(host);
 		boolean remove_tag = this.tags.remove(host);
 		DefaultHosts.LOGGER.info("[remove-active][host=" + host + "][address=" + remove_address + "][host=" + remove_host + "][tag=" + remove_tag + "]");
@@ -107,9 +103,9 @@ public class DefaultHosts implements Hosts {
 		synchronized (this) {
 			// 从Ban&&Waiting(待连接Host)移除并加入到Tags&&Hosts&&Address(运行时Host)
 			if (this.bans.remove(host) || this.waiting.remove(host)) {
+				this.sids.put(host);
 				this.tags.put(host);
 				this.hosts.add(host);
-				this.address.put(host.address(), host);
 				DefaultHosts.LOGGER.warn(this.detail(host, "active"));
 			}
 		}
@@ -118,9 +114,9 @@ public class DefaultHosts implements Hosts {
 	public void replace(Host current, Host newone) {
 		synchronized (this) {
 			this.remove(current);
+			this.sids.put(newone);
 			this.tags.put(newone);
 			this.hosts.add(newone);
-			this.address.put(newone.address(), newone);
 			DefaultHosts.LOGGER.warn(this.detail(newone, "replace"));
 		}
 	}
@@ -128,7 +124,8 @@ public class DefaultHosts implements Hosts {
 	public boolean ban(Host host) {
 		synchronized (this) {
 			// 从Hosts&&Tags&Address移除或从Waiting(运行时Host)移除
-			if ((this.hosts.remove(host) && this.tags.remove(host) && (this.address.remove(host.address()) != null)) || this.waiting.remove(host)) {
+			if ((this.hosts.remove(host) && this.tags.remove(host)) || this.waiting.remove(host)) {
+				this.sids.remove(host);
 				this.bans.add(host);
 				DefaultHosts.LOGGER.warn(this.detail(host, "baned"));
 				return true;
@@ -146,23 +143,22 @@ public class DefaultHosts implements Hosts {
 		return this.tags.get(tag);
 	}
 
-	@Override
-	public Host select(String address) {
-		return this.address.get(address);
-	}
-
-	// 只读(协商)
-	public Collection<Host> select(HostState state) {
+	public List<Host> select(HostState state) {
 		switch (state) {
 		case WAITING:
-			return this.waiting;
+			return new ArrayList<Host>(this.waiting);
 		case ACTIVE:
-			return this.hosts;
+			return new ArrayList<Host>(this.hosts);
 		case BAN:
-			return this.bans;
+			return new ArrayList<Host>(this.bans);
 		default:
 			throw new KeplerLocalException("Unvalid state for " + state);
 		}
+	}
+
+	@Override
+	public Host select(String sid) {
+		return this.sids.get(sid);
 	}
 
 	public String toString() {
@@ -208,6 +204,27 @@ public class DefaultHosts implements Hosts {
 			// InvokerHandler.channelInactive回调此方法.
 			// 禁止对DefaultHosts.EMPTY调用Remove
 			return hosts != DefaultHosts.EMPTY ? hosts.remove(host) : false;
+		}
+	}
+
+	private class SIDs {
+
+		private final Map<String, Host> sid = new HashMap<String, Host>();
+
+		public Host put(Host host) {
+			return this.sid.put(host.sid(), host);
+		}
+
+		public Host get(String sid) {
+			return this.sid.get(sid);
+		}
+
+		public Host remove(Host host) {
+			// 对比当前Host, 如果一致则删除
+			Host snapshot = this.sid.get(host.sid());
+			Host removed = (snapshot != null) ? snapshot.equals(host) ? this.sid.remove(host.sid()) : null : null;
+			DefaultHosts.this.detail(host, "sid removed");
+			return removed;
 		}
 	}
 }

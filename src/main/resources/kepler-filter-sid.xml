@@ -5,12 +5,12 @@
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-	<bean id="kepler.router.filter.selector" class="com.kepler.router.filter.impl.AssumedSelector">
+	<bean id="kepler.router.filter.sid.selector" class="com.kepler.router.filter.sid.SIDSelector">
 		<constructor-arg ref="kepler.host.context" />
 	</bean>
 
-	<bean id="kepler.router.filter.assumed" class="com.kepler.router.filter.impl.AssumedFilter">
-		<constructor-arg ref="kepler.router.filter.selector" />
+	<bean id="kepler.router.filter.sid" class="com.kepler.router.filter.sid.SIDFilter">
+		<constructor-arg ref="kepler.router.filter.sid.selector" />
 	</bean>
 
 </beans>
