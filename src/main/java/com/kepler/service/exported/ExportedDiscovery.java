@@ -3,8 +3,12 @@ package com.kepler.service.exported;
 import java.util.Collection;
 import java.util.HashSet;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.annotation.AnnotationUtils;
 
 import com.kepler.KeplerLocalException;
@@ -14,22 +18,39 @@ import com.kepler.annotation.Service;
 import com.kepler.config.Profile;
 import com.kepler.org.apache.commons.lang.StringUtils;
 import com.kepler.service.Exported;
+import com.kepler.service.ExportedGetter;
 
 /**
  * @Service scan
  * 
  * @author kim 2015年8月19日
  */
-public class ExportedDiscovery implements BeanPostProcessor {
+public class ExportedDiscovery implements BeanPostProcessor, ApplicationContextAware {
+
+	private static final Log LOGGER = LogFactory.getLog(ExportedDiscovery.class);
+
+	private static final ExportedGetter NONE = new NoneActual();
 
 	private final Exported exported;
 
 	private final Profile profile;
 
+	private ExportedGetter get;
+
 	public ExportedDiscovery(Profile profile, Exported exported) {
 		super();
+		this.get = ExportedDiscovery.NONE;
 		this.exported = exported;
 		this.profile = profile;
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext context) throws BeansException {
+		ExportedGetter actual = context.getBean(ExportedGetter.class);
+		if (actual != null) {
+			ExportedDiscovery.LOGGER.info("[exported-get][class=" + actual.getClass() + "]");
+			this.get = actual;
+		}
 	}
 
 	@Override
@@ -42,13 +63,13 @@ public class ExportedDiscovery implements BeanPostProcessor {
 		Autowired autowired = AdvisedFinder.get(bean, Autowired.class);
 		// 标记@Autowired表示自动发布
 		if (autowired != null) {
-			this.exported(bean, autowired.catalog(), autowired.profile(), autowired.version());
+			this.exported(this.get.get(bean, beanName), bean, autowired.catalog(), autowired.profile(), autowired.version());
 		}
 		return bean;
 	}
 
 	// 如果@Autowire定义了Version则覆盖@Service
-	private void exported(Object bean, String catalog, String profile, String version[]) {
+	private void exported(Object proxy, Object bean, String catalog, String profile, String version[]) {
 		// 迭代所有定义@Service的接口
 		for (Class<?> each : this.services(new HashSet<Class<?>>(), bean.getClass())) {
 			try {
@@ -57,7 +78,7 @@ public class ExportedDiscovery implements BeanPostProcessor {
 				String catalog4exported = StringUtils.isEmpty(catalog) ? exported.catalog() : catalog;
 				// Version.length=1并且Version[0]为空则表示使用没有指定Autowired.Version
 				String[] version4exported = (version.length == 1 && StringUtils.isEmpty(version[0])) ? new String[] { exported.version() } : version;
-				this.exported(each, bean, profile, catalog4exported, version4exported);
+				this.exported(each, proxy, profile, catalog4exported, version4exported);
 			} catch (Exception e) {
 				throw new KeplerLocalException(e);
 			}
@@ -109,6 +130,14 @@ public class ExportedDiscovery implements BeanPostProcessor {
 			if (AnnotationUtils.findAnnotation(each, Service.class) != null) {
 				exported.add(each);
 			}
+		}
+	}
+
+	private static class NoneActual implements ExportedGetter {
+
+		@Override
+		public Object get(Object bean, Object beanname) {
+			return bean;
 		}
 	}
 }

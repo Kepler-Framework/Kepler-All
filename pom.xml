@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.kepler</groupId>
 	<artifactId>kepler-all</artifactId>
-	<version>0.0.11-SNAPSHOT</version>
+	<version>0.0.12-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>kepler</name>
 	<url>http://maven.apache.org</url>
