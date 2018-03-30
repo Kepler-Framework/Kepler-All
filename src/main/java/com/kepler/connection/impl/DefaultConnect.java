@@ -252,7 +252,7 @@ public class DefaultConnect implements Connect {
 		// IP锁. 1个Host仅允许建立1个连接
 		synchronized (host.host().intern()) {
 			if (!this.channels.contain(host)) {
-				this.connect(new InvokerHandler(new Bootstrap(), this.local, host));
+				this.connect(new InvokerHandler(new Bootstrap(), this.local, host, this.channels));
 			} else {
 				DefaultConnect.LOGGER.warn("Host: " + host + " already connected ...");
 			}
@@ -276,7 +276,7 @@ public class DefaultConnect implements Connect {
 			SocketAddress remote = new InetSocketAddress(invoker.remote().loop(this.local) && DefaultConnect.ESTABLISH_LOOP ? Host.LOOP : invoker.remote().host(), invoker.remote().port());
 			invoker.bootstrap().group(this.eventloop()).option(ChannelOption.CONNECT_TIMEOUT_MILLIS, DefaultConnect.TIMEOUT).channelFactory(DefaultConnect.FACTORY).handler(DefaultConnect.this.inits.factory(invoker)).remoteAddress(remote).connect().sync();
 			// 连接成功, 加入通道. 异常则跳过
-			this.channels.put(invoker.remote(), invoker);
+			//this.channels.put(invoker.remote(), invoker);
 		} catch (Throwable e) {
 			DefaultConnect.LOGGER.info("Connect " + invoker.remote().address() + "[sid=" + invoker.remote().sid() + "] failed ...", e);
 			// 关闭并尝试重连
@@ -297,11 +297,14 @@ public class DefaultConnect implements Connect {
 
 		volatile private ChannelHandlerContext ctx;
 
-		private InvokerHandler(Bootstrap bootstrap, Host local, Host remote) {
+		private final ChannelContext channels;
+
+		private InvokerHandler(Bootstrap bootstrap, Host local, Host remote, ChannelContext channels) {
 			super();
 			this.local = local;
 			this.remote = remote;
 			this.bootstrap = bootstrap;
+			this.channels = channels;
 		}
 
 		public Bootstrap bootstrap() {
@@ -368,6 +371,7 @@ public class DefaultConnect implements Connect {
 			// 初始化赋值
 			(this.ctx = ctx).channel().attr(DefaultConnect.ACKS).set(new AcksImpl());
 			this.water4config();
+			this.channels.put(this.remote(), this);
 			this.ctx.fireChannelActive();
 		}
 
