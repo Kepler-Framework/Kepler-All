@@ -276,7 +276,6 @@ public class DefaultConnect implements Connect {
 			SocketAddress remote = new InetSocketAddress(invoker.remote().loop(this.local) && DefaultConnect.ESTABLISH_LOOP ? Host.LOOP : invoker.remote().host(), invoker.remote().port());
 			invoker.bootstrap().group(this.eventloop()).option(ChannelOption.CONNECT_TIMEOUT_MILLIS, DefaultConnect.TIMEOUT).channelFactory(DefaultConnect.FACTORY).handler(DefaultConnect.this.inits.factory(invoker)).remoteAddress(remote).connect().sync();
 			// 连接成功, 加入通道. 异常则跳过
-			//this.channels.put(invoker.remote(), invoker);
 		} catch (Throwable e) {
 			DefaultConnect.LOGGER.info("Connect " + invoker.remote().address() + "[sid=" + invoker.remote().sid() + "] failed ...", e);
 			// 关闭并尝试重连
