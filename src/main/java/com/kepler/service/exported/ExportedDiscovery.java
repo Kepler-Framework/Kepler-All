@@ -35,6 +35,8 @@ public class ExportedDiscovery implements BeanPostProcessor, ApplicationContextA
 
 	private final Profile profile;
 
+	private ApplicationContext context;
+
 	private ExportedGetter get;
 
 	public ExportedDiscovery(Profile profile, Exported exported) {
@@ -46,7 +48,7 @@ public class ExportedDiscovery implements BeanPostProcessor, ApplicationContextA
 
 	@Override
 	public void setApplicationContext(ApplicationContext context) throws BeansException {
-		ExportedGetter actual = context.getBean(ExportedGetter.class);
+		ExportedGetter actual = (this.context = context).getBean(ExportedGetter.class);
 		if (actual != null) {
 			ExportedDiscovery.LOGGER.info("[exported-get][class=" + actual.getClass() + "]");
 			this.get = actual;
@@ -63,7 +65,7 @@ public class ExportedDiscovery implements BeanPostProcessor, ApplicationContextA
 		Autowired autowired = AdvisedFinder.get(bean, Autowired.class);
 		// 标记@Autowired表示自动发布
 		if (autowired != null) {
-			this.exported(this.get.get(bean, beanName), bean, autowired.catalog(), autowired.profile(), autowired.version());
+			this.exported(this.get.get(bean, beanName, this.context), bean, autowired.catalog(), autowired.profile(), autowired.version());
 		}
 		return bean;
 	}
@@ -136,7 +138,7 @@ public class ExportedDiscovery implements BeanPostProcessor, ApplicationContextA
 	private static class NoneActual implements ExportedGetter {
 
 		@Override
-		public Object get(Object bean, Object beanname) {
+		public Object get(Object bean, Object name, ApplicationContext context) {
 			return bean;
 		}
 	}
