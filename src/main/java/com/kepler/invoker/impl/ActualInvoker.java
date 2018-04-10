@@ -12,6 +12,7 @@ import com.kepler.annotation.Config;
 import com.kepler.annotation.Internal;
 import com.kepler.channel.ChannelContext;
 import com.kepler.config.PropertiesUtils;
+import com.kepler.generic.reflect.impl.DefaultDelegate;
 import com.kepler.invoker.Invoker;
 import com.kepler.mock.Mocker;
 import com.kepler.mock.MockerContext;
@@ -84,6 +85,8 @@ public class ActualInvoker implements Invoker {
 		} catch (KeplerRemoteException exception) {
 			Throwable cause = exception.cause();
 			throw ActualInvoker.ERROR_TO_EXCEPTION && Error.class.isAssignableFrom(cause.getClass()) ? new KeplerErrorException(Error.class.cast(cause)) : exception.cause();
+		} finally {
+			request.headers().delete(DefaultDelegate.DELEGATE_KEY);
 		}
 	}
 

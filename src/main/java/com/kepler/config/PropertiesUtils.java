@@ -1,6 +1,7 @@
 package com.kepler.config;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -128,6 +129,8 @@ public class PropertiesUtils {
 	private static void loading(String file, Properties properties) {
 		try (InputStream input = ResourceUtils.getURL(file).openStream()) {
 			properties.load(input);
+		} catch (FileNotFoundException fne) {
+			PropertiesUtils.LOGGER.info("Loading keper.conf failed ...");
 		} catch (Throwable throwable) {
 			PropertiesUtils.LOGGER.warn(throwable.getMessage(), throwable);
 		}

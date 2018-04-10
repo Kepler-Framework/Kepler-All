@@ -48,10 +48,9 @@ public class ExportedDiscovery implements BeanPostProcessor, ApplicationContextA
 
 	@Override
 	public void setApplicationContext(ApplicationContext context) throws BeansException {
-		ExportedGetter actual = (this.context = context).getBean(ExportedGetter.class);
-		if (actual != null) {
-			ExportedDiscovery.LOGGER.info("[exported-get][class=" + actual.getClass() + "]");
-			this.get = actual;
+		for (String name : (this.context = context).getBeanNamesForType(ExportedGetter.class)) {
+			this.get = this.context.getBean(name, ExportedGetter.class);
+			ExportedDiscovery.LOGGER.info("[exported-get][class=" + this.get.getClass() + "]");
 		}
 	}
 

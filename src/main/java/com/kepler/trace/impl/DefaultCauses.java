@@ -64,7 +64,7 @@ public class DefaultCauses implements TraceCauses {
 	 * @return
 	 */
 	private boolean allow(Service service, String method, String cause) {
-		DefaultCauses.LOGGER.info("[warn-message][service=" + service + "][method=" + method + "][cause=" + cause + "][trace=" + TraceContext.getTrace() + "]");
+		DefaultCauses.LOGGER.info("[warn-message][" + service + "][method=" + method + "][cause=" + cause + "][trace=" + TraceContext.getTrace() + "]");
 		return this.index.getAndIncrement() > DefaultCauses.MAX ? false : true;
 	}
 

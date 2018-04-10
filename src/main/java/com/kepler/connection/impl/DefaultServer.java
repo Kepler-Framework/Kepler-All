@@ -1,7 +1,5 @@
 package com.kepler.connection.impl;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.commons.logging.Log;
@@ -28,16 +26,13 @@ import com.kepler.trace.Trace;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.ServerChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -88,9 +83,13 @@ public class DefaultServer {
 	 */
 	private static final int WAIT_WARN = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".wait_warn", 50);
 
-	private static final DefaultChannelFactory<ServerChannel> FACTORY = new DefaultChannelFactory<ServerChannel>(NioServerSocketChannel.class);
-
 	private static final Log LOGGER = LogFactory.getLog(DefaultServer.class);
+
+	private final LengthFieldPrepender handler_length = new LengthFieldPrepender(CodecHeader.DEFAULT);
+
+	private final ResourceHandler handler_resource = new ResourceHandler();
+
+	private final ExportedHandler handler_export = new ExportedHandler();
 
 	private final InitializerFactory inits = new InitializerFactory();
 
@@ -142,14 +141,8 @@ public class DefaultServer {
 	 * @throws Exception
 	 */
 	public void init() throws Exception {
-		// 连接控制
-		this.inits.add(new ResourceHandler());
-		// 黏包
-		this.inits.add(new LengthFieldPrepender(CodecHeader.DEFAULT));
-		// 本地服务
-		this.inits.add(new ExportedHandler());
 		// 服务配置(绑定端口,SO_REUSEADDR=true)
-		this.bootstrap.group(new NioEventLoopGroup(DefaultServer.EVENTLOOP_PARENT), new NioEventLoopGroup(DefaultServer.EVENTLOOP_CHILD)).channelFactory(DefaultServer.FACTORY).childHandler(this.inits.factory()).option(ChannelOption.SO_REUSEADDR, true).bind(DefaultServer.BINDING, this.local.port()).sync();
+		this.bootstrap.group(new NioEventLoopGroup(DefaultServer.EVENTLOOP_PARENT), new NioEventLoopGroup(DefaultServer.EVENTLOOP_CHILD)).channelFactory(DefaultChannelFactory.INSTANCE_SERVER).childHandler(this.inits.factory()).option(ChannelOption.SO_REUSEADDR, true).bind(DefaultServer.BINDING, this.local.port()).sync();
 		DefaultServer.LOGGER.info("Server " + this.local + " started ... ");
 	}
 
@@ -166,28 +159,21 @@ public class DefaultServer {
 
 	private class InitializerFactory {
 
-		private final List<ChannelHandler> handlers = new ArrayList<ChannelHandler>();
-
-		public void add(ChannelHandler handler) {
-			this.handlers.add(handler);
-		}
-
 		public ChannelInitializer<SocketChannel> factory() {
 			return new ChannelInitializer<SocketChannel>() {
 				protected void initChannel(SocketChannel channel) throws Exception {
-					channel.config().setReceiveBufferSize(DefaultServer.BUFFER_RECV);
 					channel.config().setSendBufferSize(DefaultServer.BUFFER_SEND);
 					channel.config().setAllocator(PooledByteBufAllocator.DEFAULT);
+					channel.config().setReceiveBufferSize(DefaultServer.BUFFER_RECV);
 					// 检查死连接
 					channel.pipeline().addLast(new IdleStateHandler(DefaultServer.IDLE_READ, DefaultServer.IDLE_WRITE, DefaultServer.IDLE_ALL));
 					channel.pipeline().addLast(new LengthFieldBasedFrameDecoder(DefaultServer.FRAGEMENT, 0, CodecHeader.DEFAULT, 0, CodecHeader.DEFAULT));
-					// 连接控制 new ResourceHandler()
-					// 黏包 new LengthFieldPrepender(CodecHeader.DEFAULT);
-					// 本地服务 new ExportedHandler();
-					// 服务配置(绑定端口,SO_REUSEADDR=true)
-					for (ChannelHandler each : InitializerFactory.this.handlers) {
-						channel.pipeline().addLast(each);
-					}
+					// 连接控制
+					channel.pipeline().addLast(DefaultServer.this.handler_resource);
+					// 黏包
+					channel.pipeline().addLast(DefaultServer.this.handler_length);
+					// 本地服务
+					channel.pipeline().addLast(DefaultServer.this.handler_export);
 				}
 			};
 		}

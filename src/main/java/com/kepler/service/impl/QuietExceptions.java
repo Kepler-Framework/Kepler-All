@@ -118,7 +118,7 @@ public class QuietExceptions implements Quiet, Imported, Exported {
 			// 如果可以获取QuietMethods(非泛化)并且可以获取实际方法则尝试从QuietMethods解析, 如果QuietMethods或实际方法任一无法获得则尝试解析异常
 			return (methods != null && actual != null) ? methods.exceptions(actual).contains(throwable) : false;
 		} catch (Exception e) {
-			QuietExceptions.LOGGER.info(e.getMessage(), e);
+			QuietExceptions.LOGGER.debug(e.getMessage(), e);
 			return false;
 		}
 	}

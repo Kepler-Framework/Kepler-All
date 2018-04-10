@@ -39,7 +39,6 @@ import com.kepler.token.TokenContext;
 import com.kepler.trace.Trace;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.bootstrap.ChannelFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelHandler;
@@ -50,7 +49,6 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -127,8 +125,6 @@ public class DefaultConnect implements Connect {
 	private static final short IDLE_READ = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".idle_read", Short.MAX_VALUE);
 
 	private static final short IDLE_WRITE = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".idle_write", Short.MAX_VALUE);
-
-	private static final ChannelFactory<SocketChannel> FACTORY = new DefaultChannelFactory<SocketChannel>(NioSocketChannel.class);
 
 	private static final AttributeKey<AcksImpl> ACKS = AttributeKey.newInstance("ACKS");
 
@@ -274,7 +270,7 @@ public class DefaultConnect implements Connect {
 		try {
 			// 是否为回路IP
 			SocketAddress remote = new InetSocketAddress(invoker.remote().loop(this.local) && DefaultConnect.ESTABLISH_LOOP ? Host.LOOP : invoker.remote().host(), invoker.remote().port());
-			invoker.bootstrap().group(this.eventloop()).option(ChannelOption.CONNECT_TIMEOUT_MILLIS, DefaultConnect.TIMEOUT).channelFactory(DefaultConnect.FACTORY).handler(DefaultConnect.this.inits.factory(invoker)).remoteAddress(remote).connect().sync();
+			invoker.bootstrap().group(this.eventloop()).option(ChannelOption.CONNECT_TIMEOUT_MILLIS, DefaultConnect.TIMEOUT).channelFactory(DefaultChannelFactory.INSTANCE_CLIENT).handler(DefaultConnect.this.inits.factory(invoker)).remoteAddress(remote).connect().sync();
 			// 连接成功, 加入通道. 异常则跳过
 		} catch (Throwable e) {
 			DefaultConnect.LOGGER.info("Connect " + invoker.remote().address() + "[sid=" + invoker.remote().sid() + "] failed ...", e);

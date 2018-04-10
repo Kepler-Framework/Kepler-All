@@ -1,6 +1,5 @@
 package com.kepler.connection.codec;
 
-import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +9,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.kepler.KeplerSerialException;
 import com.kepler.config.PropertiesUtils;
+import com.kepler.connection.stream.WrapOutputStream;
 import com.kepler.protocol.Protocols;
 import com.kepler.serial.SerialID;
 import com.kepler.serial.SerialOutput;
@@ -151,7 +151,7 @@ public class Encoder implements Imported, Exported {
 	 * @param clazz 序列化类型
 	 * @return
 	 */
-	private WrapStream stream(SerialOutput output, WrapStream stream, Integer buffer, Class<?> clazz, Object message) throws KeplerSerialException {
+	private WrapOutputStream stream(SerialOutput output, WrapOutputStream stream, Integer buffer, Class<?> clazz, Object message) throws KeplerSerialException {
 		try {
 			output.output(message, clazz, stream, buffer);
 		} catch (KeplerSerialException e) {
@@ -174,82 +174,18 @@ public class Encoder implements Imported, Exported {
 		ServiceAndMethod service_method = new ServiceAndMethod(service, method);
 		// 分配缓存
 		ByteBuf buffer = this.estimate(service_method);
-		try (WrapStream stream = new WrapStream(service_method, buffer.writeByte(serial_id))) {
-			return this.stream(serial_output, stream, (int) (buffer.capacity() * Encoder.ADJUST), this.protocols.protocol(serial_id), message).record().buffer();
+		try (WrapOutputStream stream = new WrapOutputStream(buffer.writeByte(serial_id))) {
+			WrapOutputStream output = this.stream(serial_output, stream, (int) (buffer.capacity() * Encoder.ADJUST), this.protocols.protocol(serial_id), message);
+			if (Encoder.ESTIMATE) {
+				output.record(this.estimates.get(service_method)).buffer();
+			}
+			return output.buffer();
 		} catch (Exception exception) {
 			// 异常, 释放ByteBuf
 			if (buffer.refCnt() > 0) {
 				ReferenceCountUtil.release(buffer);
 			}
 			throw exception;
-		}
-	}
-
-	private class WrapStream extends OutputStream {
-
-		private final ServiceAndMethod service;
-
-		private final ByteBuf buffer;
-
-		private WrapStream(ServiceAndMethod service, ByteBuf buffer) {
-			this.service = service;
-			this.buffer = buffer;
-		}
-
-		/**
-		 * 安全性校验
-		 * 
-		 * @param dest
-		 * @param offset
-		 * @param length
-		 */
-		private void valid(byte[] dest, int offset, int length) {
-			if (dest == null) {
-				throw new NullPointerException();
-			} else if ((offset < 0) || (offset > dest.length) || (length < 0) || ((offset + length) > dest.length) || ((offset + length) < 0)) {
-				throw new IndexOutOfBoundsException();
-			}
-		}
-
-		public ByteBuf buffer() {
-			return this.buffer;
-		}
-
-		@Override
-		public void write(int data) {
-			this.buffer.writeByte(data);
-		}
-
-		public void write(byte[] src) {
-			this.write(src, 0, src.length);
-		}
-
-		public void write(byte[] src, int offset, int length) {
-			this.valid(src, offset, length);
-			if (length == 0) {
-				return;
-			}
-			this.buffer.writeBytes(src, offset, length);
-		}
-
-		public WrapStream reset() {
-			this.buffer.writerIndex(1);
-			return this;
-		}
-
-		/**
-		 * 写入完毕, 回调写入信息
-		 * 
-		 * @param estimate
-		 * @return
-		 */
-		public WrapStream record() {
-			// 预估大小更新(如果开启了预估)
-			if (Encoder.ESTIMATE) {
-				int readable = this.buffer.readableBytes();
-				Encoder.this.estimates.get(this.service).record(readable);
-			}
-			return this;
 		}
 	}
 
