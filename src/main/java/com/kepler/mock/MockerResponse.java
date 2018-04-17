@@ -4,7 +4,7 @@ package com.kepler.mock;
  * @author KimShen
  *
  */
-public interface MockResponse {
+public interface MockerResponse {
 
 	public Object response();
 }

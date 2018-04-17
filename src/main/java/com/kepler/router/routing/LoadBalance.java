@@ -13,7 +13,7 @@ import com.kepler.router.Routing;
 /**
  * @author zhangjiehao 2015年9月9日
  */
-abstract class LoadBalance implements Routing {
+abstract public class LoadBalance implements Routing {
 
 	/**
 	 * 是否开启Location优先级

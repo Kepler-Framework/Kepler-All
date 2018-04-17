@@ -3,12 +3,8 @@ package com.kepler.service.exported;
 import java.util.Collection;
 import java.util.HashSet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.annotation.AnnotationUtils;
 
 import com.kepler.KeplerLocalException;
@@ -18,40 +14,22 @@ import com.kepler.annotation.Service;
 import com.kepler.config.Profile;
 import com.kepler.org.apache.commons.lang.StringUtils;
 import com.kepler.service.Exported;
-import com.kepler.service.ExportedGetter;
 
 /**
  * @Service scan
  * 
  * @author kim 2015年8月19日
  */
-public class ExportedDiscovery implements BeanPostProcessor, ApplicationContextAware {
-
-	private static final Log LOGGER = LogFactory.getLog(ExportedDiscovery.class);
-
-	private static final ExportedGetter NONE = new NoneActual();
+public class ExportedDiscovery implements BeanPostProcessor {
 
 	private final Exported exported;
 
 	private final Profile profile;
 
-	private ApplicationContext context;
-
-	private ExportedGetter get;
-
 	public ExportedDiscovery(Profile profile, Exported exported) {
 		super();
-		this.get = ExportedDiscovery.NONE;
 		this.exported = exported;
 		this.profile = profile;
-	}
-
-	@Override
-	public void setApplicationContext(ApplicationContext context) throws BeansException {
-		for (String name : (this.context = context).getBeanNamesForType(ExportedGetter.class)) {
-			this.get = this.context.getBean(name, ExportedGetter.class);
-			ExportedDiscovery.LOGGER.info("[exported-get][class=" + this.get.getClass() + "]");
-		}
 	}
 
 	@Override
@@ -64,7 +42,7 @@ public class ExportedDiscovery implements BeanPostProcessor, ApplicationContextA
 		Autowired autowired = AdvisedFinder.get(bean, Autowired.class);
 		// 标记@Autowired表示自动发布
 		if (autowired != null) {
-			this.exported(this.get.get(bean, beanName, this.context), bean, autowired.catalog(), autowired.profile(), autowired.version());
+			this.exported(bean, bean, autowired.catalog(), autowired.profile(), autowired.version());
 		}
 		return bean;
 	}
@@ -131,14 +109,6 @@ public class ExportedDiscovery implements BeanPostProcessor, ApplicationContextA
 			if (AnnotationUtils.findAnnotation(each, Service.class) != null) {
 				exported.add(each);
 			}
-		}
-	}
-
-	private static class NoneActual implements ExportedGetter {
-
-		@Override
-		public Object get(Object bean, Object name, ApplicationContext context) {
-			return bean;
 		}
 	}
 }

@@ -25,7 +25,7 @@ import com.kepler.generic.reflect.analyse.Fields;
 import com.kepler.generic.reflect.analyse.FieldsAnalyser;
 import com.kepler.header.impl.TraceContext;
 import com.kepler.host.Host;
-import com.kepler.mock.MockResponse;
+import com.kepler.mock.MockerResponse;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.Response;
 import com.kepler.service.Quiet;
@@ -330,7 +330,7 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 				return response_source;
 			}
 			// 获取实际响应
-			Object response_actual = MockResponse.class.isAssignableFrom(response_source.getClass()) ? MockResponse.class.cast(response_source).response() : response_source;
+			Object response_actual = MockerResponse.class.isAssignableFrom(response_source.getClass()) ? MockerResponse.class.cast(response_source).response() : response_source;
 			// Guard case2, 返回为空
 			if (response_actual == null) {
 				return response_actual;

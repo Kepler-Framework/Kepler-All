@@ -75,7 +75,7 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 	 */
 	public static final String STATUS = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".status", "_status");
 
-	private static final long REFRESH_INTERVAL = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + "" + ".refresh", 10 * 1000);
+	private static final long REFRESH_INTERVAL = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".refresh", 10 * 1000);
 
 	private static final int INTERVAL = PropertiesUtils.get(ZkContext.class.getName().toLowerCase() + ".interval", 60000);
 

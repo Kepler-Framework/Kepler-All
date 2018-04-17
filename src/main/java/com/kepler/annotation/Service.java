@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface Service {
 
-	String version();
+	public String version();
 
-	String catalog() default "";
+	public String catalog() default "";
 }
