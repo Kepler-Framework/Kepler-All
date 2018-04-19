@@ -10,9 +10,11 @@ import org.springframework.core.annotation.AnnotationUtils;
 import com.kepler.KeplerLocalException;
 import com.kepler.advised.AdvisedFinder;
 import com.kepler.annotation.Autowired;
+import com.kepler.annotation.Queue;
 import com.kepler.annotation.Service;
 import com.kepler.config.Profile;
 import com.kepler.org.apache.commons.lang.StringUtils;
+import com.kepler.queue.QueueRegister;
 import com.kepler.service.Exported;
 
 /**
@@ -22,13 +24,16 @@ import com.kepler.service.Exported;
  */
 public class ExportedDiscovery implements BeanPostProcessor {
 
+	private final QueueRegister register;
+
 	private final Exported exported;
 
 	private final Profile profile;
 
-	public ExportedDiscovery(Profile profile, Exported exported) {
+	public ExportedDiscovery(QueueRegister register, Profile profile, Exported exported) {
 		super();
 		this.exported = exported;
+		this.register = register;
 		this.profile = profile;
 	}
 
@@ -42,13 +47,13 @@ public class ExportedDiscovery implements BeanPostProcessor {
 		Autowired autowired = AdvisedFinder.get(bean, Autowired.class);
 		// 标记@Autowired表示自动发布
 		if (autowired != null) {
-			this.exported(bean, bean, autowired.catalog(), autowired.profile(), autowired.version());
+			this.exported(AdvisedFinder.get(bean, Queue.class), bean, bean, autowired.catalog(), autowired.profile(), autowired.version());
 		}
 		return bean;
 	}
 
 	// 如果@Autowire定义了Version则覆盖@Service
-	private void exported(Object proxy, Object bean, String catalog, String profile, String version[]) {
+	private void exported(Queue queue, Object proxy, Object bean, String catalog, String profile, String version[]) {
 		// 迭代所有定义@Service的接口
 		for (Class<?> each : this.services(new HashSet<Class<?>>(), bean.getClass())) {
 			try {
@@ -57,7 +62,7 @@ public class ExportedDiscovery implements BeanPostProcessor {
 				String catalog4exported = StringUtils.isEmpty(catalog) ? exported.catalog() : catalog;
 				// Version.length=1并且Version[0]为空则表示使用没有指定Autowired.Version
 				String[] version4exported = (version.length == 1 && StringUtils.isEmpty(version[0])) ? new String[] { exported.version() } : version;
-				this.exported(each, proxy, profile, catalog4exported, version4exported);
+				this.exported(queue, each, proxy, profile, catalog4exported, version4exported);
 			} catch (Exception e) {
 				throw new KeplerLocalException(e);
 			}
@@ -72,9 +77,10 @@ public class ExportedDiscovery implements BeanPostProcessor {
 	 * @param versions 需要发布的版本集合
 	 * @throws Exception
 	 */
-	private void exported(Class<?> clazz, Object bean, String profile, String catalog, String... versions) throws Exception {
+	private void exported(Queue queue, Class<?> clazz, Object bean, String profile, String catalog, String... versions) throws Exception {
 		for (String version : versions) {
 			com.kepler.service.Service service = new com.kepler.service.Service(clazz.getName(), version, catalog);
+			this.register.register(service, queue);
 			this.profile.add(service, profile);
 			this.exported.export(service, bean);
 		}

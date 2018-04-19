@@ -23,14 +23,14 @@ public @interface Autowired {
 	 * 
 	 * @return
 	 */
-	String[] version() default "";
+	public String[] version() default "";
 
-	String catalog() default "";
+	public String catalog() default "";
 
 	/**
 	 * Profile逻辑名
 	 * 
 	 * @return
 	 */
-	String profile() default "";
+	public String profile() default "";
 }

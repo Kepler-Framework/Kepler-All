@@ -13,9 +13,7 @@ import com.kepler.config.PropertiesUtils;
 /**
  * @author kim 2015年7月16日
  */
-public class ThreadFactory implements FactoryBean<ThreadPoolExecutor> {
-
-	private static final Log LOGGER = LogFactory.getLog(ThreadFactory.class);
+public class ThreadFactory extends ThreadShutdown implements FactoryBean<ThreadPoolExecutor> {
 
 	private static final int THREAD_CORE = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".core", Math.max(Runtime.getRuntime().availableProcessors() * 2, 16));
 
@@ -28,12 +26,14 @@ public class ThreadFactory implements FactoryBean<ThreadPoolExecutor> {
 	/**
 	 * 是否使用ShutdownNow
 	 */
-	private static final boolean SHUTDOWN_WAIT = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".shutdown_wait", false);
+	private static final boolean SHUTDOWN_WAITING = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".shutdown_waiting", false);
 
 	/**
 	 * 扫描线程池是否完毕间隔
 	 */
 	private static final int SHUTDOWN_INTERVAL = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".shutdown_interval", 1000);
+
+	private static final Log LOGGER = LogFactory.getLog(ThreadFactory.class);
 
 	private ThreadPoolExecutor threads;
 
@@ -64,32 +64,18 @@ public class ThreadFactory implements FactoryBean<ThreadPoolExecutor> {
 
 	/**
 	 * For Spring
-	 * 
-	 * @throws Exception
 	 */
-	public void destroy() throws Exception {
-		if (ThreadFactory.SHUTDOWN_WAIT) {
-			this.shutdown4waiting();
-		} else {
-			this.shutdown4immediately();
-		}
+	protected void destroy() throws Exception {
+		super.destroy(this.threads);
 	}
 
-	private void shutdown4waiting() throws Exception {
-		this.threads.shutdown();
-		this.waitingRunnable(System.currentTimeMillis());
+	@Override
+	protected boolean waiting() {
+		return ThreadFactory.SHUTDOWN_WAITING;
 	}
 
-	private void shutdown4immediately() throws Exception {
-		for (Runnable each : this.threads.shutdownNow()) {
-			ThreadFactory.LOGGER.warn("Shutdown threads, lossing " + each.getClass() + " ... ");
-		}
-		this.waitingRunnable(System.currentTimeMillis());
-	}
-
-	private void waitingRunnable(long timestamp) throws InterruptedException {
-		while (!this.threads.awaitTermination(ThreadFactory.SHUTDOWN_INTERVAL, TimeUnit.MILLISECONDS)) {
-			ThreadFactory.LOGGER.info("Shutdown threads using " + (TimeUnit.SECONDS.convert(System.currentTimeMillis() - timestamp, TimeUnit.MILLISECONDS)) + "s ...");
-		}
+	@Override
+	protected int interval() {
+		return ThreadFactory.SHUTDOWN_INTERVAL;
 	}
 }

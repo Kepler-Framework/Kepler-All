@@ -6,7 +6,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.kepler.KeplerException;
-import com.kepler.KeplerNetworkException;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.connection.Reject;
 import com.kepler.connection.codec.CodecHeader;
@@ -19,6 +18,8 @@ import com.kepler.protocol.RequestProcessor;
 import com.kepler.protocol.Response;
 import com.kepler.protocol.ResponseFactories;
 import com.kepler.quality.Quality;
+import com.kepler.queue.QueueExecutor;
+import com.kepler.queue.QueueRunnable;
 import com.kepler.service.ExportedContext;
 import com.kepler.token.TokenContext;
 import com.kepler.trace.Trace;
@@ -105,6 +106,8 @@ public class DefaultServer {
 
 	private final HeadersContext headers;
 
+	private final QueueExecutor queue;
+
 	private final TokenContext token;
 
 	private final ServerHost local;
@@ -119,7 +122,7 @@ public class DefaultServer {
 
 	private final Trace trace;
 
-	public DefaultServer(Trace trace, Reject reject, Encoder encoder, Decoder decoder, Quality quality, ServerHost local, TokenContext token, ExportedContext exported, ResponseFactories response, HeadersContext headers, ThreadPoolExecutor threads, RequestProcessor processor) {
+	public DefaultServer(Trace trace, Reject reject, Encoder encoder, Decoder decoder, Quality quality, ServerHost local, TokenContext token, QueueExecutor queue, ExportedContext exported, ResponseFactories response, HeadersContext headers, ThreadPoolExecutor threads, RequestProcessor processor) {
 		super();
 		this.processor = processor;
 		this.exported = exported;
@@ -133,6 +136,7 @@ public class DefaultServer {
 		this.token = token;
 		this.trace = trace;
 		this.local = local;
+		this.queue = queue;
 	}
 
 	/**
@@ -237,7 +241,7 @@ public class DefaultServer {
 			}
 		}
 
-		private class Reply implements Runnable {
+		private class Reply implements Runnable, QueueRunnable {
 
 			/**
 			 * Reply创建时间
@@ -247,6 +251,10 @@ public class DefaultServer {
 			private final ChannelHandlerContext ctx;
 
 			private final ByteBuf buffer;
+
+			private Response response;
+
+			private Request request;
 
 			/**
 			 * Reply执行时间
@@ -269,7 +277,7 @@ public class DefaultServer {
 			 * 
 			 * @return
 			 */
-			private void init() {
+			private Reply init() throws Exception {
 				// Reply执行时间
 				this.running = System.currentTimeMillis();
 				this.waiting = this.running - this.created;
@@ -278,51 +286,65 @@ public class DefaultServer {
 				}
 				// 记录等待时间
 				DefaultServer.this.quality.waiting(this.waiting);
+				return this;
 			}
 
-			/**
-			 * 通道写入水位检查
-			 */
-			private void water4check() {
-				// 通道可读检查, 窗口关闭则抛出异常
-				if (DefaultServer.WRITE_WATER && !this.ctx.channel().isWritable()) {
-					throw new KeplerNetworkException("Channel can not writable. [from=" + this.ctx.channel().localAddress() + "][to=" + this.ctx.channel().remoteAddress() + "]");
+			private Reply valid() throws Exception {
+				// 校验是否Reject
+				DefaultServer.this.reject.reject(this.request, this.ctx.channel().remoteAddress());
+				// 校验请求合法性
+				DefaultServer.this.token.valid(this.request);
+				return this;
+			}
+
+			private Reply request() throws Exception {
+				// 解析Request
+				this.request = DefaultServer.this.processor.process(Request.class.cast(DefaultServer.this.decoder.decode(this.buffer)));
+				return this;
+			}
+
+			private Reply response() throws Exception {
+				try {
+					// 线程Copy Header, 用于嵌套服务调用时传递
+					DefaultServer.this.headers.set(this.request.headers());
+					// 获取服务并执行
+					this.response = DefaultServer.this.response.factory(this.request.serial()).response(this.request.ack(), DefaultServer.this.exported.get(this.request.service()).invoke(this.request, null), this.request.serial());
+					return this;
+				} catch (Throwable e) {
+					this.response = DefaultServer.this.response.factory(this.request.serial()).throwable(this.request.ack(), e, this.request.serial());
+					return this;
+				} finally {
+					// 删除Header避免同线程的其他业务复用
+					DefaultServer.this.headers.release();
 				}
+			}
+
+			private Reply write4trace() throws Exception {
+				this.ctx.writeAndFlush(DefaultServer.this.encoder.encode(this.request.service(), this.request.method(), this.response)).addListener(ExceptionListener.listener(this.ctx, this.request.get(Trace.TRACE)));
+				// 记录调用栈 (使用原始Request)
+				DefaultServer.this.trace.trace(this.request, this.response, this.ctx.channel().localAddress().toString(), this.ctx.channel().remoteAddress().toString(), this.waiting, System.currentTimeMillis() - this.running, this.created);
+				return this;
 			}
 
 			@Override
 			public void run() {
 				try {
 					// 初始化, 记录时间信息
-					this.init();
-					// Request After Process
-					Request request = DefaultServer.this.processor.process(Request.class.cast(DefaultServer.this.decoder.decode(this.buffer)));
-					// 线程Copy Header, 用于嵌套服务调用时传递
-					DefaultServer.this.headers.set(request.headers());
-					// 使用处理后Request
-					Response response = this.response(request);
-					this.water4check();
-					this.ctx.writeAndFlush(DefaultServer.this.encoder.encode(request.service(), request.method(), response)).addListener(ExceptionListener.listener(this.ctx, request.get(Trace.TRACE)));
-					// 记录调用栈 (使用原始Request)
-					DefaultServer.this.trace.trace(request, response, this.ctx.channel().localAddress().toString(), this.ctx.channel().remoteAddress().toString(), this.waiting, System.currentTimeMillis() - this.running, this.created);
+					this.init().request().valid();
+					if (!DefaultServer.this.queue.executor(this.request, this)) {
+						this.running();
+					}
 				} catch (Throwable throwable) {
 					DefaultServer.LOGGER.error(throwable.getMessage(), throwable);
 				}
 			}
 
-			private Response response(Request request) {
+			@Override
+			public void running() {
 				try {
-					// 校验是否Reject
-					request = DefaultServer.this.reject.reject(request, this.ctx.channel().remoteAddress());
-					// 校验请求合法性
-					request = DefaultServer.this.token.valid(request);
-					// 获取服务并执行
-					return DefaultServer.this.response.factory(request.serial()).response(request.ack(), DefaultServer.this.exported.get(request.service()).invoke(request, null), request.serial());
-				} catch (Throwable e) {
-					return DefaultServer.this.response.factory(request.serial()).throwable(request.ack(), e, request.serial());
-				} finally {
-					// 删除Header避免同线程的其他业务复用
-					DefaultServer.this.headers.release();
+					this.response().write4trace();
+				} catch (Throwable throwable) {
+					DefaultServer.LOGGER.error(throwable.getMessage(), throwable);
 				}
 			}
 		}

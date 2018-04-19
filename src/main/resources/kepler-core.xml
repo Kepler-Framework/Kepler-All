@@ -10,6 +10,7 @@
 	<import resource="kepler-mock.xml" />
 	<import resource="kepler-host.xml" />
 	<import resource="kepler-main.xml" />
+	<import resource="kepler-queue.xml" />
 	<import resource="kepler-admin.xml" />
 	<import resource="kepler-token.xml" />
 	<import resource="kepler-trace.xml" />
