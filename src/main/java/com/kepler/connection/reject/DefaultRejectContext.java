@@ -65,10 +65,12 @@ public class DefaultRejectContext implements Extension, Reject {
 	}
 
 	@Override
-	public Request reject(Request request, SocketAddress address) throws KeplerValidateException {
+	public void reject(Request request, SocketAddress address) throws KeplerValidateException {
 		// 如果开启Reject则获取当前可用Reject, 如果无法获取则使用默认
 		// 尝试加载Profile, 如果不存在则使用Default
-		return DefaultRejectContext.ENABLED ? this.rejects.get(PropertiesUtils.profile(this.profile.profile(request.service()), DefaultRejectContext.REJECT_KEY, DefaultRejectContext.REJECT_VAL)).reject(request, address) : request;
+		if (DefaultRejectContext.ENABLED) {
+			this.rejects.get(PropertiesUtils.profile(this.profile.profile(request.service()), DefaultRejectContext.REJECT_KEY, DefaultRejectContext.REJECT_VAL)).reject(request, address);
+		}
 	}
 
 	/**
@@ -81,8 +83,7 @@ public class DefaultRejectContext implements Extension, Reject {
 	private class NothingReject implements Reject {
 
 		@Override
-		public Request reject(Request request, SocketAddress address) throws KeplerValidateException {
-			return request;
+		public void reject(Request request, SocketAddress address) throws KeplerValidateException {
 		}
 
 		@Override

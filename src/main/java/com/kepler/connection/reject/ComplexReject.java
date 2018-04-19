@@ -29,12 +29,12 @@ public class ComplexReject implements Reject {
 	}
 
 	@Override
-	public Request reject(Request request, SocketAddress address) throws KeplerValidateException {
+	public void reject(Request request, SocketAddress address) throws KeplerValidateException {
 		// 当Service && Address均拒绝才拒绝服务
 		try {
-			return this.reject4address.reject(request, address);
+			this.reject4address.reject(request, address);
 		} catch (KeplerValidateException exception) {
-			return this.reject4service.reject(request, address);
+			this.reject4service.reject(request, address);
 		}
 	}
 

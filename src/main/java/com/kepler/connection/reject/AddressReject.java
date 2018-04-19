@@ -32,13 +32,12 @@ public class AddressReject implements Reject {
 	}
 
 	@Override
-	public Request reject(Request request, SocketAddress address) throws KeplerValidateException {
+	public void reject(Request request, SocketAddress address) throws KeplerValidateException {
 		String rejects = PropertiesUtils.profile(this.profile.profile(request.service()), AddressReject.ADDRESS_KEY, AddressReject.ADDRESS_VAL);
 		// 如果指定服务开启拒绝请求则抛出异常
 		if (rejects.matches(".*\\[" + InetSocketAddress.class.cast(address).getHostName() + "\\].*")) {
 			throw new KeplerValidateException("Reject: " + request.service() + " from " + address + " ... ");
 		}
-		return request;
 	}
 
 	@Override
