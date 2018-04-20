@@ -52,6 +52,8 @@ public class QueueExecutorImpl extends ThreadShutdown implements QueueExecutor, 
 	 */
 	private static final int SHUTDOWN_INTERVAL = PropertiesUtils.get(QueueExecutorImpl.class.getName().toLowerCase() + ".shutdown_interval", 1000);
 
+	private static final boolean ACTIVED = PropertiesUtils.get(QueueExecutorImpl.class.getName().toLowerCase() + ".actived", false);
+
 	private static final Log LOGGER = LogFactory.getLog(QueueExecutorImpl.class);
 
 	private final Map<Service, ExecutorService> executors = new HashMap<Service, ExecutorService>();
@@ -71,7 +73,7 @@ public class QueueExecutorImpl extends ThreadShutdown implements QueueExecutor, 
 
 	@Override
 	public void register(Service service, Queue queue) {
-		if (queue != null) {
+		if (QueueExecutorImpl.ACTIVED && queue != null) {
 			int size = queue.queue() != 0 ? queue.queue() : PropertiesUtils.profile(this.profile.profile(service), QueueExecutorImpl.THREAD_QUEUE_KEY, QueueExecutorImpl.THREAD_QUEUE_DEF);
 			int core = queue.core() != 0 ? queue.core() : PropertiesUtils.profile(this.profile.profile(service), QueueExecutorImpl.THREAD_CORE_KEY, QueueExecutorImpl.THREAD_CORE_DEF);
 			int max = queue.max() != 0 ? queue.max() : PropertiesUtils.profile(this.profile.profile(service), QueueExecutorImpl.THREAD_MAX_KEY, QueueExecutorImpl.THREAD_MAX_DEF);
@@ -82,6 +84,9 @@ public class QueueExecutorImpl extends ThreadShutdown implements QueueExecutor, 
 
 	@Override
 	public boolean executor(Request request, QueueRunnable runnable) {
+		if (QueueExecutorImpl.ACTIVED) {
+			return false;
+		}
 		ExecutorService executor = this.executors.get(request.service());
 		if (executor != null) {
 			executor.execute(new ProxyRunnable(runnable));

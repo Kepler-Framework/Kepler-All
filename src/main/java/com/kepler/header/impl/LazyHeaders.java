@@ -80,7 +80,7 @@ public class LazyHeaders implements Headers {
 
 	public LazyHeaders put(Map<String, String> headers) {
 		for (String key : headers.keySet()) {
-			this.headers.put(key, headers.get(key));
+			this.put(key, headers.get(key));
 		}
 		return this;
 	}
