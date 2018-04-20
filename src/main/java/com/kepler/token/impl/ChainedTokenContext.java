@@ -32,24 +32,21 @@ public class ChainedTokenContext implements TokenContext {
 	}
 
 	@Override
-	public Request set(Request request, ChannelInvoker invoker) {
-		Request temp = request;
+	public void set(Request request, ChannelInvoker invoker) {
 		if (!this.contexts.isEmpty()) {
 			for (TokenContext token : this.contexts) {
-				temp = token.set(temp, invoker);
+				token.set(request, invoker);
 			}
 		}
-		return temp;
 	}
 
 	@Override
-	public Request valid(Request request) throws KeplerValidateException {
+	public void valid(Request request) throws KeplerValidateException {
 		Request temp = request;
 		if (!this.contexts.isEmpty()) {
 			for (TokenContext token : this.contexts) {
-				temp = token.valid(temp);
+				token.valid(temp);
 			}
 		}
-		return temp;
 	}
 }

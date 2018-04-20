@@ -20,7 +20,7 @@ public interface Reject {
 	 * @return
 	 * @throws KeplerValidateException
 	 */
-	public Request reject(Request request, SocketAddress address) throws KeplerValidateException;
+	public void reject(Request request, SocketAddress address) throws KeplerValidateException;
 
 	public String name();
 }

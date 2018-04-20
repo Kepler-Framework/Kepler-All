@@ -677,7 +677,7 @@ public class SerializerFactory extends AbstractSerializerFactory
         Class cl = Class.forName(type, false, getClassLoader());
         deserializer = getDeserializer(cl);
       } catch (Exception e) {
-        log.warning("Hessian/Burlap: '" + type + "' is an unknown class in " + getClassLoader() + ":\n" + e);
+        log.info("Hessian/Burlap: '" + type + "' is an unknown class in " + getClassLoader() + ":\n" + e);
 
         log.log(Level.FINER, e.toString(), e);
       }
