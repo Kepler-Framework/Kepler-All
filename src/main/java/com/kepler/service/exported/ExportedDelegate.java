@@ -81,6 +81,7 @@ public class ExportedDelegate {
 		this.service = new Service(service.getName(), version, catalog);
 		this.exported = exported;
 		this.instance = instance;
+		// 先Profile后Register
 		profiles.add(this.service, profile);
 		register.register(this.service, AdvisedFinder.get(instance, Queue.class));
 

@@ -4,9 +4,11 @@
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-	<alias name="kepler.queue" alias="kepler.queue.register"/>
-	<alias name="kepler.queue" alias="kepler.queue.executor"/>
+	<alias name="kepler.queue" alias="kepler.queue.register" />
+	<alias name="kepler.queue" alias="kepler.queue.executor" />
 
-	<bean id="kepler.queue" class="com.kepler.queue.impl.QueueExecutorImpl" destroy-method="destroy" />
+	<bean id="kepler.queue" class="com.kepler.queue.impl.QueueExecutorImpl" destroy-method="destroy">
+		<constructor-arg ref="kepler.config.profile" />
+	</bean>
 
 </beans>

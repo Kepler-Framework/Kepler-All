@@ -78,6 +78,13 @@ public class LazyHeaders implements Headers {
 		return this;
 	}
 
+	public LazyHeaders put(Map<String, String> headers) {
+		for (String key : headers.keySet()) {
+			this.headers.put(key, headers.get(key));
+		}
+		return this;
+	}
+
 	public LazyHeaders putIfAbsent(String key, String value) {
 		if (!this.initial(key, value) && !this.headers.containsKey(key)) {
 			this.headers.put(key, value);

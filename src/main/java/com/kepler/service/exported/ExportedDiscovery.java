@@ -80,8 +80,9 @@ public class ExportedDiscovery implements BeanPostProcessor {
 	private void exported(Queue queue, Class<?> clazz, Object bean, String profile, String catalog, String... versions) throws Exception {
 		for (String version : versions) {
 			com.kepler.service.Service service = new com.kepler.service.Service(clazz.getName(), version, catalog);
-			this.register.register(service, queue);
+			// 先Profile后Register
 			this.profile.add(service, profile);
+			this.register.register(service, queue);
 			this.exported.export(service, bean);
 		}
 	}
