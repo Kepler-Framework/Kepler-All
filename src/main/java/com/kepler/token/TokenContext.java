@@ -25,7 +25,7 @@ public interface TokenContext {
 	 * @param invoker
 	 * @return
 	 */
-	public void set(Request request, ChannelInvoker invoker);
+	public Request set(Request request, ChannelInvoker invoker);
 
 	/**
 	 * 校验Token
@@ -34,5 +34,5 @@ public interface TokenContext {
 	 * @return
 	 * @throws KeplerValidateException
 	 */
-	public void valid(Request request) throws KeplerValidateException;
+	public Request valid(Request request) throws KeplerValidateException;
 }

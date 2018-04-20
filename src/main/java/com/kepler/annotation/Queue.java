@@ -6,6 +6,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.kepler.queue.QueuePolicy;
+
 /**
  * @author KimShen
  *
@@ -14,6 +16,8 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Inherited
 public @interface Queue {
+
+	public QueuePolicy policy() default QueuePolicy.ABORT;
 
 	public int queue() default 0;
 

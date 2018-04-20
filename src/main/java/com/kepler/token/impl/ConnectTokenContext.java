@@ -26,15 +26,17 @@ public class ConnectTokenContext implements TokenContext {
 	 * Headers.ENABLED强依赖
 	 */
 	@Override
-	public void set(Request request, ChannelInvoker invoker) {
+	public Request set(Request request, ChannelInvoker invoker) {
 		request.put(Host.TOKEN_KEY, invoker.remote().token());
+		return request;
 	}
 
 	@Override
-	public void valid(Request request) throws KeplerValidateException {
+	public Request valid(Request request) throws KeplerValidateException {
 		// 如果开启校验
 		if (!Host.TOKEN_VAL.equals(request.get(Host.TOKEN_KEY))) {
 			throw new KeplerValidateException("Unvalid connect token for Request: " + request);
 		}
+		return request;
 	}
 }

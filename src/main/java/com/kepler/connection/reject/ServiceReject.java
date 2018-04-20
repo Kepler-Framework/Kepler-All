@@ -31,12 +31,11 @@ public class ServiceReject implements Reject {
 	}
 
 	@Override
-	public Request reject(Request request, SocketAddress address) throws KeplerValidateException {
+	public void reject(Request request, SocketAddress address) throws KeplerValidateException {
 		// 如果指定服务开启拒绝请求则抛出异常
 		if (PropertiesUtils.profile(this.profile.profile(request.service()), ServiceReject.REJECT_KEY, ServiceReject.REJECT_VAL)) {
 			throw new KeplerValidateException("Reject: " + request.service() + " from " + address + " ... ");
 		}
-		return request;
 	}
 
 	@Override

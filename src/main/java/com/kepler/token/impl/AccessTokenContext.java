@@ -48,17 +48,19 @@ public class AccessTokenContext implements TokenContext {
 	 * Headers.ENABLED强依赖
 	 */
 	@Override
-	public void set(Request request, ChannelInvoker invoker) {
+	public Request set(Request request, ChannelInvoker invoker) {
 		// 获取服务级别的访问Token
 		String token = PropertiesUtils.profile(this.profile.profile(request.service()), AccessTokenContext.TOKEN_PROFILE_KEY, AccessTokenContext.TOKEN_PROFILE_DEF);
 		request.put(AccessTokenContext.TOKEN_HEADER, token);
+		return request;
 	}
 
 	@Override
-	public void valid(Request request) throws KeplerValidateException {
+	public Request valid(Request request) throws KeplerValidateException {
 		// 如果开启校验
 		if (AccessTokenContext.ENABLED && !StringUtils.equals(PropertiesUtils.profile(this.profile.profile(request.service()), AccessTokenContext.TOKEN_PROFILE_KEY, AccessTokenContext.TOKEN_PROFILE_DEF), request.get(AccessTokenContext.TOKEN_HEADER))) {
 			throw new KeplerValidateException("Unvalid access token for Request: " + request);
 		}
+		return request;
 	}
 }

@@ -75,7 +75,7 @@ public class QueueExecutorImpl extends ThreadShutdown implements QueueExecutor, 
 			int size = queue.queue() != 0 ? queue.queue() : PropertiesUtils.profile(this.profile.profile(service), QueueExecutorImpl.THREAD_QUEUE_KEY, QueueExecutorImpl.THREAD_QUEUE_DEF);
 			int core = queue.core() != 0 ? queue.core() : PropertiesUtils.profile(this.profile.profile(service), QueueExecutorImpl.THREAD_CORE_KEY, QueueExecutorImpl.THREAD_CORE_DEF);
 			int max = queue.max() != 0 ? queue.max() : PropertiesUtils.profile(this.profile.profile(service), QueueExecutorImpl.THREAD_MAX_KEY, QueueExecutorImpl.THREAD_MAX_DEF);
-			this.executors.put(service, new ThreadPoolExecutor(core, max, QueueExecutorImpl.THREAD_KEEPALIVE_DEF, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(size), new ThreadPoolExecutor.AbortPolicy()));
+			this.executors.put(service, new ThreadPoolExecutor(core, max, QueueExecutorImpl.THREAD_KEEPALIVE_DEF, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(size), queue.policy().handler()));
 			QueueExecutorImpl.LOGGER.info("[register][service=" + service.service() + "][version=" + service.version() + "][catalog=" + service.catalog() + "][queue=" + queue + "][core=" + core + "][max=" + max + "]");
 		}
 	}
