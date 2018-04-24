@@ -5,6 +5,8 @@ package com.kepler.serial;
  */
 public interface SerialName {
 
+	public boolean actived();
+	
 	/**
 	 * 序列化策略名称
 	 * 

@@ -44,6 +44,9 @@ public class DefaultSerialInputs implements Extension {
 	@Override
 	public DefaultSerialInputs install(Object instance) {
 		SerialInput input = SerialInput.class.cast(instance);
+		if (!input.actived()) {
+			return this;
+		}
 		this.warning(this.inputs[input.serial()]);
 		this.inputs[input.serial()] = input;
 		this.inputs4name.put(input.name(), input);

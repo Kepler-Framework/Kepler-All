@@ -35,6 +35,10 @@ public class Hessian2Serial extends HessianSerial {
 		return Hessian2Serial.SERIAL;
 	}
 
+	public boolean actived() {
+		return true;
+	}
+
 	@Override
 	protected Integer buffer() {
 		return Hessian2Serial.BUFFER;

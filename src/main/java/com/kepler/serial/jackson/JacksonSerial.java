@@ -30,6 +30,8 @@ import com.kepler.serial.SerialOutput;
  */
 public class JacksonSerial implements SerialInput, SerialOutput {
 
+	private static final boolean ACTIVED = PropertiesUtils.get(JacksonSerial.class.getName().toLowerCase() + ".actived", true);
+
 	/**
 	 * 缓冲大小
 	 */
@@ -43,22 +45,35 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 
 	public static final byte SERIAL = 2;
 
-	private final ObjectReader reader_request;
+	private boolean actived = Boolean.TRUE;
 
-	private final ObjectReader reader_response;
+	private ObjectReader reader_request;
 
-	private final ObjectWriter writer_request;
+	private ObjectReader reader_response;
 
-	private final ObjectWriter writer_response;
+	private ObjectWriter writer_request;
 
-	private final ObjectMapper mapper;
+	private ObjectWriter writer_response;
+
+	private ObjectMapper mapper;
 
 	public JacksonSerial() {
-		this.mapper = this.prepare(new ObjectMapper());
-		this.reader_request = this.mapper.reader(JacksonRequest.class);
-		this.reader_response = this.mapper.reader(JacksonResponse.class);
-		this.writer_request = this.mapper.writerWithType(JacksonRequest.class);
-		this.writer_response = this.mapper.writerWithType(JacksonResponse.class);
+		if (!JacksonSerial.ACTIVED) {
+			this.actived = false;
+			return;
+		}
+		try {
+			Class.forName(ObjectMapper.class.getName());
+			Class.forName(ObjectWriter.class.getName());
+			Class.forName(ObjectReader.class.getName());
+			this.mapper = this.prepare(new ObjectMapper());
+			this.reader_request = this.mapper.reader(JacksonRequest.class);
+			this.reader_response = this.mapper.reader(JacksonResponse.class);
+			this.writer_request = this.mapper.writerWithType(JacksonRequest.class);
+			this.writer_response = this.mapper.writerWithType(JacksonResponse.class);
+		} catch (NoClassDefFoundError | ClassNotFoundException e) {
+			this.actived = false;
+		}
 	}
 
 	protected ObjectMapper prepare(ObjectMapper mapper) {
@@ -74,6 +89,10 @@ public class JacksonSerial implements SerialInput, SerialOutput {
 	@Override
 	public byte serial() {
 		return JacksonSerial.SERIAL;
+	}
+
+	public boolean actived() {
+		return this.actived;
 	}
 
 	@Override

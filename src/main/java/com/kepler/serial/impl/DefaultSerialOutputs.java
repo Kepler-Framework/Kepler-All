@@ -44,6 +44,9 @@ public class DefaultSerialOutputs implements Extension {
 	@Override
 	public DefaultSerialOutputs install(Object instance) {
 		SerialOutput output = SerialOutput.class.cast(instance);
+		if (!output.actived()) {
+			return this;
+		}
 		this.warning(this.outputs[output.serial()]);
 		this.outputs[output.serial()] = output;
 		this.outputs4name.put(output.name(), output);
