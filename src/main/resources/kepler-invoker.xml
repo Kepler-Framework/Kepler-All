@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans
 	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
 	<import resource="kepler-invoker-async.xml" />
 	<import resource="kepler-invoker-forkjoin.xml" />
+	<import resource="kepler-invoker-processor.xml" />
 
 	<alias name="kepler.invoker.cached" alias="kepler.invoker" />
 	<alias name="kepler.invoker.main" alias="kepler.service.imported.invoker.main" />
@@ -60,6 +60,7 @@
 		<constructor-arg ref="kepler.mock.context" />
 		<constructor-arg ref="kepler.trace.causes" />
 		<constructor-arg ref="kepler.channel.context" />
+		<constructor-arg ref="kepler.invoker.processor" />
 	</bean>
 
 	<bean id="kepler.invoker.demote" class="com.kepler.invoker.impl.DemoteInvoker">

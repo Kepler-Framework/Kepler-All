@@ -8,6 +8,8 @@
 	<bean id="kepler.generic.convert.selector" class="com.kepler.generic.reflect.convert.impl.DefaultSelector">
 		<constructor-arg>
 			<util:list>
+				<bean class="com.kepler.generic.reflect.convert.impl.BigIntegerConvertor" />
+				<bean class="com.kepler.generic.reflect.convert.impl.BigDecimalConvertor" />
 				<bean class="com.kepler.generic.reflect.convert.impl.BooleanConvertor" />
 				<bean class="com.kepler.generic.reflect.convert.impl.StringConvertor" />
 				<bean class="com.kepler.generic.reflect.convert.impl.DoubleConvertor" />
@@ -16,7 +18,6 @@
 				<bean class="com.kepler.generic.reflect.convert.impl.ShortConvertor" />
 				<bean class="com.kepler.generic.reflect.convert.impl.LongConvertor" />
 				<bean class="com.kepler.generic.reflect.convert.impl.ByteConvertor" />
-				<bean class="com.kepler.generic.reflect.convert.impl.IntConvertor" />
 				<bean class="com.kepler.generic.reflect.convert.impl.DateConvertor" />
 				<bean class="com.kepler.generic.reflect.convert.impl.FileConvertor" />
 				<bean class="com.kepler.generic.reflect.convert.impl.ArrayConvertor" />
@@ -24,8 +25,7 @@
 				<bean class="com.kepler.generic.reflect.convert.impl.ListConvertor" />
 				<bean class="com.kepler.generic.reflect.convert.impl.MapConvertor" />
 				<bean class="com.kepler.generic.reflect.convert.impl.SetConvertor" />
-				<bean class="com.kepler.generic.reflect.convert.impl.BigIntegerConvertor" />
-				<bean class="com.kepler.generic.reflect.convert.impl.BigDecimalConvertor" />
+				<bean class="com.kepler.generic.reflect.convert.impl.IntConvertor" />
 			</util:list>
 		</constructor-arg>
 	</bean>

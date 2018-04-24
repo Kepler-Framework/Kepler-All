@@ -113,7 +113,7 @@ public class QuietExceptions implements Quiet, Imported, Exported {
 			if (AnnotationUtils.findAnnotation(throwable, QuietThrowable.class) != null) {
 				return true;
 			}
-			Method actual = this.methods.method(Service.clazz(request.service()), request.method(), request.types());
+			Method actual = this.methods.method(Service.clazz(request.service()), request.method(), request.types()).method();
 			QuietMethods methods = this.quiets.get(request.service());
 			// 如果可以获取QuietMethods(非泛化)并且可以获取实际方法则尝试从QuietMethods解析, 如果QuietMethods或实际方法任一无法获得则尝试解析异常
 			return (methods != null && actual != null) ? methods.exceptions(actual).contains(throwable) : false;

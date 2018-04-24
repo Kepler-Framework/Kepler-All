@@ -141,7 +141,7 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 		 */
 		private Object invoke4method(Request request) throws Throwable {
 			// 获取执行方法
-			Method method = DefaultContext.this.methods.method(Service.clazz(request.service()), request.method(), request.types());
+			Method method = DefaultContext.this.methods.method(Service.clazz(request.service()), request.method(), request.types()).method();
 			try {
 				return this.response(request, this.exists(request, method).invoke(this.service, request.args()));
 			} catch (NoSuchMethodException exception) {

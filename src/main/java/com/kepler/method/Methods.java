@@ -1,7 +1,5 @@
 package com.kepler.method;
 
-import java.lang.reflect.Method;
-
 /**
  * 方法获取
  * 
@@ -11,11 +9,23 @@ import java.lang.reflect.Method;
 public interface Methods {
 
 	/**
-	 * @param service 服务名称
-	 * @param method 服务方法
-	 * @param parameter 请求参数
-	 * @return 对应本地方法
+	 * @param 按参数类型查找
+	 * 
 	 * @throws Exception
 	 */
-	public Method method(Class<?> service, String method, Class<?>[] parameter) throws Exception;
+	public MethodInfo method(Class<? extends Object> service, String method, Class<?>[] classes) throws Exception;
+
+	/**
+	 * @param 按参数名称查找
+	 * 
+	 * @throws Exception
+	 */
+	public MethodInfo method(Class<? extends Object> service, String method, String[] names) throws Exception;
+
+	/**
+	 * @param 按参数长度查找
+	 * 
+	 * @throws Exception
+	 */
+	public MethodInfo method(Class<? extends Object> service, String method, int size) throws Exception;
 }

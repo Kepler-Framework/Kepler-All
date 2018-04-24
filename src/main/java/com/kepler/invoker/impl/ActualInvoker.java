@@ -12,8 +12,10 @@ import com.kepler.annotation.Config;
 import com.kepler.annotation.Internal;
 import com.kepler.channel.ChannelContext;
 import com.kepler.config.PropertiesUtils;
-import com.kepler.generic.reflect.impl.DefaultDelegate;
+import com.kepler.generic.reflect.impl.DelegateArray;
+import com.kepler.host.Host;
 import com.kepler.invoker.Invoker;
+import com.kepler.invoker.InvokerProcessor;
 import com.kepler.mock.Mocker;
 import com.kepler.mock.MockerContext;
 import com.kepler.protocol.Request;
@@ -43,6 +45,8 @@ public class ActualInvoker implements Invoker {
 
 	private static final Log LOGGER = LogFactory.getLog(ActualInvoker.class);
 
+	private final InvokerProcessor processor;
+
 	private final ChannelContext channels;
 
 	private final MockerContext mocker;
@@ -55,8 +59,9 @@ public class ActualInvoker implements Invoker {
 
 	private int timeout = ActualInvoker.TIMEOUT;
 
-	public ActualInvoker(ChannelContext channels, TraceCauses trace, MockerContext mocker, Router router) {
+	public ActualInvoker(InvokerProcessor processor, ChannelContext channels, TraceCauses trace, MockerContext mocker, Router router) {
 		super();
+		this.processor = processor;
 		this.channels = channels;
 		this.router = router;
 		this.mocker = mocker;
@@ -86,7 +91,7 @@ public class ActualInvoker implements Invoker {
 			Throwable cause = exception.cause();
 			throw ActualInvoker.ERROR_TO_EXCEPTION && Error.class.isAssignableFrom(cause.getClass()) ? new KeplerErrorException(Error.class.cast(cause)) : exception.cause();
 		} finally {
-			request.headers().delete(DefaultDelegate.DELEGATE_KEY);
+			request.headers().delete(DelegateArray.DELEGATE_KEY);
 		}
 	}
 
@@ -98,7 +103,9 @@ public class ActualInvoker implements Invoker {
 	 */
 	private Object invoker(Request request, Method method, long timestamp) throws Throwable {
 		try {
-			return this.channels.get(this.router.host(request)).invoke(request, method);
+			Host _host = this.router.host(request);
+			Request _request = this.processor.before(request, _host);
+			return this.channels.get(_host).invoke(_request, method);
 		} catch (KeplerRoutingException exception) {
 			// 存在Mocker则使用Mocker, 否则重试
 			Mocker mocker = this.mocker.get(request.service());

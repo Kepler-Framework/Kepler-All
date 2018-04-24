@@ -11,8 +11,6 @@ import com.kepler.org.apache.commons.lang.StringUtils;
  */
 public interface Host extends Serializable {
 
-	public static final String LOOP = "localhost";
-
 	public static final String PRIORITY_KEY = Host.class.getName().toLowerCase() + ".priority";
 
 	/**
@@ -61,7 +59,16 @@ public interface Host extends Serializable {
 	 */
 	public static final String GROUP_VAL = PropertiesUtils.get(Host.class.getName().toLowerCase() + ".group", StringUtils.defaultString(System.getenv("USER"), Host.GROUP_DEF));
 
+	public static final String LOOP = "localhost";
+
+	/**
+	 * 主机功能集合
+	 */
+	public static final int FEATURE = 1;
+
 	public int port();
+
+	public int feature();
 
 	public int priority();
 

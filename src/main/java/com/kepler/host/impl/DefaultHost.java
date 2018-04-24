@@ -12,6 +12,8 @@ public class DefaultHost implements Host {
 
 	private final int port;
 
+	private final int feature;
+
 	private final int priority;
 
 	private final String pid;
@@ -28,7 +30,7 @@ public class DefaultHost implements Host {
 
 	private final String location;
 
-	public DefaultHost(String location, String group, String token, String name, String tag, String pid, String host, int port, int priority) {
+	public DefaultHost(String location, String group, String token, String name, String tag, String pid, String host, int port, int feature, int priority) {
 		this.tag = tag;
 		this.pid = pid;
 		this.name = name;
@@ -36,12 +38,17 @@ public class DefaultHost implements Host {
 		this.port = port;
 		this.token = token;
 		this.group = group;
+		this.feature = feature;
 		this.location = location;
 		this.priority = priority;
 	}
 
 	public String address() {
 		return this.host() + ":" + this.port();
+	}
+
+	public int feature() {
+		return this.feature;
 	}
 
 	@Override

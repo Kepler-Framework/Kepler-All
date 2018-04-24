@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans
 	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
@@ -8,18 +7,15 @@
 	<import resource="kepler-generic-reflect-convert.xml" />
 	<import resource="kepler-generic-reflect-analyser.xml" />
 
-	<bean id="kepler.generic.reflect" class="com.kepler.generic.reflect.impl.DefaultService">
-		<constructor-arg ref="kepler.id" />
-		<constructor-arg ref="kepler.invoker" />
-		<constructor-arg ref="kepler.serials" />
-		<constructor-arg ref="kepler.header.context" />
-		<constructor-arg ref="kepler.service.imported" />
-		<constructor-arg ref="kepler.protocol.request" />
-		<constructor-arg ref="kepler.header.processor" />
-		<constructor-arg ref="kepler.generic.reflect.delegate" />
+	<bean id="kepler.generic.reflect.delegate.map" class="com.kepler.generic.reflect.impl.DelegateMap">
+		<constructor-arg ref="kepler.protocol.validation4service" />
+		<constructor-arg ref="kepler.generic.analyse.analyser" />
+		<constructor-arg ref="kepler.generic.response" />
+		<constructor-arg ref="kepler.service.quiet" />
+		<constructor-arg ref="kepler.methods" />
 	</bean>
 
-	<bean id="kepler.generic.reflect.delegate" class="com.kepler.generic.reflect.impl.DefaultDelegate">
+	<bean id="kepler.generic.reflect.delegate.array" class="com.kepler.generic.reflect.impl.DelegateArray">
 		<constructor-arg ref="kepler.protocol.validation4service" />
 		<constructor-arg ref="kepler.generic.analyse.analyser" />
 		<constructor-arg ref="kepler.generic.response" />

@@ -4,10 +4,6 @@
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-	<bean id="kepler.methods.actual" class="com.kepler.method.impl.ActualMethods" />
-
-	<bean id="kepler.methods" class="com.kepler.method.impl.CachedMethods">
-		<constructor-arg ref="kepler.methods.actual" />
-	</bean>
+	<bean id="kepler.invoker.processor" class="com.kepler.invoker.impl.ChainedProcessors" />
 
 </beans>

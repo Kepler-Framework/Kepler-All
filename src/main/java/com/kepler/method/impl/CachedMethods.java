@@ -1,6 +1,5 @@
 package com.kepler.method.impl;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -8,9 +7,8 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.kepler.config.PropertiesUtils;
+import com.kepler.method.MethodInfo;
 import com.kepler.method.Methods;
-import com.kepler.org.apache.commons.lang.reflect.MethodUtils;
 
 /**
  * @author KimShen
@@ -18,52 +16,89 @@ import com.kepler.org.apache.commons.lang.reflect.MethodUtils;
  */
 public class CachedMethods implements Methods {
 
-	/**
-	 * 是否开启方法缓存, 如果关闭则每次均使用调用
-	 */
-	private static final boolean ENABLED = PropertiesUtils.get(CachedMethods.class.getName().toLowerCase() + ".enabled", true);
-
 	private static final Log LOGGER = LogFactory.getLog(CachedMethods.class);
 
 	/**
 	 * 缓存方法
 	 */
-	volatile private Map<ServiceAndMethod, Method> cached = new HashMap<ServiceAndMethod, Method>();
+	volatile private Map<CacheKeys, MethodInfo> c_classes = new HashMap<CacheKeys, MethodInfo>();
 
-	/**
-	 * 获取并缓存方法
-	 * 
-	 * @param service_method
-	 * @return
-	 * @throws Exception
-	 */
-	private Method cached(ServiceAndMethod service_method) throws Exception {
-		// 实际方法
-		Method actual = MethodUtils.getMatchingAccessibleMethod(service_method.service(), service_method.method(), service_method.classes());
-		if (actual != null) {
-			synchronized (this) {
-				// 同步检查
-				if (this.cached.containsKey(service_method)) {
-					return actual;
-				}
-				CachedMethods.LOGGER.warn("Refresh method cache: [service=" + service_method + "][actual=" + actual + "]");
-				HashMap<ServiceAndMethod, Method> cached = new HashMap<ServiceAndMethod, Method>(this.cached);
-				cached.put(service_method.clone(), actual);
-				this.cached = cached;
-			}
-		}
-		return actual;
+	volatile private Map<CacheKeys, MethodInfo> c_names = new HashMap<CacheKeys, MethodInfo>();
+
+	volatile private Map<CacheKey, MethodInfo> c_size = new HashMap<CacheKey, MethodInfo>();
+
+	private final Object l_classes = new Object();
+
+	private final Object l_names = new Object();
+
+	private final Object l_size = new Object();
+
+	private final Methods methods;
+
+	private CachedMethods(Methods methods) {
+		this.methods = methods;
 	}
 
 	@Override
-	public Method method(Class<?> service, String method, Class<?>[] parameter) throws Exception {
-		ServiceAndMethod service_method = new ServiceAndMethod(method, service, parameter);
-		if (CachedMethods.ENABLED) {
-			Method matched = Method.class.cast(this.cached.get(service_method));
-			// 如果缓存已存在则返回, 否则查找方法并加入缓存
-			return matched != null ? matched : this.cached(service_method);
-		} else {
-			return MethodUtils.getAccessibleMethod(service_method.service(), service_method.method(), service_method.classes());
+	public MethodInfo method(Class<? extends Object> service, String method, Class<?>[] classes) throws Exception {
+		CacheKeys key = new CacheKeys(method, service, classes);
+		MethodInfo actual = this.c_classes.get(key);
+		if (actual != null) {
+			return actual;
+		}
+		synchronized (this.l_classes) {
+			MethodInfo cached = this.c_classes.get(key);
+			if (cached != null) {
+				return cached;
+			}
+			MethodInfo refresh_method = this.methods.method(service, method, classes);
+			HashMap<CacheKeys, MethodInfo> refresh_cached = new HashMap<CacheKeys, MethodInfo>(this.c_classes);
+			refresh_cached.put(key, refresh_method);
+			this.c_classes = refresh_cached;
+			CachedMethods.LOGGER.warn("Refresh method cache: [service=" + service + "][actual=" + refresh_method + "]");
+			return refresh_method;
+		}
+	}
+
+	@Override
+	public MethodInfo method(Class<? extends Object> service, String method, String[] names) throws Exception {
+		CacheKeys key = new CacheKeys(method, service, names);
+		MethodInfo actual = this.c_names.get(key);
+		if (actual != null) {
+			return actual;
+		}
+		synchronized (this.l_names) {
+			MethodInfo cached = this.c_names.get(key);
+			if (cached != null) {
+				return cached;
+			}
+			MethodInfo refresh_method = this.methods.method(service, method, names);
+			HashMap<CacheKeys, MethodInfo> refresh_cached = new HashMap<CacheKeys, MethodInfo>(this.c_names);
+			refresh_cached.put(key, refresh_method);
+			this.c_names = refresh_cached;
+			CachedMethods.LOGGER.warn("Refresh method cache: [service=" + service + "][actual=" + refresh_method + "]");
+			return refresh_method;
+		}
+	}
+
+	@Override
+	public MethodInfo method(Class<? extends Object> service, String method, int size) throws Exception {
+		CacheKey key = new CacheKey(method, service, size);
+		MethodInfo actual = this.c_size.get(key);
+		if (actual != null) {
+			return actual;
+		}
+		synchronized (this.l_size) {
+			MethodInfo cached = this.c_size.get(key);
+			if (cached != null) {
+				return cached;
+			}
+			MethodInfo refresh_method = this.methods.method(service, method, size);
+			HashMap<CacheKey, MethodInfo> refresh_cached = new HashMap<CacheKey, MethodInfo>(this.c_size);
+			refresh_cached.put(key, refresh_method);
+			this.c_size = refresh_cached;
+			CachedMethods.LOGGER.warn("Refresh method cache: [service=" + service + "][actual=" + refresh_method + "]");
+			return refresh_method;
 		}
 	}
 
@@ -73,17 +108,15 @@ public class CachedMethods implements Methods {
 	 * @author KimShen
 	 *
 	 */
-	private static class ServiceAndMethod implements Cloneable {
+	private class CacheKeys {
 
-		private static final Class<?>[] EMPTY = new Class<?>[0];
-
-		private String method;
+		private Object[] addition;
 
 		private Class<?> service;
 
-		private Class<?>[] classes;
+		private String method;
 
-		private ServiceAndMethod() {
+		private CacheKeys() {
 		}
 
 		/**
@@ -93,30 +126,22 @@ public class CachedMethods implements Methods {
 		 * @param service
 		 * @param classes
 		 */
-		private ServiceAndMethod(String method, Class<?> service, Class<?>[] classes) {
-			this.method = method;
-			this.service = service;
+		private CacheKeys(String method, Class<?> service, Object[] addition) {
 			// 检查是否存在参数
-			this.classes = classes != null ? classes : ServiceAndMethod.EMPTY;
-		}
-
-		public String method() {
-			return this.method;
-		}
-
-		public Class<?> service() {
-			return this.service;
-		}
-
-		public Class<?>[] classes() {
-			return this.classes;
+			this.addition = addition;
+			this.service = service;
+			this.method = method;
 		}
 
 		public int hashCode() {
 			int hash = 0;
 			hash = hash ^ this.service.hashCode() ^ this.method.hashCode();
-			for (Class<?> each : this.classes) {
-				hash = hash ^ each.hashCode();
+			if (this.addition != null) {
+				for (Object each : this.addition) {
+					if (each != null) {
+						hash = hash ^ each.hashCode();
+					}
+				}
 			}
 			return hash;
 		}
@@ -126,35 +151,71 @@ public class CachedMethods implements Methods {
 			if (ob == null) {
 				return false;
 			}
-			ServiceAndMethod target = ServiceAndMethod.class.cast(ob);
+			CacheKeys target = CacheKeys.class.cast(ob);
 			// Guard case2, 服务或方法不一致
 			if (!this.service.equals(target.service) || !this.method.equals(target.method)) {
 				return false;
 			}
-			// Guard case3, 参数长度不相等
-			if (this.classes.length != target.classes.length) {
+			if (!Arrays.equals(this.addition, target.addition)) {
 				return false;
-			}
-			// Guard case3, 参数类型不相等
-			for (int index = 0; index < this.classes.length; index++) {
-				if (!this.classes[index].equals(target.classes[index])) {
-					return false;
-				}
 			}
 			return true;
 		}
+	}
 
-		/**
-		 * 深复制
-		 * 
-		 * @return
-		 */
-		public ServiceAndMethod clone() {
-			return new ServiceAndMethod(this.method, this.service, this.classes);
+	private class CacheKey {
+
+		private Class<?> service;
+
+		private String method;
+
+		private Object param;
+
+		private CacheKey() {
 		}
 
-		public String toString() {
-			return "[service=" + this.service + "][method=" + this.method + "[classes=" + Arrays.toString(this.classes) + "]";
+		/**
+		 * 常规构造
+		 * 
+		 * @param method
+		 * @param service
+		 * @param classes
+		 */
+		private CacheKey(String method, Class<?> service, Object param) {
+			this.service = service;
+			this.method = method;
+			this.param = param;
+		}
+
+		public int hashCode() {
+			int hash = 0;
+			hash = hash ^ this.service.hashCode() ^ this.method.hashCode();
+			if (this.param != null) {
+				hash = hash ^ this.param.hashCode();
+			}
+			return hash;
+		}
+
+		public boolean equals(Object ob) {
+			// Guard case1, null
+			if (ob == null) {
+				return false;
+			}
+			CacheKey target = CacheKey.class.cast(ob);
+			// Guard case2, 服务或方法不一致
+			if (!this.service.equals(target.service) || !this.method.equals(target.method)) {
+				return false;
+			}
+			if (this.param == null && target.param != null) {
+				return false;
+			}
+			if (this.param != null && target.param == null) {
+				return false;
+			}
+			if (!this.param.equals(target.param)) {
+				return false;
+			}
+			return true;
 		}
 	}
 }

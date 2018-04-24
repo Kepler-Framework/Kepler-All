@@ -6,11 +6,25 @@
 
 	<import resource="kepler-generic-reflect.xml" />
 
-	<bean id="kepler.generic.response" class="com.kepler.generic.impl.DefaultResponseFactory" />
+	<bean id="kepler.generic.marker" class="com.kepler.generic.impl.DefaultMarker" />
 
-	<bean id="kepler.generic.delegate" class="com.kepler.generic.impl.DefaultDelegate">
-		<constructor-arg ref="kepler.generic.reflect.delegate" />
-		<constructor-arg ref="kepler.generic.response" />
+	<bean id="kepler.generic.delegate" class="com.kepler.generic.impl.DelegateRoot">
+		<constructor-arg index="0" ref="kepler.generic.response" />
+		<constructor-arg index="1" ref="kepler.generic.reflect.delegate.map" />
+		<constructor-arg index="2" ref="kepler.generic.reflect.delegate.array" />
 	</bean>
+
+	<bean id="kepler.generic.service" class="com.kepler.generic.reflect.impl.DefaultService">
+		<constructor-arg ref="kepler.id" />
+		<constructor-arg ref="kepler.serials" />
+		<constructor-arg ref="kepler.invoker" />
+		<constructor-arg ref="kepler.generic.marker" />
+		<constructor-arg ref="kepler.header.context" />
+		<constructor-arg ref="kepler.service.imported" />
+		<constructor-arg ref="kepler.protocol.request" />
+		<constructor-arg ref="kepler.header.processor" />
+	</bean>
+
+	<bean id="kepler.generic.response" class="com.kepler.generic.impl.DefaultResponseFactory" />
 
 </beans>
