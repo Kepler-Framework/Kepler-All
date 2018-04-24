@@ -4,15 +4,16 @@
     http://www.springframework.org/schema/util
 	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
+	<import resource="kepler-serial-generic.xml" />
 	<import resource="kepler-serial-hessian.xml" />
-	<import resource="kepler-serial-jackson.xml" /> 
-
-	<bean id="kepler.serials.inputs" class="com.kepler.serial.impl.DefaultSerialInputs">
-		<constructor-arg ref="kepler.serial.input.hessian" />
-	</bean>
+	<import resource="kepler-serial-jackson.xml" />
 
 	<bean id="kepler.serials.outputs" class="com.kepler.serial.impl.DefaultSerialOutputs">
 		<constructor-arg ref="kepler.serial.output.hessian" />
+	</bean>
+
+	<bean id="kepler.serials.inputs" class="com.kepler.serial.impl.DefaultSerialInputs">
+		<constructor-arg ref="kepler.serial.input.hessian" />
 	</bean>
 
 	<bean id="kepler.serials " class="com.kepler.serial.impl.DefaultSerials">
