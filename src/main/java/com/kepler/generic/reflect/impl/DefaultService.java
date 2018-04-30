@@ -1,6 +1,7 @@
 package com.kepler.generic.reflect.impl;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import com.kepler.config.PropertiesUtils;
 import com.kepler.generic.GenericMarker;
@@ -99,5 +100,29 @@ public class DefaultService extends DefaultImported implements GenericService {
 	@Override
 	public Object invoke(Service service, String method, GenericBean bean) throws Throwable {
 		return this.invoke(service, method, new Object[] { bean });
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public GenericBean invokeAsBean(Service service, String method, LinkedHashMap<String, Object> args) throws Throwable {
+		return new DelegateBean(Map.class.cast(this.invoke(service, method, new DelegateBean(args))));
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public GenericBean invokeAsBean(Service service, String method, String[] classes, Object... args) throws Throwable {
+		return new DelegateBean(Map.class.cast(this.invoke(service, method, new DelegateArgs(classes, args))));
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public GenericBean invokeAsBean(Service service, String method, GenericBean bean) throws Throwable {
+		return new DelegateBean(Map.class.cast(this.invoke(service, method, bean)));
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public GenericBean invokeAsBean(Service service, String method, GenericArgs args) throws Throwable {
+		return new DelegateBean(Map.class.cast(this.invoke(service, method, args)));
 	}
 }
