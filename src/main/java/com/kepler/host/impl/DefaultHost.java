@@ -30,6 +30,10 @@ public class DefaultHost implements Host {
 
 	private final String location;
 
+	public DefaultHost(Host host) {
+		this(host.location(), host.group(), host.token(), host.name(), host.tag(), host.pid(), host.host(), host.port(), host.feature(), host.priority());
+	}
+
 	public DefaultHost(String location, String group, String token, String name, String tag, String pid, String host, int port, int feature, int priority) {
 		this.tag = tag;
 		this.pid = pid;

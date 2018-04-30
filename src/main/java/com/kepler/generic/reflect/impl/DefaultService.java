@@ -5,6 +5,8 @@ import java.util.LinkedHashMap;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.generic.GenericMarker;
 import com.kepler.generic.impl.DefaultImported;
+import com.kepler.generic.reflect.GenericArgs;
+import com.kepler.generic.reflect.GenericBean;
 import com.kepler.generic.reflect.GenericService;
 import com.kepler.header.Headers;
 import com.kepler.header.HeadersContext;
@@ -60,6 +62,13 @@ public class DefaultService extends DefaultImported implements GenericService {
 		this.gener = gener;
 	}
 
+	private Object invoke(Service service, String method, Object[] args) throws Throwable {
+		this.prepare(service);
+		byte serial = DefaultService.GENERIC_SERIAL ? GenericSerial.SERIAL : this.serials.def4output().serial();
+		// 强制同步调用
+		return this.invoker.invoke(this.factory.factory(serial).request(this.headers(service), service, method, false, args, DefaultService.CLASSES, this.gener.get(service, method).generate(), serial), null);
+	}
+
 	private DefaultService prepare(Service service) throws Exception {
 		if (DefaultService.AUTOMATIC) {
 			// 尝试Import服务(如果未注册)
@@ -68,28 +77,27 @@ public class DefaultService extends DefaultImported implements GenericService {
 		return this;
 	}
 
-	private Headers headers(Service service) {
+	private Headers headers(Service service) throws Throwable {
 		// 获取Header并标记为泛型(隐式开启Header)
 		return this.marker.mark(this.processor.process(service, this.header.get()));
 	}
 
-	private byte serial() {
-		return DefaultService.GENERIC_SERIAL ? GenericSerial.SERIAL : this.serials.def4output().serial();
+	public Object invoke(Service service, String method, LinkedHashMap<String, Object> args) throws Throwable {
+		return this.invoke(service, method, new DelegateBean(args));
 	}
 
 	@Override
 	public Object invoke(Service service, String method, String[] classes, Object... args) throws Throwable {
-		this.prepare(service);
-		byte serial = this.serial();
-		// 强制同步调用
-		return this.invoker.invoke(this.factory.factory(serial).request(this.headers(service), service, method, false, new Object[] { new DelegateArgs(classes, args) }, DefaultService.CLASSES, this.gener.get(service, method).generate(), serial), null);
+		return this.invoke(service, method, new DelegateArgs(classes, args));
 	}
 
-	public Object invoke(Service service, String method, LinkedHashMap<String, Object> args) throws Throwable {
-		this.prepare(service);
-		byte serial = this.serial();
-		// 强制同步调用
-		return this.invoker.invoke(this.factory.factory(serial).request(this.headers(service), service, method, false, new Object[] { new DelegateBean(args) }, DefaultService.CLASSES, this.gener.get(service, method).generate(), serial), null);
+	@Override
+	public Object invoke(Service service, String method, GenericArgs args) throws Throwable {
+		return this.invoke(service, method, new Object[] { args });
 	}
 
+	@Override
+	public Object invoke(Service service, String method, GenericBean bean) throws Throwable {
+		return this.invoke(service, method, new Object[] { bean });
+	}
 }

@@ -16,7 +16,7 @@
 		<constructor-arg ref="kepler.serial.input.hessian" />
 	</bean>
 
-	<bean id="kepler.serials " class="com.kepler.serial.impl.DefaultSerials">
+	<bean id="kepler.serials" class="com.kepler.serial.impl.DefaultSerials">
 		<constructor-arg ref="kepler.serials.inputs" />
 		<constructor-arg ref="kepler.serials.outputs" />
 	</bean>
