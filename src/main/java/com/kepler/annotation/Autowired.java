@@ -18,13 +18,6 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface Autowired {
 
-	/**
-	 * 实际发布版本, 覆盖@Service. 支持多版本
-	 * 
-	 * @return
-	 */
-	public String[] version() default "";
-
 	public String catalog() default "";
 
 	/**
@@ -33,4 +26,13 @@ public @interface Autowired {
 	 * @return
 	 */
 	public String profile() default "";
+
+	/**
+	 * 实际发布版本, 覆盖@Service. 支持多版本
+	 * 
+	 * @return
+	 */
+	public String[] version() default "";
+
+	public String[] aliases() default "";
 }
