@@ -25,7 +25,6 @@
 				<ref bean="kepler.transaction.persistent" />
 				<ref bean="kepler.protocol.validation4client" />
 				<ref bean="kepler.protocol.validation4service" />
-				<ref bean="kepler.zookeeper.exported.post.processors" />
 			</util:list>
 		</constructor-arg>
 	</bean>

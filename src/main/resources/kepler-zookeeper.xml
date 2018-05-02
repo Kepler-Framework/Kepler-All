@@ -34,10 +34,5 @@
 		<constructor-arg ref="kepler.host.local" />
 		<constructor-arg ref="kepler.serials" />
 		<constructor-arg ref="kepler.config" />
-		<constructor-arg ref="kepler.zookeeper.exported.post.processors" />
-	</bean>
-
-	<bean id="kepler.zookeeper.exported.post.processors" class="com.kepler.zookeeper.ExportedPostProcessors" >
-		<constructor-arg ref="kepler.threads"/>
 	</bean>
 </beans>

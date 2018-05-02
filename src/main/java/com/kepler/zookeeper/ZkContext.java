@@ -147,11 +147,9 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 
 	private final ZkClient zoo;
 
-	private final ExportedPostProcessor postProcessors;
-
 	volatile private boolean shutdown;
 
-	public ZkContext(ImportedListener listener, HostsContext hosts, ServerHost local, Serials serials, Profile profile, Config config, Status status, ZkClient zoo, ExportedPostProcessor postProcessors) {
+	public ZkContext(ImportedListener listener, HostsContext hosts, ServerHost local, Serials serials, Profile profile, Config config, Status status, ZkClient zoo) {
 		super();
 		this.zoo = zoo.bind(this);
 		this.listener = listener;
@@ -161,7 +159,6 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 		this.status = status;
 		this.local = local;
 		this.hosts = hosts;
-		this.postProcessors = postProcessors;
 	}
 
 	/**
@@ -343,8 +340,6 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 		this.exports.put(this.zoo.create(this.road.mkdir(this.road.road(ZkContext.ROOT, service.service(), service.versionAndCatalog())) + "/", this.serials.def4output().output(serial, ServiceInstance.class), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL), service, serial);
 		// 加入已导出快照列表
 		this.snapshot.export(service, instance);
-		// 后置处理
-		this.postProcessors.afterExported(service, instance);
 		ZkContext.LOGGER.info("Export service: " + service + " ... ");
 	}
 
