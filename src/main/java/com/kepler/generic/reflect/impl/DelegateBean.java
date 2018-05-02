@@ -173,6 +173,17 @@ public class DelegateBean implements GenericBean {
 		return bean != null ? new DelegateBean(bean) : null;
 	}
 
+	public GenericBean mapping(Map<String, String> mapping) {
+		Map<String, Object> bean = new LinkedHashMap<String, Object>();
+		for (String key : mapping.keySet()) {
+			Object value = this.get(key);
+			if (value != null) {
+				bean.put(mapping.get(key), value);
+			}
+		}
+		return new DelegateBean(bean);
+	}
+
 	@Override
 	public LinkedHashMap<String, Object> args() {
 		return this.args;
