@@ -11,20 +11,33 @@ public class MethodInfo {
 
 	private final Class<?>[] classes;
 
+	private final boolean wrapper;
+
 	private final String[] names;
 
 	private final Method method;
 
-	public MethodInfo(Class<?>[] classes, String[] names, Method method) {
+	public MethodInfo(boolean wrapper, Class<?>[] classes, String[] names, Method method) {
 		super();
 		this.classes = classes;
-		this.names = names;
+		this.wrapper = wrapper;
 		this.method = method;
+		this.names = names;
+	}
+
+	public MethodInfo(Class<?>[] classes, String[] names, Method method) {
+		this(false, classes, names, method);
 	}
 
 	public Object[] args(Map<String, Object> param) {
-		if (this.names == null || this.names.length == 0) {
+		if (this.names == null) {
 			return null;
+		}
+		if (this.names.length == 0) {
+			return null;
+		}
+		if (this.wrapper) {
+			return new Object[] { param };
 		}
 		Object[] args = new Object[this.names.length];
 		for (int index = 0; index < this.names.length; index++) {
