@@ -10,6 +10,8 @@ import org.springframework.beans.factory.FactoryBean;
 
 import com.kepler.config.PropertiesUtils;
 
+import io.netty.util.concurrent.DefaultThreadFactory;
+
 /**
  * @author kim 2015年7月16日
  */
@@ -22,6 +24,8 @@ public class ThreadFactory extends ThreadShutdown implements FactoryBean<ThreadP
 	private static final int THREAD_KEEPALIVE = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".keepalive", 60000);
 
 	private static final int THREAD_QUEUE = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".queue", 50);
+
+	private static final String THREAD_POOL = PropertiesUtils.get(ThreadFactory.class.getName().toLowerCase() + ".pool", "kepler");
 
 	/**
 	 * 是否使用ShutdownNow
@@ -59,7 +63,7 @@ public class ThreadFactory extends ThreadShutdown implements FactoryBean<ThreadP
 		ThreadFactory.LOGGER.info("Thread max: " + ThreadFactory.THREAD_MAX);
 		ThreadFactory.LOGGER.info("Thread core: " + ThreadFactory.THREAD_CORE);
 		ThreadFactory.LOGGER.info("Thread queue: " + ThreadFactory.THREAD_QUEUE);
-		this.threads = new ThreadPoolExecutor(ThreadFactory.THREAD_CORE, ThreadFactory.THREAD_MAX, ThreadFactory.THREAD_KEEPALIVE, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(ThreadFactory.THREAD_QUEUE), new ThreadPoolExecutor.CallerRunsPolicy());
+		this.threads = new ThreadPoolExecutor(ThreadFactory.THREAD_CORE, ThreadFactory.THREAD_MAX, ThreadFactory.THREAD_KEEPALIVE, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(ThreadFactory.THREAD_QUEUE), new DefaultThreadFactory(ThreadFactory.THREAD_POOL), new ThreadPoolExecutor.CallerRunsPolicy());
 	}
 
 	/**

@@ -13,6 +13,7 @@ import com.kepler.annotation.Internal;
 import com.kepler.channel.ChannelContext;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.generic.reflect.impl.DelegateArray;
+import com.kepler.header.Headers;
 import com.kepler.host.Host;
 import com.kepler.invoker.Invoker;
 import com.kepler.invoker.InvokerProcessor;
@@ -91,13 +92,17 @@ public class ActualInvoker implements Invoker {
 			Throwable cause = exception.cause();
 			throw ActualInvoker.ERROR_TO_EXCEPTION && Error.class.isAssignableFrom(cause.getClass()) ? new KeplerErrorException(Error.class.cast(cause)) : exception.cause();
 		} finally {
-			request.headers().delete(DelegateArray.DELEGATE_KEY);
+			Headers headers = request.headers();
+			if (headers != null) {
+				headers.delete(DelegateArray.DELEGATE_KEY);
+			}
 		}
 	}
 
 	/**
 	 * @param request
-	 * @param timestamp 本次执行起始时间
+	 * @param timestamp
+	 *            本次执行起始时间
 	 * @return
 	 * @throws Throwable
 	 */

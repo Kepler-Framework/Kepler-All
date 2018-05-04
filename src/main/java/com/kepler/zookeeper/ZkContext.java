@@ -360,6 +360,7 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 
 		/**
 		 * 以 Content + "/"的形式追加路径
+		 * 
 		 * @param buffer
 		 * @param road
 		 * @return
@@ -646,7 +647,7 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 		 * @param service
 		 * @param path
 		 * @return 是否初始化成功
-		 * @throws Exception 
+		 * @throws Exception
 		 */
 		public boolean watch(Service service, String path) throws Exception {
 			try {
