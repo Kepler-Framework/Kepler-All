@@ -26,10 +26,10 @@ public class DelegateMap extends DefaultDelegate implements GenericDelegate {
 	}
 
 	@Override
-	protected MethodInfo method(Class<?> clazz, String method, Request request) throws Exception {
+	protected MethodInfo method(Object instance, String method, Request request) throws Exception {
 		// 根据参数匹配的真实方法(使用Instance.class)
 		GenericBean bean = GenericBean.class.cast(request.args()[0]);
-		return this.methods.method(clazz, method, bean.args() != null ? bean.args().keySet().toArray(new String[] {}) : DelegateMap.NAMES);
+		return this.methods.method(instance, method, bean.args() != null ? bean.args().keySet().toArray(new String[] {}) : DelegateMap.NAMES);
 	}
 
 	@Override

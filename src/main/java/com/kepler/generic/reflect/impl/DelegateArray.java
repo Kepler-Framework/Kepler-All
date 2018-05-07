@@ -24,10 +24,10 @@ public class DelegateArray extends DefaultDelegate implements GenericDelegate {
 	}
 
 	@Override
-	protected MethodInfo method(Class<?> clazz, String method, Request request) throws Exception {
+	protected MethodInfo method(Object instance, String method, Request request) throws Exception {
 		// 根据参数匹配的真实方法(使用Instance.class)
 		GenericArgs args = GenericArgs.class.cast(request.args()[0]);
-		return args.guess() ? this.methods.method(clazz, method, args.args().length) : this.methods.method(clazz, method, args.classes());
+		return args.guess() ? this.methods.method(instance.getClass(), method, args.args().length) : this.methods.method(instance.getClass(), method, args.classes());
 	}
 
 	@Override

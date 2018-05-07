@@ -168,22 +168,22 @@ public class DefaultAnalyser implements Exported, Imported, FieldsAnalyser {
 	 * @parma acutal 实际方法(代理前)
 	 * @param generic 泛化标记
 	 */
-	private void install(Map<Extension, Fields> extensions, Map<Method, Fields[]> methods, Method proxy, Method acutal, boolean automatic) {
+	private void install(Map<Extension, Fields> extensions, Map<Method, Fields[]> methods, Method proxy, Method actual, boolean automatic) {
 		// 1, 存在方法 
 		// 2, 尚未分析 
 		// 3, 如果没有标记Generic则由是否允许自动分析判断是否继续, 如果标记了Generic则仅当True时继续
-		if (acutal != null && !methods.containsKey(acutal)) {
-			Generic generic = AnnotationUtils.findAnnotation(acutal, Generic.class);
+		if (actual != null && !methods.containsKey(actual)) {
+			Generic generic = AnnotationUtils.findAnnotation(actual, Generic.class);
 			if (generic == null ? automatic : generic.value()) {
-				Fields[] fields = new Fields[acutal.getParameterTypes().length];
-				for (int index = 0; index < acutal.getParameterTypes().length; index++) {
-					List<Class<?>> annotation_param = this.extension4param(acutal.getParameterAnnotations()[index]);
+				Fields[] fields = new Fields[actual.getParameterTypes().length];
+				for (int index = 0; index < actual.getParameterTypes().length; index++) {
+					List<Class<?>> annotation_param = this.extension4param(actual.getParameterAnnotations()[index]);
 					// 分析参数, 并传递扩展信息(优先采用Annotation)
-					fields[index] = this.set(extensions, acutal.getParameterTypes()[index], !annotation_param.isEmpty() ? annotation_param.toArray(new Class<?>[] {}) : this.extension(proxy.getParameterTypes()[index], proxy.getGenericParameterTypes()[index]));
+					fields[index] = this.set(extensions, actual.getParameterTypes()[index], !annotation_param.isEmpty() ? annotation_param.toArray(new Class<?>[] {}) : this.extension(proxy.getParameterTypes()[index], proxy.getGenericParameterTypes()[index]));
 				}
 				// 放入Method缓存
 				methods.put(proxy, fields);
-				DefaultAnalyser.LOGGER.info("[install-completed][method=" + acutal + "]");
+				DefaultAnalyser.LOGGER.info("[install-completed][method=" + actual + "]");
 			}
 		}
 	}

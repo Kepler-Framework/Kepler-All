@@ -16,6 +16,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 
+import com.kepler.advised.AdvisedFinder;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.method.MethodInfo;
 import com.kepler.method.Methods;
@@ -57,13 +58,13 @@ public class ActualMethods implements Methods {
 	}
 
 	@Override
-	public MethodInfo method(Class<? extends Object> service, String method, String[] names) throws Exception {
+	public MethodInfo method(Object instance, String method, String[] names) throws Exception {
 		List<MethodNames> methods = new ArrayList<MethodNames>();
 		Arrays.sort(names, String.CASE_INSENSITIVE_ORDER);
-		// 获取名称相同的Method
-		for (Method actual : service.getMethods()) {
+		// 迭代服务实例方法(非Proxy)
+		for (Method actual : AdvisedFinder.actual4class(instance).getMethods()) {
 			if (actual.getName().equals(method)) {
-				methods.add(new MethodNames(actual, names));
+				methods.add(new MethodNames(MethodUtils.getAccessibleMethod(instance.getClass(), actual.getName(), actual.getParameterTypes()), actual, names));
 			}
 		}
 		for (MethodNames each : methods) {
@@ -81,7 +82,7 @@ public class ActualMethods implements Methods {
 				return methods.get(0).method(true);
 			}
 		}
-		throw new NoSuchMethodException("No such method: " + method + " for class: " + service + "[names=" + Arrays.toString(names) + "]");
+		throw new NoSuchMethodException("No such method: " + method + " for class: " + instance.getClass() + "[names=" + Arrays.toString(names) + "]");
 	}
 
 	@Override
@@ -108,14 +109,14 @@ public class ActualMethods implements Methods {
 
 		private Integer match;
 
-		private MethodNames(Method method, String[] names) {
+		private MethodNames(Method proxy, Method actual, String[] names) {
 			super();
 			// 获取Method签名和排序后签名
-			this.names_method = ActualMethods.DISCOVER.getParameterNames(method);
+			this.names_method = ActualMethods.DISCOVER.getParameterNames(actual);
 			this.names_sorted = new String[this.names_method.length];
 			// 请求签名
 			this.names_source = names;
-			this.method = method;
+			this.method = proxy;
 			this.copy();
 		}
 

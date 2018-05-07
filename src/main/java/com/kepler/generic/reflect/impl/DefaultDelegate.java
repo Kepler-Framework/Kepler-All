@@ -58,7 +58,7 @@ abstract public class DefaultDelegate implements GenericDelegate {
 	@Override
 	public GenericResponse delegate(Object instance, String method, Request request) throws KeplerGenericException {
 		try {
-			MethodInfo info = this.method(instance.getClass(), method, request);
+			MethodInfo info = this.method(instance, method, request);
 			Object[] args = this.args(info, request);
 			// Method对应Fields集合
 			Fields[] fields_all = this.fields(info.method());
@@ -80,7 +80,7 @@ abstract public class DefaultDelegate implements GenericDelegate {
 		}
 	}
 
-	abstract MethodInfo method(Class<?> clazz, String method, Request request) throws Exception;
+	abstract MethodInfo method(Object instance, String method, Request request) throws Exception;
 
 	abstract Object[] args(MethodInfo info, Request request) throws Exception;
 }

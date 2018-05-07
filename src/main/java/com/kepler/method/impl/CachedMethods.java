@@ -61,8 +61,8 @@ public class CachedMethods implements Methods {
 	}
 
 	@Override
-	public MethodInfo method(Class<? extends Object> service, String method, String[] names) throws Exception {
-		CacheKeys key = new CacheKeys(method, service, names);
+	public MethodInfo method(Object instance, String method, String[] names) throws Exception {
+		CacheKeys key = new CacheKeys(method, instance.getClass(), names);
 		MethodInfo actual = this.c_names.get(key);
 		if (actual != null) {
 			return actual;
@@ -72,11 +72,11 @@ public class CachedMethods implements Methods {
 			if (cached != null) {
 				return cached;
 			}
-			MethodInfo refresh_method = this.methods.method(service, method, names);
+			MethodInfo refresh_method = this.methods.method(instance, method, names);
 			HashMap<CacheKeys, MethodInfo> refresh_cached = new HashMap<CacheKeys, MethodInfo>(this.c_names);
 			refresh_cached.put(key, refresh_method);
 			this.c_names = refresh_cached;
-			CachedMethods.LOGGER.warn("Refresh method cache: [service=" + service + "][actual=" + refresh_method + "]");
+			CachedMethods.LOGGER.warn("Refresh method cache: [service=" + instance.getClass() + "][actual=" + refresh_method + "]");
 			return refresh_method;
 		}
 	}
