@@ -255,6 +255,16 @@ abstract public class HessianSerial implements SerialOutput, SerialInput {
 		public Request putIfAbsent(String key, String value) {
 			return this.actual.putIfAbsent(key, value);
 		}
+		
+		@Override
+		public Request put(String key, Object value) {
+			return this.put(key, value.toString());
+		}
+
+		@Override
+		public Request putIfAbsent(String key, Object value) {
+			return this.putIfAbsent(key, value.toString());
+		}
 
 		public String toString() {
 			return this.actual.toString();

@@ -89,7 +89,7 @@ public class DefaultRequest implements Request {
 	public boolean async() {
 		return this.async;
 	}
-
+	
 	public Object[] args() {
 		return this.args;
 	}
@@ -129,6 +129,16 @@ public class DefaultRequest implements Request {
 			this.headers.putIfAbsent(key, value);
 		}
 		return this;
+	}
+	
+	@Override
+	public DefaultRequest put(String key, Object value) {
+		return this.put(key, value.toString());
+	}
+
+	@Override
+	public DefaultRequest putIfAbsent(String key, Object value) {
+		return this.putIfAbsent(key, value.toString());
 	}
 
 	public String toString() {

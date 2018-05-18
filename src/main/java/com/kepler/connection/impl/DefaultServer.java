@@ -6,6 +6,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.kepler.KeplerException;
+import com.kepler.KeplerTimeoutException;
+import com.kepler.ack.impl.AckFuture;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.connection.Reject;
 import com.kepler.connection.codec.CodecHeader;
@@ -13,6 +15,7 @@ import com.kepler.connection.codec.Decoder;
 import com.kepler.connection.codec.Encoder;
 import com.kepler.header.HeadersContext;
 import com.kepler.host.impl.ServerHost;
+import com.kepler.org.apache.commons.lang.StringUtils;
 import com.kepler.protocol.Request;
 import com.kepler.protocol.RequestProcessor;
 import com.kepler.protocol.Response;
@@ -300,6 +303,11 @@ public class DefaultServer {
 			private Reply request() throws Exception {
 				// 解析Request
 				this.request = DefaultServer.this.processor.process(Request.class.cast(DefaultServer.this.decoder.decode(this.buffer)));
+				// 判断Timeout
+				String deadline_request = this.request.get(AckFuture.TIMEOUT_PROPAGATE_KEY);
+				if (!StringUtils.isEmpty(deadline_request) && (System.currentTimeMillis() > Long.valueOf(deadline_request))) {
+					throw new KeplerTimeoutException("[request-timout][service=" + this.request.service() + "][remote=" + this.ctx.channel().remoteAddress() + "][deadline=" + deadline_request + "]");
+				}
 				return this;
 			}
 

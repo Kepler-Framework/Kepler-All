@@ -16,13 +16,8 @@ public interface Request extends SerialID, Serializable {
 	public Service service();
 
 	public String method();
-
-	/**
-	 * 精确参数类型
-	 * 
-	 * @return
-	 */
-	public Class<?>[] types();
+	
+	public byte[] ack();
 
 	/**
 	 * 实际参数
@@ -37,10 +32,15 @@ public interface Request extends SerialID, Serializable {
 	 * @return
 	 */
 	public boolean async();
-
-	public byte[] ack();
-
+	
 	public Headers headers();
+	
+	/**
+	 * 精确参数类型
+	 * 
+	 * @return
+	 */
+	public Class<?>[] types();
 
 	/**
 	 * 快捷代理
@@ -55,4 +55,8 @@ public interface Request extends SerialID, Serializable {
 	public Request put(String key, String value);
 
 	public Request putIfAbsent(String key, String value);
+	
+	public Request put(String key, Object value);
+
+	public Request putIfAbsent(String key, Object value);
 }

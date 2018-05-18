@@ -46,6 +46,13 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	 */
 	private static final boolean CORRECT_ACTIVED = PropertiesUtils.get(AckFuture.class.getName().toLowerCase() + ".correct_actived", false);
 
+	/**
+	 * 超时是否传递
+	 */
+	public static final String TIMEOUT_PROPAGATE_KEY = AckFuture.class.getName().toLowerCase() + ".timeout_propagate";
+
+	private static final boolean TIMEOUT_PROPAGATE_DEF = PropertiesUtils.get(AckFuture.TIMEOUT_PROPAGATE_KEY, false);
+
 	public static final String TIMEOUT_KEY = AckFuture.class.getName().toLowerCase() + ".timeout";
 
 	/**
@@ -151,7 +158,7 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 		this.analyser = analyser;
 		this.collector = collector;
 		// 计算Timeout最终时间
-		this.deadline = this.deadline(PropertiesUtils.profile(profile.profile(request.service()), AckFuture.TIMEOUT_KEY, AckFuture.TIMEOUT_DEF));
+		this.deadline = this.deadline(profile, request);
 	}
 
 	/**
@@ -160,9 +167,15 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	 * @param deadline
 	 * @return
 	 */
-	private long deadline(long deadline) {
+	private long deadline(Profile profile, Request request) {
+		long deadline_config = PropertiesUtils.profile(profile.profile(request.service()), AckFuture.TIMEOUT_KEY, AckFuture.TIMEOUT_DEF);
 		// 如果超时小于等于0则使用表示不指定超时时间
-		return deadline > 0 ? deadline : Long.MAX_VALUE;
+		long deadline_actual = deadline_config > 0 ? deadline_config : Long.MAX_VALUE;
+		// 如果开启了Timeout传递则放入Header供服务端检查
+		if (PropertiesUtils.profile(profile.profile(request.service()), AckFuture.TIMEOUT_PROPAGATE_KEY, AckFuture.TIMEOUT_PROPAGATE_DEF)) {
+			request.put(AckFuture.TIMEOUT_PROPAGATE_KEY, System.currentTimeMillis() + deadline_actual);
+		}
+		return deadline_actual;
 	}
 
 	/**
