@@ -34,7 +34,7 @@ public class AsyncInvoker implements Imported, Invoker {
 	/**
 	 * 已注册Service, Method(缓存)
 	 */
-	volatile private Map<Service, Set<Method>> async = new HashMap<Service, Set<Method>>();
+	private final Map<Service, Set<Method>> async = new HashMap<Service, Set<Method>>();
 
 	private final RequestFactories factory;
 
@@ -66,18 +66,14 @@ public class AsyncInvoker implements Imported, Invoker {
 					methods.add(method);
 				}
 			}
-			Map<Service, Set<Method>> async = new HashMap<Service, Set<Method>>(this.async);
-			async.put(service, methods);
-			this.async = async;
+			this.async.put(service, methods);
 		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			AsyncInvoker.LOGGER.info("Class not found: " + service);
 		}
 	}
 
 	public void unsubscribe(Service service) throws Exception {
-		Map<Service, Set<Method>> async = new HashMap<Service, Set<Method>>(this.async);
-		async.remove(service);
-		this.async = async;
+		this.async.remove(service);
 		AsyncInvoker.LOGGER.info("[unsubscribe][service=" + service + "]");
 	}
 

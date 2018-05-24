@@ -595,7 +595,7 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 		/**
 		 * 已导入实例(多线程竞争)
 		 */
-		private volatile Map<String, ServiceInstance> instances = new ConcurrentHashMap<String, ServiceInstance>();
+		private final Map<String, ServiceInstance> instances = new ConcurrentHashMap<String, ServiceInstance>();
 
 		/**
 		 * 已发布服务
@@ -1085,7 +1085,6 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 			}
 			try {
 				this.running = true;
-				Map<String, ServiceInstance> snapshot = new HashMap<String, ServiceInstance>(ZkContext.this.snapshot.instances);
 				Map<String, ServiceInstance> current = new HashMap<String, ServiceInstance>();
 				Set<Service> imported = ZkContext.this.snapshot.imported;
 				for (Service service : imported) {
@@ -1101,8 +1100,7 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 						}
 					}
 				}
-				this.handle(current, snapshot);
-				ZkContext.this.snapshot.instances = current;
+				this.handle(current, ZkContext.this.snapshot.instances);
 			} catch (Exception e) {
 				ZkContext.LOGGER.error(e.getMessage(), e);
 			} finally {

@@ -36,7 +36,7 @@ public class DefaultContext implements Imported, CacheContext, CacheExpired {
 
 	private static final Log LOGGER = LogFactory.getLog(DefaultContext.class);
 
-	volatile private Map<Service, Caches> caches = new HashMap<Service, Caches>();
+	private final Map<Service, Caches> caches = new HashMap<Service, Caches>();
 
 	/**
 	 * 用于没有开启缓存服务的Null Object
@@ -53,19 +53,15 @@ public class DefaultContext implements Imported, CacheContext, CacheExpired {
 	@Override
 	public void subscribe(Service service) throws Exception {
 		try {
-			Map<Service, Caches> caches = new HashMap<Service, Caches>(this.caches);
 			// 预加载Service对应缓存
-			caches.put(service, new Caches(service, PropertiesUtils.profile(DefaultContext.METHOD_KEY, this.profile.profile(service), DefaultContext.METHOD_DEF)));
-			this.caches = caches;
+			this.caches.put(service, new Caches(service, PropertiesUtils.profile(DefaultContext.METHOD_KEY, this.profile.profile(service), DefaultContext.METHOD_DEF)));
 		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			DefaultContext.LOGGER.warn("Class not found: " + service.service());
 		}
 	}
 
 	public void unsubscribe(Service service) throws Exception {
-		Map<Service, Caches> caches = new HashMap<Service, Caches>(this.caches);
-		caches.remove(service);
-		this.caches = caches;
+		this.caches.remove(service);
 	}
 
 	@Override

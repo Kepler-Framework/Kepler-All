@@ -21,11 +21,11 @@ public class CachedMethods implements Methods {
 	/**
 	 * 缓存方法
 	 */
-	volatile private Map<CacheKeys, MethodInfo> c_classes = new HashMap<CacheKeys, MethodInfo>();
+	private final Map<CacheKeys, MethodInfo> c_classes = new HashMap<CacheKeys, MethodInfo>();
 
-	volatile private Map<CacheKeys, MethodInfo> c_names = new HashMap<CacheKeys, MethodInfo>();
+	private final Map<CacheKeys, MethodInfo> c_names = new HashMap<CacheKeys, MethodInfo>();
 
-	volatile private Map<CacheKey, MethodInfo> c_size = new HashMap<CacheKey, MethodInfo>();
+	private final Map<CacheKey, MethodInfo> c_size = new HashMap<CacheKey, MethodInfo>();
 
 	private final Object l_classes = new Object();
 
@@ -51,12 +51,10 @@ public class CachedMethods implements Methods {
 			if (cached != null) {
 				return cached;
 			}
-			MethodInfo refresh_method = this.methods.method(service, method, classes);
-			HashMap<CacheKeys, MethodInfo> refresh_cached = new HashMap<CacheKeys, MethodInfo>(this.c_classes);
-			refresh_cached.put(key, refresh_method);
-			this.c_classes = refresh_cached;
-			CachedMethods.LOGGER.warn("Refresh method cache: [service=" + service + "][actual=" + refresh_method + "]");
-			return refresh_method;
+			MethodInfo refresh = this.methods.method(service, method, classes);
+			this.c_classes.put(key, refresh);
+			CachedMethods.LOGGER.warn("Refresh method cache: [service=" + service + "][actual=" + refresh + "]");
+			return refresh;
 		}
 	}
 
@@ -72,12 +70,10 @@ public class CachedMethods implements Methods {
 			if (cached != null) {
 				return cached;
 			}
-			MethodInfo refresh_method = this.methods.method(instance, method, names);
-			HashMap<CacheKeys, MethodInfo> refresh_cached = new HashMap<CacheKeys, MethodInfo>(this.c_names);
-			refresh_cached.put(key, refresh_method);
-			this.c_names = refresh_cached;
-			CachedMethods.LOGGER.warn("Refresh method cache: [service=" + instance.getClass() + "][actual=" + refresh_method + "]");
-			return refresh_method;
+			MethodInfo refresh = this.methods.method(instance, method, names);
+			this.c_names.put(key, refresh);
+			CachedMethods.LOGGER.warn("Refresh method cache: [service=" + instance.getClass() + "][actual=" + refresh + "]");
+			return refresh;
 		}
 	}
 
@@ -93,12 +89,10 @@ public class CachedMethods implements Methods {
 			if (cached != null) {
 				return cached;
 			}
-			MethodInfo refresh_method = this.methods.method(service, method, size);
-			HashMap<CacheKey, MethodInfo> refresh_cached = new HashMap<CacheKey, MethodInfo>(this.c_size);
-			refresh_cached.put(key, refresh_method);
-			this.c_size = refresh_cached;
-			CachedMethods.LOGGER.warn("Refresh method cache: [service=" + service + "][actual=" + refresh_method + "]");
-			return refresh_method;
+			MethodInfo refresh = this.methods.method(service, method, size);
+			this.c_size.put(key, refresh);
+			CachedMethods.LOGGER.warn("Refresh method cache: [service=" + service + "][actual=" + refresh + "]");
+			return refresh;
 		}
 	}
 

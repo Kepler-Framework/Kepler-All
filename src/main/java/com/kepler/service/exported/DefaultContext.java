@@ -38,12 +38,12 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 	/**
 	 * 服务-执行
 	 */
-	volatile private Map<Service, Invoker> invokers = new HashMap<Service, Invoker>();
+	private final Map<Service, Invoker> invokers = new HashMap<Service, Invoker>();
 
 	/**
 	 * 服务-实例
 	 */
-	volatile private Map<Service, Object> services = new HashMap<Service, Object>();
+	private final Map<Service, Object> services = new HashMap<Service, Object>();
 
 	private final RequestValidation validation;
 
@@ -71,21 +71,13 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 	@Override
 	public void export(Service service, Object instance) {
 		this.valid(service);
-		Map<Service, Invoker> invokers = new HashMap<Service, Invoker>(this.invokers);
-		Map<Service, Object> services = new HashMap<Service, Object>(this.services);
-		services.put(service, instance);
-		invokers.put(service, Mocker.class.isAssignableFrom(instance.getClass()) ? new MockerInvoker(instance) : new ProxyInvoker(instance));
-		this.services = services;
-		this.invokers = invokers;
+		this.services.put(service, instance);
+		this.invokers.put(service, Mocker.class.isAssignableFrom(instance.getClass()) ? new MockerInvoker(instance) : new ProxyInvoker(instance));
 	}
 
 	public void logout(Service service) throws Exception {
-		Map<Service, Invoker> invokers = new HashMap<Service, Invoker>(this.invokers);
-		Map<Service, Object> services = new HashMap<Service, Object>(this.services);
-		invokers.remove(service);
-		services.remove(service);
-		this.services = services;
-		this.invokers = invokers;
+		this.invokers.remove(service);
+		this.services.remove(service);
 	}
 
 	private void valid(Service service) {

@@ -58,7 +58,7 @@ public class Encoder implements Imported, Exported {
 	/**
 	 * 缓存大小分配
 	 */
-	volatile private Map<ServiceAndMethod, Handle> estimates = new HashMap<ServiceAndMethod, Handle>();
+	private final Map<ServiceAndMethod, Handle> estimates = new HashMap<ServiceAndMethod, Handle>();
 
 	private final Protocols protocols;
 
@@ -77,9 +77,7 @@ public class Encoder implements Imported, Exported {
 			if (handle != null) {
 				return handle;
 			}
-			Map<ServiceAndMethod, Handle> estimates = new HashMap<ServiceAndMethod, Handle>(this.estimates);
-			estimates.put(service_method, (handle = AdaptiveRecvByteBufAllocator.DEFAULT.newHandle()));
-			this.estimates = estimates;
+			this.estimates.put(service_method, (handle = AdaptiveRecvByteBufAllocator.DEFAULT.newHandle()));
 			return handle;
 		}
 	}
@@ -92,21 +90,17 @@ public class Encoder implements Imported, Exported {
 	 */
 	private void install(Service service) throws Exception {
 		try {
-			Map<ServiceAndMethod, Handle> estimates = new HashMap<ServiceAndMethod, Handle>(this.estimates);
 			for (Method method : Service.clazz(service).getMethods()) {
 				ServiceAndMethod service_method = new ServiceAndMethod(service, method.getName());
-				estimates.put(service_method, AdaptiveRecvByteBufAllocator.DEFAULT.newHandle());
+				this.estimates.put(service_method, AdaptiveRecvByteBufAllocator.DEFAULT.newHandle());
 			}
-			this.estimates = estimates;
 		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			Encoder.LOGGER.info("Class not found: " + service);
 		}
 	}
 
 	private void uninstall(Service service) throws Exception {
-		Map<ServiceAndMethod, Handle> estimates = new HashMap<ServiceAndMethod, Handle>(this.estimates);
-		estimates.remove(service);
-		this.estimates = estimates;
+		this.estimates.remove(service);
 	}
 
 	@Override

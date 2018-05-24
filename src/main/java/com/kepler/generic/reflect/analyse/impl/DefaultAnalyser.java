@@ -59,9 +59,9 @@ public class DefaultAnalyser implements Exported, Imported, FieldsAnalyser {
 	 */
 	public static final Class<?>[] EMPTY = new Class<?>[] {};
 
-	volatile private Map<Extension, Fields> extensions = new HashMap<Extension, Fields>();
+	private final Map<Extension, Fields> extensions = new HashMap<Extension, Fields>();
 
-	volatile private Map<Method, Fields[]> methods = new HashMap<Method, Fields[]>();
+	private final Map<Method, Fields[]> methods = new HashMap<Method, Fields[]>();
 
 	private final ConvertorSelector selector;
 
@@ -74,25 +74,17 @@ public class DefaultAnalyser implements Exported, Imported, FieldsAnalyser {
 	}
 
 	private void uninstall(Service service) {
-		Map<Extension, Fields> extension = new HashMap<Extension, Fields>(this.extensions);
-		Map<Method, Fields[]> methods = new HashMap<Method, Fields[]>(this.methods);
-		extension.remove(service);
-		methods.remove(service);
-		this.extensions = extension;
-		this.methods = methods;
+		this.extensions.remove(service);
+		this.methods.remove(service);
 
 	}
 
 	@Override
 	public void export(Service service, Object instance) throws Exception {
 		if (DefaultAnalyser.ENABLED) {
-			Map<Extension, Fields> extensions = new HashMap<Extension, Fields>(this.extensions);
-			Map<Method, Fields[]> methods = new HashMap<Method, Fields[]>(this.methods);
 			// 分析接口和实现类
-			this.install4interface(extensions, methods, service, instance);
-			this.install4instance(extensions, methods, instance);
-			this.extensions = extensions;
-			this.methods = methods;
+			this.install4interface(this.extensions, this.methods, service, instance);
+			this.install4instance(this.extensions, this.methods, instance);
 		}
 	}
 
@@ -104,18 +96,14 @@ public class DefaultAnalyser implements Exported, Imported, FieldsAnalyser {
 	public void subscribe(Service service) throws Exception {
 		if (DefaultAnalyser.ENABLED) {
 			try {
-				Map<Extension, Fields> extensions = new HashMap<Extension, Fields>(this.extensions);
-				Map<Method, Fields[]> methods = new HashMap<Method, Fields[]>(this.methods);
 				for (Method method : Class.forName(service.service()).getMethods()) {
 					if (void.class.equals(method.getReturnType())) {
 						continue;
 					}
 					GenericReturn generic = method.getAnnotation(GenericReturn.class);
-					methods.put(method, new Fields[] { this.set(extensions, method.getReturnType(), generic != null ? generic.value() : this.extension(method.getReturnType(), method.getGenericReturnType())) });
+					this.methods.put(method, new Fields[] { this.set(this.extensions, method.getReturnType(), generic != null ? generic.value() : this.extension(method.getReturnType(), method.getGenericReturnType())) });
 					DefaultAnalyser.LOGGER.info("[analyse-completed][method=" + method + "]");
 				}
-				this.extensions = extensions;
-				this.methods = methods;
 			} catch (ClassNotFoundException | NoClassDefFoundError e) {
 				DefaultAnalyser.LOGGER.info("Class not found: " + service);
 			}

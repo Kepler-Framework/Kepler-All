@@ -38,7 +38,7 @@ public class QuietExceptions implements Quiet, Imported, Exported {
 
 	private static final Log LOGGER = LogFactory.getLog(QuietExceptions.class);
 
-	volatile private Map<Service, QuietMethods> quiets = new HashMap<Service, QuietMethods>();
+	private final Map<Service, QuietMethods> quiets = new HashMap<Service, QuietMethods>();
 
 	private final Methods methods;
 
@@ -55,15 +55,13 @@ public class QuietExceptions implements Quiet, Imported, Exported {
 	 */
 	private void install(Service service) throws Exception {
 		try {
-			Map<Service, QuietMethods> quiets = new HashMap<Service, QuietMethods>(this.quiets);
 			// 获取对应Method
-			QuietMethods methods = this.methods(quiets, service);
+			QuietMethods methods = this.methods(this.quiets, service);
 			for (Method each : Service.clazz(service).getMethods()) {
 				// 标记@QuietMethod则注册静默异常集合
 				QuietMethod method = AnnotationUtils.findAnnotation(each, QuietMethod.class);
 				methods.put(each, method != null ? Arrays.asList(method.quiet()) : QuietExceptions.EMPTY);
 			}
-			this.quiets = quiets;
 		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			QuietExceptions.LOGGER.info("Class not found: " + service);
 		}
@@ -90,9 +88,7 @@ public class QuietExceptions implements Quiet, Imported, Exported {
 	}
 
 	public void logout(Service service) throws Exception {
-		Map<Service, QuietMethods> quiets = new HashMap<Service, QuietMethods>(this.quiets);
-		quiets.remove(service);
-		this.quiets = quiets;
+		this.quiets.remove(service);
 	}
 
 	@Override
@@ -101,9 +97,7 @@ public class QuietExceptions implements Quiet, Imported, Exported {
 	}
 
 	public void unsubscribe(Service service) throws Exception {
-		Map<Service, QuietMethods> quiets = new HashMap<Service, QuietMethods>(this.quiets);
-		quiets.remove(service);
-		this.quiets = quiets;
+		this.quiets.remove(service);
 	}
 
 	@Override

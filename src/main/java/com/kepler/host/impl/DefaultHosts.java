@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -209,7 +210,7 @@ public class DefaultHosts implements Hosts {
 
 	private class SIDs {
 
-		private final Map<String, Host> sid = new HashMap<String, Host>();
+		private final Map<String, Host> sid = new ConcurrentHashMap<String, Host>();
 
 		public Host put(Host host) {
 			return this.sid.put(host.sid(), host);
