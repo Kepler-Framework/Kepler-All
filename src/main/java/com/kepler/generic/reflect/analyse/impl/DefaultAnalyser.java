@@ -167,7 +167,7 @@ public class DefaultAnalyser implements Exported, Imported, FieldsAnalyser {
 				for (int index = 0; index < actual.getParameterTypes().length; index++) {
 					List<Class<?>> annotation_param = this.extension4param(actual.getParameterAnnotations()[index]);
 					// 分析参数, 并传递扩展信息(优先采用Annotation)
-					fields[index] = this.set(extensions, actual.getParameterTypes()[index], !annotation_param.isEmpty() ? annotation_param.toArray(new Class<?>[] {}) : this.extension(proxy.getParameterTypes()[index], proxy.getGenericParameterTypes()[index]));
+					fields[index] = this.set(extensions, actual.getParameterTypes()[index], !annotation_param.isEmpty() ? annotation_param.toArray(new Class<?>[] {}) : this.extension(actual.getParameterTypes()[index], actual.getGenericParameterTypes()[index]));
 				}
 				// 放入Method缓存
 				methods.put(proxy, fields);
