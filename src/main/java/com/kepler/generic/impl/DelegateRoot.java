@@ -35,18 +35,15 @@ public class DelegateRoot implements GenericDelegate {
 		if (!StringUtils.equals(request.get(DefaultDelegate.DELEGATE_KEY), DefaultDelegate.DELEGATE_VAL)) {
 			return this.factory.unvalid();
 		}
-		try {
-			// 泛化分发
-			Object args = request.args()[0];
-			if (GenericBean.class.isAssignableFrom(args.getClass())) {
-				return this.bean.delegate(instance, method, request);
-			}
-			if (GenericArgs.class.isAssignableFrom(args.getClass())) {
-				return this.args.delegate(instance, method, request);
-			}
-			throw new KeplerGenericException("Unsupported request");
-		} finally {
-			request.headers().delete(DefaultDelegate.DELEGATE_KEY);
+		// 泛化分发
+		Object args = request.args()[0];
+		request.headers().delete(DefaultDelegate.DELEGATE_KEY);
+		if (GenericBean.class.isAssignableFrom(args.getClass())) {
+			return this.bean.delegate(instance, method, request);
 		}
+		if (GenericArgs.class.isAssignableFrom(args.getClass())) {
+			return this.args.delegate(instance, method, request);
+		}
+		throw new KeplerGenericException("Unsupported request");
 	}
 }
