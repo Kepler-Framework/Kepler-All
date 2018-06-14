@@ -3,6 +3,9 @@ package com.kepler.generic.reflect.impl;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.kepler.KeplerGenericException;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.generic.GenericDelegate;
@@ -24,6 +27,8 @@ abstract public class DefaultDelegate implements GenericDelegate {
 	public static final String DELEGATE_KEY = DefaultDelegate.class.getName().toLowerCase() + ".delegate";
 
 	public static final String DELEGATE_VAL = PropertiesUtils.get(DefaultDelegate.DELEGATE_KEY, "generic_reflect");
+
+	private static final Log LOGGER = LogFactory.getLog(DefaultDelegate.class);
 
 	private final GenericResponseFactory factory;
 
@@ -55,6 +60,18 @@ abstract public class DefaultDelegate implements GenericDelegate {
 		return fields;
 	}
 
+	/**
+	 * 是否输出异常(或静默)
+	 */
+	private void exception(Object instance, Request request, String method, Throwable e) {
+		try {
+			this.quiet.print(request, this.method(instance, method, request).method(), e);
+		} catch (Exception inner) {
+			DefaultDelegate.LOGGER.debug(inner.getMessage(), inner);
+			DefaultDelegate.LOGGER.error(e.getMessage(), e);
+		}
+	}
+
 	@Override
 	public GenericResponse delegate(Object instance, String method, Request request) throws KeplerGenericException {
 		try {
@@ -70,12 +87,14 @@ abstract public class DefaultDelegate implements GenericDelegate {
 			// 代理执行
 			return this.factory.response(info.method().invoke(instance, this.validation.valid(args)));
 		} catch (InvocationTargetException e) {
-			this.quiet.print(request, e);
-			// 处理Method实际错误
+			this.exception(instance, request, method, e);
 			throw new KeplerGenericException(e.getTargetException());
+		} catch (NoSuchMethodException e) {
+			// NoSucheMethod无视静默
+			DefaultDelegate.LOGGER.error(e.getMessage(), e);
+			throw new KeplerGenericException(e.getMessage());
 		} catch (Throwable e) {
-			this.quiet.print(request, e);
-			// 泛化调用统一返回KeplerGenericException
+			this.exception(instance, request, method, e);
 			throw new KeplerGenericException(e);
 		}
 	}
