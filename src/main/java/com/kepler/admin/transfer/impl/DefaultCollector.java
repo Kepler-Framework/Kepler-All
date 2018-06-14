@@ -130,8 +130,8 @@ public class DefaultCollector implements Runnable, Collector, Imported {
 
 	public Transfer peek(Ack ack) {
 		Transfers transfers = Transfers.class.cast(this.curr().get(ack.request().service(), ack.request().method()));
-		Transfer transfer = transfers.get(ack.local(), ack.remote());
-		if (transfer == null) {
+		Transfer transfer = null;
+		if (transfers == null || (transfer = transfers.get(ack.local(), ack.remote())) == null) {
 			DefaultCollector.LOGGER.warn("Empty transfer for " + ack.request().service() + "[method=" + ack.request().method() + "][local=" + ack.local() + "][remote=" + ack.remote() + "]");
 		}
 		return transfer;
@@ -234,4 +234,5 @@ public class DefaultCollector implements Runnable, Collector, Imported {
 		}
 		DefaultCollector.LOGGER.warn("Collector shutdown ... ");
 	}
+
 }
