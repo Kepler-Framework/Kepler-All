@@ -1,5 +1,7 @@
 package com.kepler.service;
 
+import java.lang.reflect.Method;
+
 import com.kepler.protocol.Request;
 
 /**
@@ -9,6 +11,8 @@ import com.kepler.protocol.Request;
  */
 public interface Quiet {
 
+	public boolean quiet(Request request, Method method, Class<? extends Throwable> throwable);
+
 	/**
 	 * 是否为静默异常
 	 * 
@@ -17,6 +21,8 @@ public interface Quiet {
 	 * @return
 	 */
 	public boolean quiet(Request request, Class<? extends Throwable> throwable);
+
+	public boolean print(Request request, Method method, Throwable throwable);
 
 	/**
 	 * 如果为非静默异常则输出日志

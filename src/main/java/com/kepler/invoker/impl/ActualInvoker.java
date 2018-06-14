@@ -12,7 +12,7 @@ import com.kepler.annotation.Config;
 import com.kepler.annotation.Internal;
 import com.kepler.channel.ChannelContext;
 import com.kepler.config.PropertiesUtils;
-import com.kepler.generic.reflect.impl.DelegateArray;
+import com.kepler.generic.reflect.impl.DefaultDelegate;
 import com.kepler.header.Headers;
 import com.kepler.host.Host;
 import com.kepler.invoker.Invoker;
@@ -94,7 +94,7 @@ public class ActualInvoker implements Invoker {
 		} finally {
 			Headers headers = request.headers();
 			if (headers != null) {
-				headers.delete(DelegateArray.DELEGATE_KEY);
+				headers.delete(DefaultDelegate.DELEGATE_KEY);
 			}
 		}
 	}

@@ -100,21 +100,45 @@ public class QuietExceptions implements Quiet, Imported, Exported {
 		this.quiets.remove(service);
 	}
 
-	@Override
-	public boolean quiet(Request request, Class<? extends Throwable> throwable) {
+	public boolean quiet(Request request, Method method, Class<? extends Throwable> throwable) {
 		try {
 			// Guard case, 静默标记异常
 			if (AnnotationUtils.findAnnotation(throwable, QuietThrowable.class) != null) {
 				return true;
 			}
-			Method actual = this.methods.method(Service.clazz(request.service()), request.method(), request.types()).method();
 			QuietMethods methods = this.quiets.get(request.service());
 			// 如果可以获取QuietMethods(非泛化)并且可以获取实际方法则尝试从QuietMethods解析, 如果QuietMethods或实际方法任一无法获得则尝试解析异常
-			return (methods != null && actual != null) ? methods.exceptions(actual).contains(throwable) : false;
+			return (methods != null && method != null) ? methods.exceptions(method).contains(throwable) : false;
 		} catch (Exception e) {
 			QuietExceptions.LOGGER.debug(e.getMessage(), e);
 			return false;
 		}
+	}
+
+	@Override
+	public boolean quiet(Request request, Class<? extends Throwable> throwable) {
+		try {
+			return this.quiet(request, this.methods.method(Service.clazz(request.service()), request.method(), request.types()).method(), throwable);
+		} catch (Exception e) {
+			QuietExceptions.LOGGER.debug(e.getMessage(), e);
+			return false;
+		}
+	}
+
+	public boolean print(Request request, Method method, Throwable throwable) {
+		Throwable actual = InvocationTargetException.class.isAssignableFrom(throwable.getClass()) ? InvocationTargetException.class.cast(throwable).getTargetException() : throwable;
+		String message = "[trace=" + request.get(Trace.TRACE) + "][message=" + actual.getMessage() + "]";
+		boolean quiet = this.quiet(request, method, actual.getClass());
+		if (!quiet) {
+			// 非静默异常输出ERROR
+			QuietExceptions.LOGGER.error(message, actual);
+		} else {
+			// 静默异常根据配置输出WARN(默认关闭)
+			if (QuietExceptions.WARNING) {
+				QuietExceptions.LOGGER.warn(message, actual);
+			}
+		}
+		return quiet;
 	}
 
 	public boolean print(Request request, Throwable throwable) {

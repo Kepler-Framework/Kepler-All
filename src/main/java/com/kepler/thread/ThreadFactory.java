@@ -69,7 +69,7 @@ public class ThreadFactory extends ThreadShutdown implements FactoryBean<ThreadP
 	/**
 	 * For Spring
 	 */
-	protected void destroy() throws Exception {
+	public void destroy() throws Exception {
 		super.destroy(this.threads);
 	}
 

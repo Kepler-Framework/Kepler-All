@@ -70,10 +70,10 @@ public class DelegateBean implements GenericBean {
 			return this.args.get(key);
 		}
 		Map<String, Object> current = this.args;
-		for (String each : keys) {
-			current = Map.class.cast(current.get(each));
+		for (int i = 0; i < keys.length - 1; i++) {
+			current = Map.class.cast(current.get(keys[i]));
 		}
-		return current;
+		return current.get(keys[keys.length - 1]);
 	}
 
 	public Long getAsLong(String key) {
