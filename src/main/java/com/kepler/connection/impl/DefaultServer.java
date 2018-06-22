@@ -47,7 +47,7 @@ import io.netty.handler.timeout.IdleStateHandler;
  */
 public class DefaultServer {
 
-	private static final int EVENTLOOP_PARENT = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".eventloop_parent", 1);
+	private static final int EVENTLOOP_PARENT = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".eventloop_parent", Math.max(Runtime.getRuntime().availableProcessors() / 2, 2));
 
 	private static final int EVENTLOOP_CHILD = PropertiesUtils.get(DefaultServer.class.getName().toLowerCase() + ".eventloop_child", Runtime.getRuntime().availableProcessors() * 2);
 

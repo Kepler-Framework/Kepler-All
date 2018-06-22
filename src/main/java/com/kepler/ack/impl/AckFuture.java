@@ -244,7 +244,7 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 	private AckFuture checkException() throws KeplerRemoteException {
 		if (!this.response.valid()) {
 			// 如果静默则保持Done状态
-			this.stauts = this.quiet.quiet(this.request, this.response.throwable().getClass()) ? Status.DONE : Status.EXCEPTION;
+			this.stauts = this.quiet.quiet(this.request, this.method, this.response.throwable().getClass()) ? Status.DONE : Status.EXCEPTION;
 			// 非KeplerRemoteException需包装
 			throw KeplerRemoteException.class.isAssignableFrom(this.response.throwable().getClass()) ? KeplerRemoteException.class.cast(this.response.throwable()) : new KeplerRemoteException(this.response.throwable());
 		}
