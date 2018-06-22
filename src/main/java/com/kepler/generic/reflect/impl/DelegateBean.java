@@ -73,7 +73,7 @@ public class DelegateBean implements GenericBean {
 		for (int i = 0; i < keys.length - 1; i++) {
 			current = Map.class.cast(current.get(keys[i]));
 		}
-		return current.get(keys[keys.length - 1]);
+		return current != null ? current.get(keys[keys.length - 1]) : null;
 	}
 
 	public Long getAsLong(String key) {
