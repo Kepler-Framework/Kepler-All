@@ -61,6 +61,7 @@
 		<constructor-arg ref="kepler.trace.causes" />
 		<constructor-arg ref="kepler.channel.context" />
 		<constructor-arg ref="kepler.invoker.processor" />
+		<constructor-arg ref="kepler.service.exported.context" />
 	</bean>
 
 	<bean id="kepler.invoker.demote" class="com.kepler.invoker.impl.DemoteInvoker">

@@ -21,6 +21,7 @@ import com.kepler.mock.Mocker;
 import com.kepler.mock.MockerContext;
 import com.kepler.protocol.Request;
 import com.kepler.router.Router;
+import com.kepler.service.ExportedContext;
 import com.kepler.trace.TraceCauses;
 
 /**
@@ -48,6 +49,8 @@ public class ActualInvoker implements Invoker {
 
 	private final InvokerProcessor processor;
 
+	private final ExportedContext exported;
+
 	private final ChannelContext channels;
 
 	private final MockerContext mocker;
@@ -60,10 +63,11 @@ public class ActualInvoker implements Invoker {
 
 	private int timeout = ActualInvoker.TIMEOUT;
 
-	public ActualInvoker(InvokerProcessor processor, ChannelContext channels, TraceCauses trace, MockerContext mocker, Router router) {
+	public ActualInvoker(InvokerProcessor processor, ExportedContext exported, ChannelContext channels, TraceCauses trace, MockerContext mocker, Router router) {
 		super();
 		this.processor = processor;
 		this.channels = channels;
+		this.exported = exported;
 		this.router = router;
 		this.mocker = mocker;
 		this.trace = trace;
@@ -101,8 +105,7 @@ public class ActualInvoker implements Invoker {
 
 	/**
 	 * @param request
-	 * @param timestamp
-	 *            本次执行起始时间
+	 * @param timestamp 本次执行起始时间
 	 * @return
 	 * @throws Throwable
 	 */
@@ -110,7 +113,12 @@ public class ActualInvoker implements Invoker {
 		try {
 			Host _host = this.router.host(request);
 			Request _request = this.processor.before(request, _host);
-			return this.channels.get(_host).invoke(_request, method);
+			Invoker invoker = this.exported.get(_request.service());
+			if (invoker != null) {
+				return invoker.invoke(_request, method);
+			} else {
+				return this.channels.get(_host).invoke(_request, method);
+			}
 		} catch (KeplerRoutingException exception) {
 			// 存在Mocker则使用Mocker, 否则重试
 			Mocker mocker = this.mocker.get(request.service());
