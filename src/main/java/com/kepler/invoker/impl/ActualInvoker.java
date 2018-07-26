@@ -41,6 +41,11 @@ public class ActualInvoker implements Invoker {
 	private static final int INTERVAL = PropertiesUtils.get(ActualInvoker.class.getName().toLowerCase() + ".interval", 500);
 
 	/**
+	 * 是否允许本地调用
+	 */
+	private static final boolean LOCAL = PropertiesUtils.get(ActualInvoker.class.getName().toLowerCase() + ".local", true);
+
+	/**
 	 * None Service重试阀值
 	 */
 	private static final int TIMEOUT = PropertiesUtils.get(ActualInvoker.class.getName().toLowerCase() + ".timeout", 3000);
@@ -113,12 +118,14 @@ public class ActualInvoker implements Invoker {
 		try {
 			Host _host = this.router.host(request);
 			Request _request = this.processor.before(request, _host);
-			Invoker invoker = this.exported.get(_request.service());
-			if (invoker != null) {
-				return invoker.invoke(_request, method);
-			} else {
-				return this.channels.get(_host).invoke(_request, method);
+			// 如果允许本地调用并且本地存在该服务
+			if (ActualInvoker.LOCAL) {
+				Invoker invoker = this.exported.get(_request.service());
+				if (invoker != null) {
+					return invoker.invoke(_request, method);
+				}
 			}
+			return this.channels.get(_host).invoke(_request, method);
 		} catch (KeplerRoutingException exception) {
 			// 存在Mocker则使用Mocker, 否则重试
 			Mocker mocker = this.mocker.get(request.service());
