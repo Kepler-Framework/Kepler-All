@@ -442,6 +442,10 @@ public class DefaultAnalyser implements Exported, Imported, FieldsAnalyser {
 		@Override
 		@SuppressWarnings("unchecked")
 		public Object actual(Object source) throws Exception {
+			// 无法解析为Map则直接返回
+			if (!Map.class.isAssignableFrom(source.getClass())) {
+				return source;
+			}
 			// Object数据源必须为Map
 			Map<String, Object> source_actual = Map.class.cast(source);
 			// 如果存在扩展则使用扩展创建对象
