@@ -38,7 +38,7 @@ public class DefaultConnects implements Connects {
 	public void put(Host host) {
 		DelayConnectHost connect = new DelayConnectHost(host);
 		this.queue.offer(connect);
-		DefaultConnects.LOGGER.warn("Host: " + connect + " will reconnet after " + DefaultConnects.DELAY);
+		DefaultConnects.LOGGER.warn("Host: " + connect + " will reconnect after " + DefaultConnects.DELAY);
 	}
 
 	private class DelayConnectHost implements ConnectHost {

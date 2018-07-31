@@ -62,6 +62,12 @@ import io.netty.util.AttributeKey;
  */
 public class DefaultConnect implements Connect {
 
+	private static final String LOCK_FIELD_SID = "sid";
+
+	private static final String LOCK_FIELD_HOST = "host";
+
+	private static final String LOCK_FIELD = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".lock_field", DefaultConnect.LOCK_FIELD_SID);
+
 	/**
 	 * 连接超时
 	 */
@@ -244,9 +250,27 @@ public class DefaultConnect implements Connect {
 		this.context.ban(host);
 	}
 
+	/**
+	 * 获取锁字段
+	 */
+	private String lock(Host host) throws Exception {
+		switch (DefaultConnect.LOCK_FIELD) {
+		case DefaultConnect.LOCK_FIELD_HOST: {
+			return host.host().intern();
+		}
+		case DefaultConnect.LOCK_FIELD_SID: {
+			return host.sid().intern();
+		}
+		default: {
+			DefaultConnect.LOGGER.warn("Unsupported lock field: " + DefaultConnect.LOCK_FIELD);
+			return host.host().intern();
+		}
+		}
+	}
+
 	public void connect(Host host) throws Exception {
 		// IP锁. 1个Host仅允许建立1个连接
-		synchronized (host.host().intern()) {
+		synchronized (this.lock(host)) {
 			if (!this.channels.contain(host)) {
 				this.connect(new InvokerHandler(new Bootstrap(), this.local, host, this.channels));
 			} else {
@@ -273,7 +297,7 @@ public class DefaultConnect implements Connect {
 			invoker.bootstrap().group(this.eventloop()).option(ChannelOption.CONNECT_TIMEOUT_MILLIS, DefaultConnect.TIMEOUT).channelFactory(DefaultChannelFactory.INSTANCE_CLIENT).handler(DefaultConnect.this.inits.factory(invoker)).remoteAddress(remote).connect().sync();
 			// 连接成功, 加入通道. 异常则跳过
 		} catch (Throwable e) {
-			DefaultConnect.LOGGER.info("Connect " + invoker.remote().address() + "[sid=" + invoker.remote().sid() + "] failed ...", e);
+			DefaultConnect.LOGGER.info("Connect " + invoker.remote().address() + "][sid=" + invoker.remote().sid() + "] failed ...", e);
 			// 关闭并尝试重连
 			this.context.ban(invoker.remote());
 			invoker.releaseAtOnce();

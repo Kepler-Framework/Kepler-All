@@ -595,7 +595,7 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 		/**
 		 * 已导入实例(多线程竞争)
 		 */
-		private final Map<String, ServiceInstance> instances = new ConcurrentHashMap<String, ServiceInstance>();
+		volatile private Map<String, ServiceInstance> instances = new ConcurrentHashMap<String, ServiceInstance>();
 
 		/**
 		 * 已发布服务
@@ -1101,6 +1101,7 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 					}
 				}
 				this.handle(current, ZkContext.this.snapshot.instances);
+				ZkContext.this.snapshot.instances = current;
 			} catch (Exception e) {
 				ZkContext.LOGGER.error(e.getMessage(), e);
 			} finally {
@@ -1130,8 +1131,9 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 			// 移除节点
 			for (String each : snapshot.keySet()) {
 				if (!current.containsKey(each)) {
-					ZkContext.LOGGER.warn("[node pre-delete][instance=" + current.get(each) + "]");
-					remove.add(snapshot.get(each));
+					ServiceInstance instance = snapshot.get(each);
+					ZkContext.LOGGER.warn("[node pre-delete][instance=" + instance + "]");
+					remove.add(instance);
 				}
 			}
 			ZkContext.LOGGER.info("[refresh][install=" + install.size() + "][update=" + update.size() + "][remove=" + remove.size() + "]");
