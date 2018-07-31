@@ -16,6 +16,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.kepler.registry.Registry;
+import com.kepler.registry.RegistryContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.zookeeper.CreateMode;
@@ -24,7 +26,6 @@ import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
-import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.StringUtils;
@@ -53,7 +54,7 @@ import com.kepler.service.ServiceInstance;
 /**
  * @author zhangjiehao 2015年7月9日
  */
-public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, ApplicationListener<ContextRefreshedEvent> {
+public class ZkContext implements Registry, Demotion, ExportedInfo {
 
 	/**
 	 * 保存配置信息路径, 如果失败是否抛出异常终止发布
@@ -194,7 +195,7 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 	private void reset4imported() throws Exception {
 		for (Service service : this.snapshot.imported) {
 			// 获取所有快照依赖并重新导入
-			this.subscribe(service);
+			this.discovery(service);
 		}
 		ZkContext.LOGGER.info("Reset imported success ...");
 	}
@@ -208,7 +209,7 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 		// 从快照获取需发布服务
 		for (Service service : this.snapshot.exported.keySet()) {
 			// 获取所有服务实例并重新发布
-			this.export(service, this.snapshot.exported.get(service));
+			this.registration(service, this.snapshot.exported.get(service));
 		}
 		ZkContext.LOGGER.info("Reset exported success ...");
 	}
@@ -254,6 +255,7 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 		}
 	}
 
+	@Override
 	public void demote() throws Exception {
 		// 降级已发布服务
 		this.exports.demote();
@@ -274,6 +276,7 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 		this.config();
 	}
 
+
 	@Override
 	public List<ServiceInstance> instance() throws Exception {
 		List<ServiceInstance> instances = new ArrayList<ServiceInstance>();
@@ -285,13 +288,15 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 		return instances;
 	}
 
+
 	@Override
 	public List<Service> services() throws Exception {
 		return new ArrayList<Service>(this.exports.instance.keySet());
 	}
 
+
 	@Override
-	public void subscribe(Service service) throws Exception {
+	public void discovery(Service service) throws Exception {
 		// 是否加载远程服务
 		if (!PropertiesUtils.profile(this.profile.profile(service), ZkContext.IMPORT_KEY, ZkContext.IMPORT_VAL)) {
 			ZkContext.LOGGER.warn("Disabled import service: " + service + " ... ");
@@ -312,18 +317,26 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 		}
 	}
 
+
 	@Override
-	public void unsubscribe(Service service) throws Exception {
+	public void unDiscovery(Service service) throws Exception {
 		this.unsubscribe.add(service);
 		this.snapshot.unsubscribe(service);
 	}
 
 	@Override
-	public void export(Service service, Object instance) throws Exception {
+	public String registryName() {
+		return RegistryContext.ZOOKEEPER;
+	}
+
+
+	@Override
+	public void registration(Service service, Object instance) throws Exception {
 		this.delay.exported(service, instance);
 	}
 
-	public void logout(Service service) throws Exception {
+	@Override
+	public void unRegistration(Service service) throws Exception {
 		this.exports.destroy(service);
 		ZkContext.LOGGER.info("Logout service: " + service + " ... ");
 	}
@@ -344,7 +357,7 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 	}
 
 	@Override
-	public void onApplicationEvent(ContextRefreshedEvent event) {
+	public void onRefreshEvent(ContextRefreshedEvent event) {
 		try {
 			// 延迟发布
 			this.delay.reach();
@@ -522,7 +535,7 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 		/**
 		 * 注销指定服务
 		 * 
-		 * @param path
+		 * @param service
 		 */
 		public void destroy(Service service) {
 			List<ZkInstance> instances = this.instance.remove(service);
@@ -1029,10 +1042,12 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 			this.service = service;
 		}
 
+		@Override
 		public long getDelay(TimeUnit unit) {
 			return unit.convert(this.deadline - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 		}
 
+		@Override
 		public int compareTo(Delayed o) {
 			return this.getDelay(TimeUnit.SECONDS) >= o.getDelay(TimeUnit.SECONDS) ? 1 : -1;
 		}
@@ -1041,6 +1056,7 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 			return this.service;
 		}
 
+		@Override
 		public String toString() {
 			return "[deadline=" + this.deadline + "][service=" + this.service + "]";
 		}
@@ -1064,7 +1080,7 @@ public class ZkContext implements Demotion, Imported, Exported, ExportedInfo, Ap
 						continue;
 					}
 					if (service != null) {
-						ZkContext.this.subscribe(service.service());
+						ZkContext.this.discovery(service.service());
 					}
 				} catch (Throwable e) {
 					ZkContext.LOGGER.debug(e.getMessage(), e);
