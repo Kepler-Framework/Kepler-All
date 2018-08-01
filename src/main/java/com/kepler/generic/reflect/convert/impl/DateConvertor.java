@@ -22,9 +22,11 @@ public class DateConvertor extends SimpleConvertor {
 	@Override
 	public Object doConvert(Object source, Class<?> expect, Class<?>[] extension, FieldsAnalyser analyser) throws Exception {
 		// 如果Source为Long则使用new Date(long), 否则使用字符串格式化
-		if (source.getClass() == Integer.class || source.getClass() == int.class || source.getClass() == Long.class || source.getClass() == long.class) {
+		if (source.getClass() == Long.class || source.getClass() == long.class) {
 			return new Date(Long.class.cast(source));
-		} else if (source.getClass() == String.class && NumberUtils.isNumber((String)source)) {
+		} else if(source.getClass() == Integer.class || source.getClass() == int.class) {
+            return new Date(Integer.class.cast(source).longValue());
+        } else if (source.getClass() == String.class && NumberUtils.isNumber((String)source)) {
 			return new Date(Long.parseLong((String) source));
 		} else {
 			return new SimpleDateFormat(DateConvertor.FORMAT).parse(source.toString());
