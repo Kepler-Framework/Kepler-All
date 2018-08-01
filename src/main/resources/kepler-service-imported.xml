@@ -17,8 +17,8 @@
 				<ref bean="kepler.service.imported.encoder" />
 				<ref bean="kepler.service.imported.cache" />
 				<ref bean="kepler.service.imported.quiet" />
-				<!-- ZK as a final publish, need last -->
-				<ref bean="kepler.service.imported.zookeeper" />
+				<!-- registry as a final publish, need last -->
+				<ref bean="kepler.service.imported.registry" />
 			</util:list>
 		</constructor-arg>
 	</bean>

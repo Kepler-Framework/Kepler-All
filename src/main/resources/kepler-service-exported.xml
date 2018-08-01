@@ -13,7 +13,7 @@
 				<ref bean="kepler.service.exported.context" />
 				<ref bean="kepler.service.exported.generic" />
 				<ref bean="kepler.service.exported.encoder" />
-				<ref bean="kepler.service.exported.zookeeper" />
+				<ref bean="kepler.service.exported.registry" />
 			</list>
 		</constructor-arg>
 	</bean>
