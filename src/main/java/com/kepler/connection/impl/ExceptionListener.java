@@ -46,9 +46,11 @@ public class ExceptionListener implements GenericFutureListener<Future<Void>> {
 
 	@Override
 	public void operationComplete(Future<Void> future) throws Exception {
-		this.running = System.currentTimeMillis();
-		if ((running - this.created) >= ExceptionListener.WAIT_WARN) {
-			ExceptionListener.LOGGER.warn("[wait-warn][time=" + (this.running - this.created) + "][trace=" + this.trace + "]");
+		if (ExceptionListener.DETAIL) {
+			this.running = System.currentTimeMillis();
+			if ((running - this.created) >= ExceptionListener.WAIT_WARN) {
+				ExceptionListener.LOGGER.warn("[wait-warn][time=" + (this.running - this.created) + "][trace=" + this.trace + "]");
+			}
 		}
 		if (!future.isSuccess() && future.cause() != null) {
 			// 如果存在Context则获取Remote
