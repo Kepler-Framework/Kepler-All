@@ -130,7 +130,7 @@ public class PropertiesUtils {
 		try (InputStream input = ResourceUtils.getURL(file).openStream()) {
 			properties.load(input);
 		} catch (FileNotFoundException fne) {
-			PropertiesUtils.LOGGER.info("Loading keper.conf failed ...");
+			PropertiesUtils.LOGGER.info("File [" + file + "] not exists");
 		} catch (Throwable throwable) {
 			PropertiesUtils.LOGGER.warn(throwable.getMessage(), throwable);
 		}

@@ -30,12 +30,11 @@ public class Start {
 		try {
 			// 加载Prepare
 			Start.prepare();
-			ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(Start.configs());
-			Runtime.getRuntime().addShutdownHook(new Shutdown(context));
-			Start.wait(context);
+			ClassPathXmlApplicationContext master = new ClassPathXmlApplicationContext(Start.configs());
+			Runtime.getRuntime().addShutdownHook(new Shutdown(master));
+			Start.wait(master);
 			Start.LOGGER.warn("Service closed ...");
 		} catch (Throwable e) {
-			e.printStackTrace();
 			Start.LOGGER.fatal(e.getMessage(), e);
 			System.exit(1);
 		}
@@ -48,6 +47,10 @@ public class Start {
 	 * @throws IOException 
 	 */
 	private static String[] configs() {
+		return Start.configs(new String[] {});
+	}
+
+	private static String[] configs(String... append) {
 		List<String> configs = new ArrayList<String>();
 		// 默认启动XML
 		Start.loading4default(configs);
@@ -56,6 +59,9 @@ public class Start {
 		// 加载默认插件
 		Start.loading4path(configs);
 		Start.LOGGER.warn("Loading configs: " + configs);
+		for (String each : append) {
+			configs.add(each);
+		}
 		return configs.toArray(new String[] {});
 	}
 
