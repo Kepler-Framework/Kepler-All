@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
     <alias name="kepler.registry" alias="kepler.service.exported.registry" />
 
     <alias name="kepler.registry" alias="kepler.service.imported.registry" />
 
 
-    <bean id="kepler.registry" class="com.kepler.registry.RegistryContext"/>
+    <bean id="kepler.registry" class="com.kepler.registry.RegistryContext">
+        <constructor-arg>
+            <util:list>
+                <ref bean="kepler.zookeeper.context" />
+                <ref bean="kepler.etcd.context" />
+            </util:list>
+        </constructor-arg>
+    </bean>
 </beans>

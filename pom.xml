@@ -3,14 +3,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.kepler</groupId>
 	<artifactId>kepler-all</artifactId>
-	<version>0.0.13-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>kepler</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>
 		<maven.project.name>kepler-all</maven.project.name>
-		<maven.project.compile.version>1.7</maven.project.compile.version>
+		<maven.project.compile.version>1.8</maven.project.compile.version>
 		<maven.project.jackson.version>2.4.2</maven.project.jackson.version>
 		<maven.project.spring.version>4.2.4.RELEASE</maven.project.spring.version>
 		<maven.project.build.sourceEncoding>UTF-8</maven.project.build.sourceEncoding>
@@ -21,7 +21,13 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
-			<version>4.0.36.Final</version>
+			<version>4.1.25.Final</version>
+		</dependency>
+		<!-- protobuf -->
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>3.5.1</version>
 		</dependency>
 		<!-- Hessian -->
 		<dependency>
@@ -112,6 +118,12 @@
 			<version>${maven.project.spring.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		<!-- etcd -->
+		<dependency>
+            <groupId>com.coreos</groupId>
+            <artifactId>jetcd-core</artifactId>
+            <version>0.0.2</version>
+        </dependency>
 	</dependencies>
 	<build>
 		<finalName>${maven.project.name}</finalName>

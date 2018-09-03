@@ -30,6 +30,7 @@
 	<import resource="kepler-protocol.xml" />
 	<import resource="kepler-extension.xml" />
 	<import resource="kepler-zookeeper.xml" />
+	<import resource="kepler-etcd.xml" />
 	<import resource="kepler-registry.xml" />
 	<import resource="kepler-connection.xml" />
 	<import resource="kepler-transaction.xml" />

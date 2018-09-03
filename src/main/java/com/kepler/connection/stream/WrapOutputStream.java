@@ -61,11 +61,11 @@ public class WrapOutputStream extends OutputStream {
 	/**
 	 * 写入完毕, 回调写入信息
 	 * 
-	 * @param estimate
+	 * @param handle
 	 * @return
 	 */
 	public WrapOutputStream record(Handle handle) {
-		handle.record(this.buffer.readableBytes());
+		handle.incMessagesRead(this.buffer.readableBytes());
 		return this;
 	}
 }
