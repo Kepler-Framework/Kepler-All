@@ -42,10 +42,10 @@ public class EtcdClient implements AutoCloseable {
     private Long leaseId;
 
     private EtcdClient(Collection<String> endpoints, long ttl) {
-        etcdClient = Client.builder().endpoints(endpoints).build();
-        kvClient = etcdClient.getKVClient();
-        leaseClient = etcdClient.getLeaseClient();
-        watchClient = etcdClient.getWatchClient();
+        this.etcdClient = Client.builder().endpoints(endpoints).build();
+        this.kvClient = this.etcdClient.getKVClient();
+        this.leaseClient = this.etcdClient.getLeaseClient();
+        this.watchClient = this.etcdClient.getWatchClient();
         this.ttl = ttl;
     }
 

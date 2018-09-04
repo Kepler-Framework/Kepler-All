@@ -92,12 +92,14 @@ public class EtcdContext implements Registry {
         this.etcdClient.put(key(service), this.serials.def4output().output(serial, ServiceInstance.class));
 
         EtcdContext.LOGGER.info("Export service to etcd: " + service + " ... ");
+        //TODO: 租期失效后重新注册，目前不知道如何感知etcd服务器下线以触发该操作
 
     }
 
     @Override
     public void unRegistration(Service service) throws Exception {
         this.etcdClient.delete(key(service));
+        EtcdContext.LOGGER.info("Logout service: " + service + " ... ");
     }
 
     @Override

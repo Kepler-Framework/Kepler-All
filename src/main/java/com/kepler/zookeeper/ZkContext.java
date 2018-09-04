@@ -127,10 +127,6 @@ public class ZkContext implements Registry, Demotion, ExportedInfo {
 
 	private final Roadmap road = new Roadmap();
 
-	/**
-	 * 用于延迟发布
-	 */
-	private final Delay delay = new Delay();
 
 	private final ImportedListener listener;
 
@@ -332,7 +328,7 @@ public class ZkContext implements Registry, Demotion, ExportedInfo {
 
 	@Override
 	public void registration(Service service, Object instance) throws Exception {
-		this.delay.exported(service, instance);
+		this.exported4delay(service, instance);
 	}
 
 	@Override
@@ -359,8 +355,6 @@ public class ZkContext implements Registry, Demotion, ExportedInfo {
 	@Override
 	public void onRefreshEvent(ContextRefreshedEvent event) {
 		try {
-			// 延迟发布
-			this.delay.reach();
 			// 启动完毕后发布Status/Config节点
 			this.status();
 			this.config();
@@ -969,64 +963,7 @@ public class ZkContext implements Registry, Demotion, ExportedInfo {
 		}
 	}
 
-	/**
-	 * 服务端口启动成功后, 再发布服务
-	 * 
-	 * @author tudesheng
-	 */
-	private class Delay {
 
-		private List<Pair<Service, Object>> services = new ArrayList<Pair<Service, Object>>();
-
-		private boolean started = false;
-
-		public synchronized void exported(Service service, Object instance) throws Exception {
-			if (this.started) {
-				// 如果已启动则直接发布(场景: 断线重连)
-				ZkContext.this.exported4delay(service, instance);
-			} else {
-				// 未重启则加入缓存
-				this.services.add(new Pair<Service, Object>(service, instance));
-			}
-		}
-
-		/**
-		 * 触发延迟加载
-		 * 
-		 * @throws Exception
-		 */
-		public synchronized void reach() throws Exception {
-			if (!this.started) {
-				for (Pair<Service, Object> pair : services) {
-					ZkContext.this.exported4delay(pair.key(), pair.val());
-				}
-				// 切换状态并清空缓存
-				started = true;
-				services = null;
-			}
-		}
-
-	}
-
-	private class Pair<K, V> {
-
-		private K key;
-
-		private V val;
-
-		private Pair(K key, V val) {
-			this.key = key;
-			this.val = val;
-		}
-
-		public K key() {
-			return key;
-		}
-
-		public V val() {
-			return val;
-		}
-	}
 
 	private class Reinstall implements Delayed {
 
