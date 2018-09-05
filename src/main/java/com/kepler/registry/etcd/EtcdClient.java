@@ -52,7 +52,6 @@ public class EtcdClient implements AutoCloseable {
 
 
     public CompletableFuture<PutResponse> put(String key, byte[] value) {
-
         ByteSequence keyByteSequence = ByteSequence.fromString(key);
         ByteSequence valueByteSequence = ByteSequence.fromBytes(value);
         return kvClient.put(keyByteSequence, valueByteSequence, PutOption.newBuilder().withLeaseId(leaseId).build());
@@ -76,7 +75,7 @@ public class EtcdClient implements AutoCloseable {
     @Override
     public void close() throws ExecutionException, InterruptedException {
         if (leaseId != null) {
-            LOGGER.info("Revoking lease with id=" + leaseId);
+            EtcdClient.LOGGER.info("Revoking lease with id=" + leaseId);
             leaseClient.revoke(leaseId).get();
         }
         etcdClient.close();
@@ -87,6 +86,7 @@ public class EtcdClient implements AutoCloseable {
     }
 
     public void init() throws Exception {
+        //为了兼容不使用etcd的情况，这里不允许抛异常
         try {
             leaseAndKeepAlive();
         } catch (Exception e) {
@@ -109,6 +109,7 @@ public class EtcdClient implements AutoCloseable {
         try {
             leaseClient.keepAliveOnce(leaseId).get();
         } catch (Exception e) {
+            EtcdClient.LOGGER.error("lease expired for leaseId[" + leaseId + "],message=" + e.getMessage());
             return true;
         }
         return false;
