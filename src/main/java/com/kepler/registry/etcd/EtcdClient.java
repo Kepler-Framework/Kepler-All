@@ -10,6 +10,7 @@ import com.coreos.jetcd.kv.GetResponse;
 import com.coreos.jetcd.kv.PutResponse;
 import com.coreos.jetcd.options.GetOption;
 import com.coreos.jetcd.options.PutOption;
+import com.coreos.jetcd.options.WatchOption;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -39,7 +40,7 @@ public class EtcdClient implements AutoCloseable {
 
     private final long ttl;
 
-    private Long leaseId;
+    private volatile Long leaseId;
 
     private EtcdClient(Collection<String> endpoints, long ttl) {
         this.etcdClient = Client.builder().endpoints(endpoints).build();
@@ -67,6 +68,11 @@ public class EtcdClient implements AutoCloseable {
         return kvClient.get(prefixByteSequence, prefixOption);
     }
 
+    public Watch.Watcher watch(String prefix) {
+        ByteSequence prefixByteSequence = ByteSequence.fromString(prefix);
+        return watchClient.watch(prefixByteSequence, WatchOption.newBuilder().withPrefix(prefixByteSequence).withPrevKV(true).build());
+    }
+
     @Override
     public void close() throws ExecutionException, InterruptedException {
         if (leaseId != null) {
@@ -81,14 +87,31 @@ public class EtcdClient implements AutoCloseable {
     }
 
     public void init() throws Exception {
-        //申请租约并keep alive
         try {
-            leaseId = leaseClient.grant(ttl).get().getID();
-            leaseClient.keepAlive(leaseId);
+            leaseAndKeepAlive();
         } catch (Exception e) {
             LOGGER.error("Failed to grant etcd lease, message=" + e.getMessage());
         }
 
+    }
+
+    /**
+     * 申请租约并keep alive
+     *
+     * @throws Exception
+     */
+    public void leaseAndKeepAlive() throws Exception {
+        leaseId = leaseClient.grant(ttl).get().getID();
+        leaseClient.keepAlive(leaseId);
+    }
+
+    public boolean leaseExpired() {
+        try {
+            leaseClient.keepAliveOnce(leaseId).get();
+        } catch (Exception e) {
+            return true;
+        }
+        return false;
     }
 
     public static class Builder {

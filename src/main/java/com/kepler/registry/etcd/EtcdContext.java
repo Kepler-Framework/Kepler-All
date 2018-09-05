@@ -1,5 +1,8 @@
 package com.kepler.registry.etcd;
 
+import com.coreos.jetcd.Watch;
+import com.coreos.jetcd.data.KeyValue;
+import com.coreos.jetcd.watch.WatchEvent;
 import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.host.Host;
@@ -18,6 +21,12 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -34,6 +43,10 @@ public class EtcdContext implements Registry {
      */
     public static final String ROOT = PropertiesUtils.get(EtcdContext.class.getName().toLowerCase() + ".root", "/kepler");
 
+    /**
+     * Watcher 线程数
+     */
+    private static final int WATCHER_THREAD = PropertiesUtils.get(EtcdContext.class.getName().toLowerCase() + ".watcher_thread", 100);
 
     /**
      * 是否发布
@@ -49,6 +62,19 @@ public class EtcdContext implements Registry {
 
     private static final boolean IMPORT_VAL = PropertiesUtils.get(EtcdContext.IMPORT_KEY, true);
 
+    private final ExecutorService executor = Executors.newFixedThreadPool(WATCHER_THREAD);
+
+    /**
+     * 已发布服务
+     */
+    private final Map<Service, Object> exported = new ConcurrentHashMap<Service, Object>();
+
+    /**
+     * 已导入服务
+     */
+    private final Set<Service> imported = new CopyOnWriteArraySet<Service>();
+
+
     private final ImportedListener listener;
 
     private final HostsContext hosts;
@@ -60,6 +86,8 @@ public class EtcdContext implements Registry {
     private final Serials serials;
 
     private final EtcdClient etcdClient;
+
+    private volatile boolean shutdown;
 
     public EtcdContext(ImportedListener listener, HostsContext hosts, ServerHost local, Profile profile, Serials serials, EtcdClient etcdClient) {
         this.listener = listener;
@@ -76,6 +104,8 @@ public class EtcdContext implements Registry {
 
     public void destroy() throws Exception {
         this.etcdClient.close();
+        this.shutdown = true;
+        this.executor.shutdownNow();
     }
 
     @Override
@@ -90,7 +120,7 @@ public class EtcdContext implements Registry {
         ZkSerial serial = new ZkSerial(new ServerHost.Builder(this.local).setTag(PropertiesUtils.profile(this.profile.profile(service), Host.TAG_KEY, Host.TAG_VAL)).setPriority(PropertiesUtils.profile(this.profile.profile(service), Host.PRIORITY_KEY, Host.PRIORITY_DEF)).toServerHost(), service);
         // 存入etcd
         this.etcdClient.put(key(service), this.serials.def4output().output(serial, ServiceInstance.class));
-
+        this.exported.put(service, instance);
         EtcdContext.LOGGER.info("Export service to etcd: " + service + " ... ");
         //TODO: 租期失效后重新注册，目前不知道如何感知etcd服务器下线以触发该操作
 
@@ -111,21 +141,23 @@ public class EtcdContext implements Registry {
         }
         List<ServiceInstance> instances = etcdClient.getAllByPrefix(prefix(service))
                 .thenApply(getResponse -> getResponse.getCount() > 0 ? getResponse.getKvs().stream()
-                        .map(kv -> this.serials.def4input().input(kv.getValue().getBytes(), ServiceInstance.class))
+                        .map(kv -> deSerialize(kv.getValue().getBytes()))
                         .collect(Collectors.toList()) : null)
                 .get();
 
-        if (CollectionUtils.isEmpty(instances)) {
-            return;
+        if (!CollectionUtils.isEmpty(instances)) {
+            instances.forEach(instance -> {
+                try {
+                    listener.add(instance);
+                } catch (Throwable e) {
+                    LOGGER.error(e.getMessage(), e);
+                }
+            });
         }
-        instances.forEach(instance -> {
-            try {
-                listener.add(instance);
-            } catch (Throwable e) {
-                LOGGER.error(e.getMessage(), e);
-            }
-        });
-        // TODO 添加 Watcher
+        if (!imported.contains(service)) {
+            executor.submit(new ServiceWatcher(service));
+            imported.add(service);
+        }
     }
 
     @Override
@@ -149,5 +181,48 @@ public class EtcdContext implements Registry {
 
     private String prefix(Service service) {
         return EtcdContext.ROOT + "/" + service.service() + "/" + service.versionAndCatalog();
+    }
+
+    private class ServiceWatcher implements Runnable {
+
+        private Service service;
+
+        public ServiceWatcher(Service service) {
+            this.service = service;
+        }
+
+        @Override
+        public void run() {
+            Watch.Watcher watcher = EtcdContext.this.etcdClient.watch(prefix(service));
+            while (!EtcdContext.this.shutdown) {
+                try {
+                    for (WatchEvent watchEvent : watcher.listen().getEvents()) {
+                        switch (watchEvent.getEventType()) {
+                            case PUT:
+                                KeyValue current = watchEvent.getKeyValue();
+                                KeyValue prev = watchEvent.getPrevKV();
+                                if (prev.getKey().getBytes().length == 0) {
+                                    EtcdContext.this.listener.add(deSerialize(current.getValue().getBytes()));
+                                } else {
+                                    EtcdContext.this.listener.change(deSerialize(prev.getValue().getBytes()), deSerialize(current.getValue().getBytes()));
+                                }
+                                break;
+                            case DELETE:
+                                EtcdContext.this.listener.delete(deSerialize(watchEvent.getPrevKV().getValue().getBytes()));
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("service watcher failed for " + service.toString() + ", message=" + e.getMessage());
+                }
+            }
+            LOGGER.info("Watcher thread shutdown for " + service.toString());
+        }
+    }
+
+    private ServiceInstance deSerialize(byte[] bytes) {
+        return this.serials.def4input().input(bytes, ServiceInstance.class);
     }
 }
