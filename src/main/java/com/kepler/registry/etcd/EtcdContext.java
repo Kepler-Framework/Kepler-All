@@ -73,14 +73,14 @@ public class EtcdContext implements Registry {
     private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(WATCHER_THREAD);
 
     /**
-     * 已导入实例(多线程竞争)
+     * 需发布服务
      */
     volatile private Map<String, ServiceInstance> instances = new ConcurrentHashMap<>();
 
     /**
-     * 已发布服务
+     * 待发布服务
      */
-    private final Map<Service, Object> exported = new ConcurrentHashMap<>();
+    volatile private Map<String, ServiceInstance> retry = new ConcurrentHashMap<>();
 
     /**
      * 已导入服务
@@ -133,9 +133,11 @@ public class EtcdContext implements Registry {
         ZkSerial serial = new ZkSerial(new ServerHost.Builder(this.local).setTag(PropertiesUtils.profile(this.profile.profile(service), Host.TAG_KEY, Host.TAG_VAL)).setPriority(PropertiesUtils.profile(this.profile.profile(service), Host.PRIORITY_KEY, Host.PRIORITY_DEF)).toServerHost(), service);
         // 存入etcd
         String key = key(service);
-        export(key, serial);
-        this.exported.put(service, instance);
+
         this.instances.put(key, serial);
+        if(export(key, serial)) {
+            this.retry.put(key, serial);
+        }
         EtcdContext.LOGGER.info("Export service to etcd: " + service + " ... ");
 
     }
@@ -197,12 +199,13 @@ public class EtcdContext implements Registry {
         return EtcdContext.ROOT + "/" + service.service() + "/" + service.versionAndCatalog();
     }
 
-    private void export(String key, ServiceInstance serial) throws Exception {
-        this.etcdClient.put(key, serialize(serial)).handle((r, e) -> {
+    private boolean export(String key, ServiceInstance serial) throws Exception {
+        return this.etcdClient.put(key, serialize(serial)).handle((r, e) -> {
             if (e != null) {
                 EtcdContext.LOGGER.error("Failed to put etcd for " + key + ", message = " + e.getMessage(), e);
+                return false;
             }
-            return r;
+            return true;
         }).get();
     }
 
@@ -270,6 +273,16 @@ public class EtcdContext implements Registry {
                     instances.keySet().forEach(key -> {
                         try {
                             export(key, instances.get(key));
+                        } catch (Exception e) {
+                            EtcdContext.LOGGER.error(e.getMessage(), e);
+                        }
+                    });
+                } else {
+                    retry.keySet().forEach(key -> {
+                        try {
+                            if(export(key, retry.get(key))) {
+                                retry.remove(key);
+                            }
                         } catch (Exception e) {
                             EtcdContext.LOGGER.error(e.getMessage(), e);
                         }
