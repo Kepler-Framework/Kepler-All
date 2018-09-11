@@ -2,7 +2,9 @@ package com.kepler.registry.etcd;
 
 import com.coreos.jetcd.Watch;
 import com.coreos.jetcd.data.KeyValue;
+import com.coreos.jetcd.kv.GetResponse;
 import com.coreos.jetcd.watch.WatchEvent;
+import com.google.common.collect.Lists;
 import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
 import com.kepler.host.Host;
@@ -23,12 +25,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import java.util.concurrent.*;
 
 /**
  * etcd注册中心
@@ -135,16 +132,17 @@ public class EtcdContext implements Registry {
         String key = key(service);
 
         this.instances.put(key, serial);
-        if(export(key, serial)) {
+        if (!export(key, serial)) {
             this.retry.put(key, serial);
         }
         EtcdContext.LOGGER.info("Export service to etcd: " + service + " ... ");
-
     }
 
     @Override
     public void unRegistration(Service service) throws Exception {
-        this.etcdClient.delete(key(service));
+        String key = key(service);
+        this.retry.remove(key);
+        this.etcdClient.delete(key);
         EtcdContext.LOGGER.info("Logout service: " + service + " ... ");
     }
 
@@ -155,11 +153,18 @@ public class EtcdContext implements Registry {
             EtcdContext.LOGGER.warn("Disabled import service from etcd: " + service + " ... ");
             return;
         }
-        List<ServiceInstance> instances = etcdClient.getAllByPrefix(prefix(service))
-                .thenApply(getResponse -> getResponse.getCount() > 0 ? getResponse.getKvs().stream()
-                        .map(kv -> deSerialize(kv.getValue().getBytes()))
-                        .collect(Collectors.toList()) : null)
-                .get();
+
+        List<ServiceInstance> instances = Lists.newArrayList();
+        long revision = -1;
+
+        GetResponse getResponse = etcdClient.getAllByPrefix(prefix(service)).get();
+        for (KeyValue keyValue : getResponse.getKvs()) {
+            instances.add(deSerialize(keyValue.getValue().getBytes()));
+            long modRevision = keyValue.getModRevision();
+            if (modRevision > revision) {
+                revision = modRevision;
+            }
+        }
 
         if (!CollectionUtils.isEmpty(instances)) {
             instances.forEach(instance -> {
@@ -171,7 +176,7 @@ public class EtcdContext implements Registry {
             });
         }
         if (!imported.contains(service)) {
-            executor.submit(new ServiceWatcher(service));
+            executor.submit(new ServiceWatcher(service, revision + 1));
             imported.add(service);
         }
     }
@@ -221,13 +226,16 @@ public class EtcdContext implements Registry {
 
         private Service service;
 
-        ServiceWatcher(Service service) {
+        private long revision;
+
+        ServiceWatcher(Service service, long revision) {
             this.service = service;
+            this.revision = revision;
         }
 
         @Override
         public void run() {
-            Watch.Watcher watcher = EtcdContext.this.etcdClient.watch(prefix(service));
+            Watch.Watcher watcher = EtcdContext.this.etcdClient.watch(prefix(service), revision);
             while (!EtcdContext.this.shutdown) {
                 try {
                     for (WatchEvent watchEvent : watcher.listen().getEvents()) {
@@ -280,7 +288,7 @@ public class EtcdContext implements Registry {
                 } else {
                     retry.keySet().forEach(key -> {
                         try {
-                            if(export(key, retry.get(key))) {
+                            if (export(key, retry.get(key))) {
                                 retry.remove(key);
                             }
                         } catch (Exception e) {

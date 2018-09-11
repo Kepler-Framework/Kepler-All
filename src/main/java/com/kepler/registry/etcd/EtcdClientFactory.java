@@ -21,7 +21,7 @@ public class EtcdClientFactory implements FactoryBean<EtcdClient> {
     /**
      * keep alive 心跳间隔，单位s
      */
-    private static final long TTL = PropertiesUtils.get(EtcdClientFactory.class.getName().toLowerCase() + ".ttl", 5L);
+    private static final long TTL = PropertiesUtils.get(EtcdClientFactory.class.getName().toLowerCase() + ".ttl", 30L);
 
 
     @Override

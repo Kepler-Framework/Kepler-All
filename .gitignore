@@ -18,3 +18,4 @@ hs_err_pid*
 /.settings
 /.externalToolBuilders
 *.iml
+.idea

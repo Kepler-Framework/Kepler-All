@@ -50,7 +50,6 @@ public class EtcdClient implements AutoCloseable {
         this.ttl = ttl;
     }
 
-
     public CompletableFuture<PutResponse> put(String key, byte[] value) {
         ByteSequence keyByteSequence = ByteSequence.fromString(key);
         ByteSequence valueByteSequence = ByteSequence.fromBytes(value);
@@ -69,7 +68,14 @@ public class EtcdClient implements AutoCloseable {
 
     public Watch.Watcher watch(String prefix) {
         ByteSequence prefixByteSequence = ByteSequence.fromString(prefix);
-        return watchClient.watch(prefixByteSequence, WatchOption.newBuilder().withPrefix(prefixByteSequence).withPrevKV(true).build());
+        return watchClient.watch(prefixByteSequence,
+                WatchOption.newBuilder().withPrefix(prefixByteSequence).withPrevKV(true).build());
+    }
+
+    public Watch.Watcher watch(String prefix, long revision) {
+        ByteSequence prefixByteSequence = ByteSequence.fromString(prefix);
+        return watchClient.watch(prefixByteSequence,
+                WatchOption.newBuilder().withRevision(revision).withPrefix(prefixByteSequence).withPrevKV(true).build());
     }
 
     @Override
@@ -92,7 +98,6 @@ public class EtcdClient implements AutoCloseable {
         } catch (Exception e) {
             LOGGER.error("Failed to grant etcd lease, message=" + e.getMessage());
         }
-
     }
 
     /**
@@ -118,7 +123,7 @@ public class EtcdClient implements AutoCloseable {
     public static class Builder {
         private String scheme = "http";
         private Set<String> endpoints = new HashSet<>();
-        private long ttl = 5;
+        private long ttl = 30;
 
         private Builder() {
         }
