@@ -10,6 +10,7 @@ import com.kepler.config.PropertiesUtils;
 import com.kepler.host.Host;
 import com.kepler.host.HostsContext;
 import com.kepler.host.impl.ServerHost;
+import com.kepler.main.Demotion;
 import com.kepler.registry.Registry;
 import com.kepler.registry.RegistryContext;
 import com.kepler.serial.Serials;
@@ -32,14 +33,14 @@ import java.util.concurrent.*;
  *
  * @author longyaokun
  */
-public class EtcdContext implements Registry {
+public class EtcdContext implements Registry, Demotion {
 
     private static final Log LOGGER = LogFactory.getLog(EtcdContext.class);
 
     /**
      * 保存服务信息路径
      */
-    public static final String ROOT = PropertiesUtils.get(EtcdContext.class.getName().toLowerCase() + ".root", "/kepler");
+    private static final String ROOT = PropertiesUtils.get(EtcdContext.class.getName().toLowerCase() + ".root", "/kepler");
 
     /**
      * Watcher 线程数
@@ -68,6 +69,8 @@ public class EtcdContext implements Registry {
     private static final int KEEP_ALIVE_DELAY = PropertiesUtils.get(EtcdContext.class.getName().toLowerCase() + ".kl_delay", 30000);
 
     private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(WATCHER_THREAD);
+
+    private final Map<Service, Future<?>> serviceWatcher = new ConcurrentHashMap<>();
 
     /**
      * 需发布服务
@@ -113,8 +116,8 @@ public class EtcdContext implements Registry {
     }
 
     public void destroy() throws Exception {
-        this.etcdClient.close();
         this.shutdown = true;
+        this.etcdClient.close();
         this.executor.shutdownNow();
     }
 
@@ -128,9 +131,9 @@ public class EtcdContext implements Registry {
 
         // 生成节点信息，复用原zk的对象(Profile Tag, Priority)
         ZkSerial serial = new ZkSerial(new ServerHost.Builder(this.local).setTag(PropertiesUtils.profile(this.profile.profile(service), Host.TAG_KEY, Host.TAG_VAL)).setPriority(PropertiesUtils.profile(this.profile.profile(service), Host.PRIORITY_KEY, Host.PRIORITY_DEF)).toServerHost(), service);
+
         // 存入etcd
         String key = key(service);
-
         this.instances.put(key, serial);
         if (!export(key, serial)) {
             this.retry.put(key, serial);
@@ -176,14 +179,18 @@ public class EtcdContext implements Registry {
             });
         }
         if (!imported.contains(service)) {
-            executor.submit(new ServiceWatcher(service, revision + 1));
+            serviceWatcher.put(service, executor.submit(new ServiceWatcher(service, revision + 1)));
             imported.add(service);
         }
     }
 
     @Override
     public void unDiscovery(Service service) throws Exception {
-
+        Future<?> serviceWatcherFuture = serviceWatcher.remove(service);
+        if (serviceWatcherFuture != null) {
+            serviceWatcherFuture.cancel(true);
+        }
+        imported.remove(service);
     }
 
     @Override
@@ -194,6 +201,17 @@ public class EtcdContext implements Registry {
     @Override
     public void onRefreshEvent(ContextRefreshedEvent event) {
 
+    }
+
+    @Override
+    public void demote() throws Exception {
+        this.instances.forEach((key, serviceInstance) -> {
+            try {
+                export(key, new ZkSerial(new ServerHost.Builder(serviceInstance.host()).setPriority(0).toServerHost(), serviceInstance));
+            } catch (Exception e) {
+                EtcdContext.LOGGER.error("Demote service failed for " + serviceInstance.toString() + ", message=" + e.getMessage(), e);
+            }
+        });
     }
 
     private String key(Service service) {
@@ -257,7 +275,7 @@ public class EtcdContext implements Registry {
                         }
                     }
                 } catch (Exception e) {
-                    EtcdContext.LOGGER.error("service watcher failed for " + service.toString() + ", message=" + e.getMessage());
+                    EtcdContext.LOGGER.error("Service watcher failed for " + service.toString() + ", message=" + e.getMessage(), e);
                 }
             }
             EtcdContext.LOGGER.info("Watcher thread shutdown for " + service.toString());
@@ -303,6 +321,4 @@ public class EtcdContext implements Registry {
             }
         }
     }
-
-
 }
