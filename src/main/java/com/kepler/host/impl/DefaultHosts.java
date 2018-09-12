@@ -84,7 +84,10 @@ public class DefaultHosts implements Hosts {
 	public void remove(Host host) {
 		synchronized (this) {
 			// 从Host&&Tag&Address删除(运行时Host)或从Ban||Waiting删除(待连接Host)
-			if (this.remove4active(host) || this.remove4wait(host) || this.remove4ban(host)) {
+			boolean remove4active = this.remove4active(host);
+			boolean remove4wait = this.remove4wait(host);
+			boolean remove4ban = this.remove4ban(host);
+			if (remove4active || remove4wait || remove4ban) {
 				DefaultHosts.LOGGER.warn(this.detail(host, "removed"));
 			}
 		}
@@ -125,7 +128,9 @@ public class DefaultHosts implements Hosts {
 	public boolean ban(Host host) {
 		synchronized (this) {
 			// 从Hosts&&Tags&Address移除或从Waiting(运行时Host)移除
-			if ((this.hosts.remove(host) && this.tags.remove(host)) || this.waiting.remove(host)) {
+			boolean removeActive = this.hosts.remove(host) && this.tags.remove(host);
+			boolean removeWaiting = this.waiting.remove(host);
+			if (removeActive || removeWaiting) {
 				this.sids.remove(host);
 				this.bans.add(host);
 				DefaultHosts.LOGGER.warn(this.detail(host, "baned"));
