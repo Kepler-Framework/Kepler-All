@@ -3,6 +3,7 @@ package com.kepler.registry.etcd;
 import com.coreos.jetcd.Watch;
 import com.coreos.jetcd.data.KeyValue;
 import com.coreos.jetcd.kv.GetResponse;
+import com.coreos.jetcd.kv.PutResponse;
 import com.coreos.jetcd.watch.WatchEvent;
 import com.google.common.collect.Lists;
 import com.kepler.config.Profile;
@@ -27,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * etcd注册中心
@@ -45,7 +48,7 @@ public class EtcdContext implements Registry, Demotion {
     /**
      * Watcher 线程数
      */
-    private static final int WATCHER_THREAD = PropertiesUtils.get(EtcdContext.class.getName().toLowerCase() + ".watcher_thread", 100);
+    private static final int WATCHER_THREAD = PropertiesUtils.get(EtcdContext.class.getName().toLowerCase() + ".watcher_thread", 200);
 
     /**
      * 是否发布
@@ -75,17 +78,19 @@ public class EtcdContext implements Registry, Demotion {
     /**
      * 需发布服务
      */
-    volatile private Map<String, ServiceInstance> instances = new ConcurrentHashMap<>();
+    private final Map<String, ServiceInstance> instances = new ConcurrentHashMap<>();
 
     /**
      * 待发布服务
      */
-    volatile private Map<String, ServiceInstance> retry = new ConcurrentHashMap<>();
+    private final Map<String, ServiceInstance> retry = new ConcurrentHashMap<>();
 
     /**
      * 已导入服务
      */
     private final Set<Service> imported = new CopyOnWriteArraySet<>();
+
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     private final ImportedListener listener;
 
@@ -135,7 +140,7 @@ public class EtcdContext implements Registry, Demotion {
         // 存入etcd
         String key = key(service);
         this.instances.put(key, serial);
-        if (!export(key, serial)) {
+        if (!export(key, serial, true)) {
             this.retry.put(key, serial);
         }
         EtcdContext.LOGGER.info("Export service to etcd: " + service + " ... ");
@@ -144,9 +149,19 @@ public class EtcdContext implements Registry, Demotion {
     @Override
     public void unRegistration(Service service) throws Exception {
         String key = key(service);
-        this.retry.remove(key);
-        this.etcdClient.delete(key);
-        EtcdContext.LOGGER.info("Logout service: " + service + " ... ");
+        try {
+            lock.writeLock().lock();
+
+            this.instances.remove(key);
+            this.retry.remove(key);
+            this.etcdClient.delete(key);
+
+            EtcdContext.LOGGER.info("Logout service: " + service + " ... ");
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     @Override
@@ -179,7 +194,7 @@ public class EtcdContext implements Registry, Demotion {
             });
         }
         if (!imported.contains(service)) {
-            serviceWatcher.put(service, executor.submit(new ServiceWatcher(service, revision + 1)));
+            serviceWatcher.put(service, executor.submit(new ImportServiceWatcher(service, revision + 1)));
             imported.add(service);
         }
     }
@@ -207,7 +222,7 @@ public class EtcdContext implements Registry, Demotion {
     public void demote() throws Exception {
         this.instances.forEach((key, serviceInstance) -> {
             try {
-                export(key, new ZkSerial(new ServerHost.Builder(serviceInstance.host()).setPriority(0).toServerHost(), serviceInstance));
+                export(key, new ZkSerial(new ServerHost.Builder(serviceInstance.host()).setPriority(0).toServerHost(), serviceInstance), false);
             } catch (Exception e) {
                 EtcdContext.LOGGER.error("Demote service failed for " + serviceInstance.toString() + ", message=" + e.getMessage(), e);
             }
@@ -222,14 +237,23 @@ public class EtcdContext implements Registry, Demotion {
         return EtcdContext.ROOT + "/" + service.service() + "/" + service.versionAndCatalog();
     }
 
-    private boolean export(String key, ServiceInstance serial) throws Exception {
-        return this.etcdClient.put(key, serialize(serial)).handle((r, e) -> {
+    private boolean export(String key, ServiceInstance serial, boolean watch) throws Exception {
+        PutResponse putResponse = this.etcdClient.put(key, serialize(serial)).handle((r, e) -> {
             if (e != null) {
                 EtcdContext.LOGGER.error("Failed to put etcd for " + key + ", message = " + e.getMessage(), e);
-                return false;
+                return null;
             }
-            return true;
+            return r;
         }).get();
+        if (putResponse == null) {
+            return false;
+        }
+
+        if (watch) {
+            executor.submit(new ExportServiceWatcher(key, serial, putResponse.getHeader().getRevision() + 1));
+        }
+
+        return true;
     }
 
     private ServiceInstance deSerialize(byte[] bytes) {
@@ -240,13 +264,59 @@ public class EtcdContext implements Registry, Demotion {
         return this.serials.def4output().output(serial, ServiceInstance.class);
     }
 
-    private class ServiceWatcher implements Runnable {
+    private class ExportServiceWatcher implements Runnable {
+
+        private String key;
+
+        private ServiceInstance serial;
+
+        private long revision;
+
+        ExportServiceWatcher(String key, ServiceInstance serial, long revision) {
+            this.key = key;
+            this.serial = serial;
+            this.revision = revision;
+        }
+
+        @Override
+        public void run() {
+            Watch.Watcher watcher = EtcdContext.this.etcdClient.watch(key, revision);
+            OUTER:
+            while (!EtcdContext.this.shutdown) {
+                try {
+                    for (WatchEvent watchEvent : watcher.listen().getEvents()) {
+                        KeyValue prev = watchEvent.getPrevKV();
+                        switch (watchEvent.getEventType()) {
+                            case DELETE:
+                                try {
+                                    EtcdContext.this.lock.readLock().lock();
+
+                                    if (EtcdContext.this.instances.containsKey(key)) {
+                                        EtcdContext.this.retry.put(key, serial);
+                                    }
+                                } finally {
+                                    EtcdContext.this.lock.readLock().unlock();
+                                }
+                                break OUTER;
+                            default:
+                                break;
+                        }
+                    }
+                } catch (Exception e) {
+                    EtcdContext.LOGGER.error("Export service watcher failed for " + serial.toString() + ", message=" + e.getMessage(), e);
+                }
+            }
+            EtcdContext.LOGGER.info("Export service watcher thread shutdown for " + serial.toString());
+        }
+    }
+
+    private class ImportServiceWatcher implements Runnable {
 
         private Service service;
 
         private long revision;
 
-        ServiceWatcher(Service service, long revision) {
+        ImportServiceWatcher(Service service, long revision) {
             this.service = service;
             this.revision = revision;
         }
@@ -257,10 +327,10 @@ public class EtcdContext implements Registry, Demotion {
             while (!EtcdContext.this.shutdown) {
                 try {
                     for (WatchEvent watchEvent : watcher.listen().getEvents()) {
+                        KeyValue current = watchEvent.getKeyValue();
+                        KeyValue prev = watchEvent.getPrevKV();
                         switch (watchEvent.getEventType()) {
                             case PUT:
-                                KeyValue current = watchEvent.getKeyValue();
-                                KeyValue prev = watchEvent.getPrevKV();
                                 if (prev.getKey().getBytes().length == 0) {
                                     EtcdContext.this.listener.add(deSerialize(current.getValue().getBytes()));
                                 } else {
@@ -268,20 +338,19 @@ public class EtcdContext implements Registry, Demotion {
                                 }
                                 break;
                             case DELETE:
-                                EtcdContext.this.listener.delete(deSerialize(watchEvent.getPrevKV().getValue().getBytes()));
+                                EtcdContext.this.listener.delete(deSerialize(prev.getValue().getBytes()));
                                 break;
                             default:
                                 break;
                         }
                     }
                 } catch (Exception e) {
-                    EtcdContext.LOGGER.error("Service watcher failed for " + service.toString() + ", message=" + e.getMessage(), e);
+                    EtcdContext.LOGGER.error("Import service watcher failed for " + service.toString() + ", message=" + e.getMessage(), e);
                 }
             }
-            EtcdContext.LOGGER.info("Watcher thread shutdown for " + service.toString());
+            EtcdContext.LOGGER.info("Import service watcher thread shutdown for " + service.toString());
         }
     }
-
 
     private class KeepAlive implements Runnable {
 
@@ -298,7 +367,7 @@ public class EtcdContext implements Registry, Demotion {
                     etcdClient.leaseAndKeepAlive();
                     instances.keySet().forEach(key -> {
                         try {
-                            export(key, instances.get(key));
+                            export(key, instances.get(key), true);
                         } catch (Exception e) {
                             EtcdContext.LOGGER.error(e.getMessage(), e);
                         }
@@ -306,7 +375,7 @@ public class EtcdContext implements Registry, Demotion {
                 } else {
                     retry.keySet().forEach(key -> {
                         try {
-                            if (export(key, retry.get(key))) {
+                            if (export(key, retry.get(key), true)) {
                                 retry.remove(key);
                             }
                         } catch (Exception e) {

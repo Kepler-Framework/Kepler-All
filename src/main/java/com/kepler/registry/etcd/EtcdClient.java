@@ -67,9 +67,7 @@ public class EtcdClient implements AutoCloseable {
     }
 
     public Watch.Watcher watch(String prefix) {
-        ByteSequence prefixByteSequence = ByteSequence.fromString(prefix);
-        return watchClient.watch(prefixByteSequence,
-                WatchOption.newBuilder().withPrefix(prefixByteSequence).withPrevKV(true).build());
+        return watch(prefix, 0L);
     }
 
     public Watch.Watcher watch(String prefix, long revision) {
