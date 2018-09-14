@@ -2,6 +2,8 @@ package com.kepler.connection.impl;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
+import com.kepler.KeplerRoutingException;
+import com.kepler.invoker.Invoker;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -316,7 +318,11 @@ public class DefaultServer {
 					// 线程Copy Header, 用于嵌套服务调用时传递
 					DefaultServer.this.headers.set(this.request.headers());
 					// 获取服务并执行
-					this.response = DefaultServer.this.response.factory(this.request.serial()).response(this.request.ack(), DefaultServer.this.exported.get(this.request.service()).invoke(this.request, null), this.request.serial());
+					Invoker invoker = DefaultServer.this.exported.get(this.request.service());
+					if(invoker == null) {
+						throw new KeplerRoutingException("None invoker for " + this.request.service());
+					}
+					this.response = DefaultServer.this.response.factory(this.request.serial()).response(this.request.ack(), invoker.invoke(this.request, null), this.request.serial());
 					return this;
 				} catch (Throwable e) {
 					this.response = DefaultServer.this.response.factory(this.request.serial()).throwable(this.request.ack(), e, this.request.serial());
