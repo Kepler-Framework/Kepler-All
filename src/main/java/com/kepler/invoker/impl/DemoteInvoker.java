@@ -48,14 +48,14 @@ public class DemoteInvoker implements Invoker {
 	@Override
 	public Object invoke(Request request, Method method) throws Throwable {
 		// 开启Demote则尝试
-		return PropertiesUtils.profile(this.profile.profile(request.service()), DemoteInvoker.DEMOTE_KEY, DemoteInvoker.DEMOTE_DEF) ? this.demote(request) : Invoker.EMPTY;
+		return PropertiesUtils.profile(this.profile.profile(request.service()), DemoteInvoker.DEMOTE_KEY, DemoteInvoker.DEMOTE_DEF) ? this.demote(request, method) : Invoker.EMPTY;
 	}
 
-	private Object demote(Request request) throws Exception {
+	private Object demote(Request request, Method method) throws Exception {
 		Mocker mocker = this.mocker.get(request.service());
 		if (mocker != null) {
 			this.quality.demoting();
-			return mocker.mock(request);
+			return mocker.mock(request, method);
 		}
 		throw new KeplerLocalException("Can not found mock service for Service: " + request.service());
 	}

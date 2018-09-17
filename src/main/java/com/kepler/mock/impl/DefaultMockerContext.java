@@ -40,6 +40,8 @@ public class DefaultMockerContext implements ApplicationContextAware, Initializi
 
 	private ApplicationContext applicationContext;
 
+	private DefaultMocker defaultMocker;
+
 	public DefaultMockerContext(Profile profile) {
 		super();
 		this.profile = profile;
@@ -63,7 +65,12 @@ public class DefaultMockerContext implements ApplicationContextAware, Initializi
 		if (mocker != null) {
 			Exception exception = new KeplerRoutingException("Using mocker for " + service);
 			DefaultMockerContext.LOGGER.error(exception.getMessage(), exception);
-		}
+		} else if (this.defaultMocker.actived()){
+		    mocker = this.defaultMocker;
+            Exception exception = new KeplerRoutingException("Using default mocker for " + service);
+            DefaultMockerContext.LOGGER.error(exception.getMessage(), exception);
+        }
+
 		return mocker;
 	}
 
@@ -78,7 +85,8 @@ public class DefaultMockerContext implements ApplicationContextAware, Initializi
 		for (ServiceMocker mocker : mockers.values()) {
 			this.mockers.put(mocker.support().getName(), mocker);
 		}
-	}
+        this.defaultMocker = this.applicationContext.getBean(DefaultMocker.class);
+    }
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {

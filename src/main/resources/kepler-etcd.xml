@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
-    http://www.springframework.org/schema/util
-	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-	<bean id = "kepler.etcd.client" class="com.kepler.registry.etcd.EtcdClientFactory" />
+    <bean id="kepler.etcd.client" class="com.kepler.etcd.EtcdClientFactory"/>
 
-	<bean id="kepler.etcd.context" class="com.kepler.registry.etcd.EtcdContext" init-method="init" destroy-method="destroy">
-		<constructor-arg ref="kepler.zookeeper.listener" />
-		<constructor-arg ref="kepler.config.profile" />
-		<constructor-arg ref="kepler.host.context" />
-		<constructor-arg ref="kepler.host.local" />
-		<constructor-arg ref="kepler.serials" />
-		<constructor-arg ref="kepler.etcd.client"/>
-	</bean>
+    <bean id="kepler.etcd.context" class="com.kepler.registry.etcd.EtcdContext" init-method="init"
+          destroy-method="destroy">
+        <constructor-arg ref="kepler.zookeeper.listener"/>
+        <constructor-arg ref="kepler.config.profile"/>
+        <constructor-arg ref="kepler.host.context"/>
+        <constructor-arg ref="kepler.host.local"/>
+        <constructor-arg ref="kepler.serials"/>
+        <constructor-arg ref="kepler.etcd.client"/>
+    </bean>
+
+    <bean id="kepler.etcd.configmanager" class="com.kepler.config.manager.EtcdConfigManager" init-method="init"
+          destroy-method="destroy">
+        <constructor-arg ref="kepler.etcd.client"/>
+    </bean>
 </beans>

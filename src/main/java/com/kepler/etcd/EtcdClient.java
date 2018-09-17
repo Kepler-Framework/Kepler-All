@@ -1,4 +1,4 @@
-package com.kepler.registry.etcd;
+package com.kepler.etcd;
 
 import com.coreos.jetcd.Client;
 import com.coreos.jetcd.KV;
