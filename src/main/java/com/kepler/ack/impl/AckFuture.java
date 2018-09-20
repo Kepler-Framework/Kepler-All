@@ -342,6 +342,10 @@ public class AckFuture implements Future<Object>, Runnable, Ack {
 			if (!AckFuture.CORRECT_ACTIVED) {
 				return response_source;
 			}
+			if (response_source == null) {
+				return response_source;
+			}
+
 			// 获取实际响应
 			Object response_actual = MockerResponse.class.isAssignableFrom(response_source.getClass()) ? MockerResponse.class.cast(response_source).response() : response_source;
 			// Guard case2, 返回为空
