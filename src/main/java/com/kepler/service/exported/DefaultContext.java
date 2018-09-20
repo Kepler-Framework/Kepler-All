@@ -98,7 +98,7 @@ public class DefaultContext implements ExportedContext, ExportedServices, Export
 
 		@Override
 		public Object invoke(Request request, Method method) throws Throwable {
-			return this.mocker.mock(request, method);
+			return this.mocker.mock(request);
 		}
 
 		@Override

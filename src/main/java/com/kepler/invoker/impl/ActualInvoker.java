@@ -1,5 +1,10 @@
 package com.kepler.invoker.impl;
 
+import java.lang.reflect.Method;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.kepler.KeplerErrorException;
 import com.kepler.KeplerRemoteException;
 import com.kepler.KeplerRoutingException;
@@ -18,10 +23,6 @@ import com.kepler.protocol.Request;
 import com.kepler.router.Router;
 import com.kepler.service.ExportedContext;
 import com.kepler.trace.TraceCauses;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import java.lang.reflect.Method;
 
 /**
  * @author kim 2015年7月8日
@@ -127,13 +128,8 @@ public class ActualInvoker implements Invoker {
 			return this.channels.get(_host).invoke(_request, method);
 		} catch (KeplerRoutingException exception) {
 			// 存在Mocker则使用Mocker, 否则重试
-            Mocker mocker = this.mocker.get(request.service());
-            if (mocker != null) {
-                Object mock = mocker.mock(request, method);
-                return mock != Invoker.EMPTY ? mock : this.retry(request, method, timestamp, exception);
-            } else {
-                return this.retry(request, method, timestamp, exception);
-            }
+			Mocker mocker = this.mocker.get(request.service());
+			return mocker != null ? mocker.mock(request) : this.retry(request, method, timestamp, exception);
 		} catch (Throwable throwable) {
 			this.trace.put(request, throwable);
 			throw throwable;

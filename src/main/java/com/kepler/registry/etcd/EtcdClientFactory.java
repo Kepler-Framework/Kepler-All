@@ -1,4 +1,4 @@
-package com.kepler.etcd;
+package com.kepler.registry.etcd;
 
 import com.kepler.config.PropertiesUtils;
 import org.springframework.beans.factory.FactoryBean;
@@ -38,6 +38,6 @@ public class EtcdClientFactory implements FactoryBean<EtcdClient> {
 
     @Override
     public boolean isSingleton() {
-        return false;
+        return true;
     }
 }

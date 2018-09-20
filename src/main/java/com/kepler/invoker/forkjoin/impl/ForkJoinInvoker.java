@@ -1,5 +1,14 @@
 package com.kepler.invoker.forkjoin.impl;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.util.Assert;
+
 import com.kepler.KeplerRoutingException;
 import com.kepler.KeplerValidateException;
 import com.kepler.annotation.ForkJoin;
@@ -19,18 +28,10 @@ import com.kepler.protocol.RequestFactories;
 import com.kepler.service.Imported;
 import com.kepler.service.Quiet;
 import com.kepler.service.Service;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.util.Assert;
-
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * ForkJoin仅消耗1个Threshold限制, 强依赖Headers.ENABLED
- *
+ * 
  * @author kim 2016年1月15日
  */
 public class ForkJoinInvoker implements Imported, Invoker {
@@ -124,29 +125,23 @@ public class ForkJoinInvoker implements Imported, Invoker {
 
 	/**
 	 * Mock
-	 *
+	 * 
 	 * @param request
-	 * @param method
 	 * @param exception
 	 * @return
 	 */
-	private Object mock(Request request, Method method, KeplerRoutingException exception) throws Exception {
+	private Object mock(Request request, KeplerRoutingException exception) throws Exception {
 		Mocker mocker = this.mocker.get(request.service());
 		if (mocker != null) {
-            Object mock = mocker.mock(request, method);
-            if (mock != Invoker.EMPTY) {
-                return mock;
-            } else {
-                throw exception;
-            }
-        } else {
+			return mocker.mock(request);
+		} else {
 			throw exception;
 		}
 	}
 
 	/**
 	 * 获取Forker策略
-	 *
+	 * 
 	 * @param name
 	 * @param request
 	 * @return
@@ -161,7 +156,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 
 	/**
 	 * 获取Joiner策略
-	 *
+	 * 
 	 * @param name
 	 * @param request
 	 * @return
@@ -176,7 +171,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 
 	/**
 	 * 获取请求标签组
-	 *
+	 * 
 	 * @param request
 	 * @return
 	 */
@@ -187,7 +182,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 
 	/**
 	 * 分发请求
-	 *
+	 * 
 	 * @param request
 	 * @return
 	 */
@@ -201,13 +196,13 @@ public class ForkJoinInvoker implements Imported, Invoker {
 			return new ForkJoinProcessor(joiner).fork(request, method, forker, tags).value();
 		} catch (KeplerRoutingException exception) {
 			// 失败则尝试Mock
-			return this.mock(request, method, exception);
+			return this.mock(request, exception);
 		}
 	}
 
 	/**
 	 * FK主流程
-	 *
+	 * 
 	 * @author KimShen
 	 *
 	 */
@@ -249,7 +244,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 
 		/**
 		 * 归并结果
-		 *
+		 * 
 		 * @return
 		 */
 		private Object join() {
@@ -262,7 +257,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 
 		/**
 		 * 校验, 如果存在异常则抛出
-		 *
+		 * 
 		 * @return
 		 * @throws Throwable
 		 */
@@ -356,7 +351,7 @@ public class ForkJoinInvoker implements Imported, Invoker {
 
 		/**
 		 * 尝试中断底层未完成AckFuture
-		 *
+		 * 
 		 * @return
 		 */
 		public ForkerRunnable release() {

@@ -8,7 +8,6 @@ import com.coreos.jetcd.watch.WatchEvent;
 import com.google.common.collect.Lists;
 import com.kepler.config.Profile;
 import com.kepler.config.PropertiesUtils;
-import com.kepler.etcd.EtcdClient;
 import com.kepler.host.Host;
 import com.kepler.host.HostsContext;
 import com.kepler.host.impl.ServerHost;

@@ -1,22 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans
-	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+    http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-    <alias name="kepler.mock.context.chain" alias="kepler.mock.context"/>
+	<alias name="kepler.mock.context.chain" alias="kepler.mock.context"/>
 
-    <bean id="kepler.mock.context.chain" class="com.kepler.mock.impl.ChainedMockerContext"/>
+	<bean id="kepler.mock.context.chain" class="com.kepler.mock.impl.ChainedMockerContext" />
 
-    <bean id="kepler.mock.context.default" class="com.kepler.mock.impl.DefaultMockerContext">
-        <constructor-arg ref="kepler.config.profile"/>
-    </bean>
+	<bean id="kepler.mock.context.default" class="com.kepler.mock.impl.DefaultMockerContext">
+		<constructor-arg ref="kepler.config.profile" />
+	</bean>
 
-    <bean class="com.kepler.mock.impl.DefaultMockerContextConfig">
-        <constructor-arg ref="kepler.mock.context.default"/>
-    </bean>
-
-    <bean class="com.kepler.mock.impl.DefaultMocker">
-        <constructor-arg ref="kepler.etcd.configmanager"/>
-    </bean>
+	<bean class="com.kepler.mock.impl.DefaultMockerContextConfig">
+		<constructor-arg ref="kepler.mock.context.default" />
+	</bean>
 
 </beans>
