@@ -1,6 +1,7 @@
 package com.kepler.thread;
 
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -9,8 +10,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.FactoryBean;
 
 import com.kepler.config.PropertiesUtils;
-
-import io.netty.util.concurrent.DefaultThreadFactory;
 
 /**
  * @author kim 2015年7月16日
@@ -63,7 +62,7 @@ public class ThreadFactory extends ThreadShutdown implements FactoryBean<ThreadP
 		ThreadFactory.LOGGER.info("Thread max: " + ThreadFactory.THREAD_MAX);
 		ThreadFactory.LOGGER.info("Thread core: " + ThreadFactory.THREAD_CORE);
 		ThreadFactory.LOGGER.info("Thread queue: " + ThreadFactory.THREAD_QUEUE);
-		this.threads = new ThreadPoolExecutor(ThreadFactory.THREAD_CORE, ThreadFactory.THREAD_MAX, ThreadFactory.THREAD_KEEPALIVE, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(ThreadFactory.THREAD_QUEUE), new DefaultThreadFactory(ThreadFactory.THREAD_POOL), new ThreadPoolExecutor.CallerRunsPolicy());
+		this.threads = new ThreadPoolExecutor(ThreadFactory.THREAD_CORE, ThreadFactory.THREAD_MAX, ThreadFactory.THREAD_KEEPALIVE, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(ThreadFactory.THREAD_QUEUE), Executors.defaultThreadFactory(), new ThreadPoolExecutor.CallerRunsPolicy());
 	}
 
 	/**
