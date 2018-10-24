@@ -45,6 +45,9 @@ public class TagFilter implements Filter {
 
 	private void tag(ServletRequest request) {
 		String tag = HttpServletRequest.class.cast(request).getParameter(TagFilter.KEY);
+		if (StringUtils.isEmpty(tag)) {
+			tag = HttpServletRequest.class.cast(request).getHeader(TagFilter.KEY);
+		}
 		// 每次请求均重置TAG
 		this.context.get().put(Host.TAG_KEY, StringUtils.hasText(tag) ? tag : Host.TAG_DEF);
 	}
