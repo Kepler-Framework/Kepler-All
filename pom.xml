@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.kepler</groupId>
 	<artifactId>kepler-all</artifactId>
-	<version>0.0.13-SNAPSHOT</version>
+	<version>0.0.14</version>
 	<packaging>jar</packaging>
 	<name>kepler</name>
 	<url>http://maven.apache.org</url>
@@ -16,6 +16,11 @@
 	</properties>
 
 	<dependencies>
+		<dependency>
+			<groupId>com.kepler</groupId>
+			<artifactId>kepler-annotation</artifactId>
+			<version>0.0.14</version>
+		</dependency>
 		<!-- Netty -->
 		<dependency>
 			<groupId>io.netty</groupId>
@@ -45,13 +50,6 @@
 			<artifactId>validation-api</artifactId>
 			<version>1.0.0.GA</version>
 			<scope>provided</scope>
-		</dependency>
-		<!-- Hessian -->
-		<dependency>
-			<groupId>com.caucho</groupId>
-			<artifactId>hessian</artifactId>
-			<version>4.0.51</version>
-			<scope>compile</scope>
 		</dependency>
 		<!-- AOP -->
 		<dependency>
