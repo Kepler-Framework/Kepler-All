@@ -46,7 +46,7 @@ public class TraceProcessor implements HeadersProcessor {
 		// 创建SPAN ID
 		headers.put(Trace.SPAN, this.generator.toString(this.generator.generate()));
 		// 创建Trace时间
-		headers.putIfAbsent(Trace.START_TIME, String.valueOf(System.currentTimeMillis()));
+		headers.put(Trace.START_TIME, String.valueOf(System.currentTimeMillis()));
 	}
 
 	private void process4trace(Headers headers) {
