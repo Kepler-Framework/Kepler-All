@@ -57,7 +57,7 @@ import io.netty.util.AttributeKey;
 
 /**
  * Client 2 Service Connection
- * 
+ *
  * @author kim 2015年7月10日
  */
 public class DefaultConnect implements Connect {
@@ -99,6 +99,11 @@ public class DefaultConnect implements Connect {
 	 * 是否允许本地回路
 	 */
 	private static final boolean ESTABLISH_LOOP = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".establish_loop", true);
+
+	/**
+	 * 作为客户端与服务端连接错误时是否打印异常信息
+	 */
+	private static final boolean ESTABLISH_QUIET = PropertiesUtils.get(DefaultConnect.class.getName().toLowerCase() + ".establish_quiet", false);
 
 	/**
 	 * 是否使用共享Shared EventLoopGroup
@@ -209,7 +214,7 @@ public class DefaultConnect implements Connect {
 
 	/**
 	 * 关闭共享EventLoopGroup(如果开启)
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	private void release4shared() throws Exception {
@@ -221,7 +226,7 @@ public class DefaultConnect implements Connect {
 
 	/**
 	 * 如果非共享EventLoopGroup则关闭当前EventLoopGroup
-	 * 
+	 *
 	 * @param boot
 	 * @param host
 	 * @throws Exception
@@ -236,7 +241,7 @@ public class DefaultConnect implements Connect {
 
 	/**
 	 * 释放通道(异步), 并将主机加入Ban名单后重连
-	 * 
+	 *
 	 * @param host
 	 * @throws Exception
 	 */
@@ -283,7 +288,7 @@ public class DefaultConnect implements Connect {
 
 	/**
 	 * 如果开启共享则使用共享
-	 * 
+	 *
 	 * @return
 	 */
 	private EventLoopGroup eventloop() {
@@ -297,7 +302,11 @@ public class DefaultConnect implements Connect {
 			invoker.bootstrap().group(this.eventloop()).option(ChannelOption.CONNECT_TIMEOUT_MILLIS, DefaultConnect.TIMEOUT).channelFactory(DefaultChannelFactory.INSTANCE_CLIENT).handler(DefaultConnect.this.inits.factory(invoker)).remoteAddress(remote).connect().sync();
 			// 连接成功, 加入通道. 异常则跳过
 		} catch (Throwable e) {
-			DefaultConnect.LOGGER.info("Connect " + invoker.remote().address() + "][sid=" + invoker.remote().sid() + "] failed ...", e);
+			if (DefaultConnect.ESTABLISH_QUIET) {
+			    DefaultConnect.LOGGER.info("Connect " + invoker.remote().address() + "][sid=" + invoker.remote().sid() + "] failed ..." + e.getMessage());
+			} else {
+				DefaultConnect.LOGGER.info("Connect " + invoker.remote().address() + "][sid=" + invoker.remote().sid() + "] failed ...", e);
+			}
 			// 关闭并尝试重连
 			this.context.ban(invoker.remote());
 			invoker.releaseAtOnce();
@@ -436,7 +445,7 @@ public class DefaultConnect implements Connect {
 
 		/**
 		 * 回调, 唤醒线程
-		 * 
+		 *
 		 * @param executor
 		 * @param response
 		 * @param acks
@@ -515,7 +524,7 @@ public class DefaultConnect implements Connect {
 
 	/**
 	 * 重连线程
-	 * 
+	 *
 	 * @author kim 2015年7月20日
 	 */
 	private class EstablishRunnable implements Runnable {
