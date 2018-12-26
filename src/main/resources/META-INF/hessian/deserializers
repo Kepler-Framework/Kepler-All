@@ -1,1 +1,2 @@
 java.math.BigDecimal=com.kepler.com.caucho.hessian.io.BigDecimalDeserializer
+java.time.LocalDateTime=com.kepler.com.caucho.hessian.io.LocalDateTimeDeserializer

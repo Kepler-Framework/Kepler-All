@@ -2,14 +2,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.kepler</groupId>
 	<artifactId>kepler-all</artifactId>
-	<version>0.0.15</version>
+	<version>0.0.16-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>kepler</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>
 		<maven.project.name>kepler-all</maven.project.name>
-		<maven.project.compile.version>1.7</maven.project.compile.version>
+		<maven.project.compile.version>1.8</maven.project.compile.version>
 		<maven.project.jackson.version>2.4.2</maven.project.jackson.version>
 		<maven.project.spring.version>4.2.4.RELEASE</maven.project.spring.version>
 		<maven.project.build.sourceEncoding>UTF-8</maven.project.build.sourceEncoding>
@@ -151,4 +151,5 @@
 			</plugin>
 		</plugins>
 	</build>
+	
 </project>
