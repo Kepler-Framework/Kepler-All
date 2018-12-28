@@ -10,6 +10,27 @@ import java.time.ZoneOffset;
  */
 public class LocalDateTimeDeserializer extends AbstractDeserializer {
 
+	public Object readMap(AbstractHessianInput in) throws IOException {
+
+		long initValue = Long.MIN_VALUE;
+		while (!in.isEnd()) {
+
+			String key = in.readString();
+			if (key.equals("value")) {
+				initValue = in.readUTCDate();
+			} else {
+				in.readObject();
+			}
+		}
+
+		in.readMapEnd();
+
+		Object value = create(initValue);
+		in.addRef(value);
+
+		return value;
+	}
+
 	@Override
 	public Object readObject(AbstractHessianInput in, Object[] fields) throws IOException {
 		String[] fieldNames = (String[]) fields;
@@ -33,7 +54,8 @@ public class LocalDateTimeDeserializer extends AbstractDeserializer {
 			throw new IOException(LocalDateTime.class + " expects name.");
 		}
 		try {
-			return LocalDateTime.ofEpochSecond(new Long(initValue) / 1000, Integer.valueOf(String.valueOf(initValue % 1000)) * 1000, ZoneOffset.of("+8"));
+			return LocalDateTime.ofEpochSecond(new Long(initValue) / 1000,
+					Integer.valueOf(String.valueOf(initValue % 1000)) * 1000, ZoneOffset.of("+8"));
 		} catch (Exception e) {
 			throw new IOExceptionWrapper(e);
 		}
