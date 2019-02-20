@@ -95,13 +95,15 @@ public class ZkFactory implements FactoryBean<ZkClient> {
 	 * 最大重试次数内重试
 	 */
 	public void reset() {
-		for (int times = 0; times < ZkFactory.RETRY_TIMES; times++) {
-			try {
-				this.reset(times);
-				// 成功(无异常)则返回否则继续重试
-				return;
-			} catch (Throwable e) {
-				ZkFactory.LOGGER.error(e.getMessage(), e);
+		synchronized (this) {
+			for (int times = 0; times < ZkFactory.RETRY_TIMES; times++) {
+				try {
+					this.reset(times);
+					// 成功(无异常)则返回否则继续重试
+					return;
+				} catch (Throwable e) {
+					ZkFactory.LOGGER.error(e.getMessage(), e);
+				}
 			}
 		}
 	}
